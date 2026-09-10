@@ -112,7 +112,7 @@ export default function Home() {
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
       {/* Fullscreen Parallax Hero */}
-      <section className="relative h-screen flex items-center overflow-hidden">
+      <section className="relative h-screen flex items-center overflow-hidden bg-zinc-950">
         <div className="absolute inset-0 z-0">
           <div
             className="w-full h-full relative transition-transform duration-[12s] scale-105"
@@ -123,11 +123,13 @@ export default function Home() {
             <Image
               fill
               priority
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbFjeCx7zKrtZdQ72tcNLVmphH8CwjUvRCA48s1Xry0McJ_Choy9QUYYnI5HNfYxa3TWSAOXJgOkcmspEHon-SkD56zgeuCoGvaVyPIuVts1wsyGRR86o7UiMV6z9qMDCIvG_ADxWjLKWWSlg6h9mnyUc0llDL-rxEk4PzRQ-TkQ1-jWYfSa2L9pewQXHH1yKbBz6EwJkCByK0gibnFXRAWeshbLcMuVEqv3rjINjsDyag0R5z4ywAOlEzqbbGnOGrDGiBVl3mtgkQ"
-              alt="MARK Architects Studio & Structures"
-              className="object-cover brightness-[0.45] contrast-[1.05]"
+              src="/images/Front Elevation 3D (Exterior Render).png"
+              alt="Front Elevation 3D Exterior Render - MARK Architects"
+              className="object-cover object-top brightness-[0.45] contrast-[1.05] pt-10 md:pt-10"
               sizes="100vw"
             />
+            {/* Soft gradient blend for top padding and bottom transition */}
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-transparent to-black/60 pointer-events-none" />
           </div>
         </div>
 
