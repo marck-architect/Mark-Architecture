@@ -1,26 +1,29 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { useStore } from '@/hooks/useStore';
-import { cn } from '@/lib/utils';
+import React from "react";
+import Link from "next/link";
+import { useStore } from "@/hooks/useStore";
+import { cn } from "@/lib/utils";
 
 export const MobileMenu: React.FC = () => {
   const { mobileMenuOpen, setMobileMenuOpen } = useStore();
 
   const menuLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'Portfolio', href: '/portfolio' },
-    { label: 'Services', href: '/services' },
-    { label: 'Collection', href: '/collection' },
-    { label: 'Consultation', href: '/consultation' },
+    { label: "Home", href: "/" },
+    { label: "About", href: "/about" },
+    { label: "Portfolio", href: "/portfolio" },
+    { label: "Services", href: "/services" },
+    { label: "Collection", href: "/collection" },
+    { label: "Consultation", href: "/consultation" },
   ];
 
   return (
     <div
       className={cn(
-        'fixed inset-x-0 top-[73px] z-30 border-t border-outline-variant/30 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl px-6 py-8 shadow-xl transition-all duration-300 transform origin-top lg:hidden',
-        mobileMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'
+        "fixed inset-x-0 top-[73px] z-30 border-t border-outline-variant/30 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl px-6 py-8 shadow-xl transition-all duration-300 transform origin-top lg:hidden",
+        mobileMenuOpen
+          ? "scale-y-100 opacity-100"
+          : "scale-y-0 opacity-0 pointer-events-none",
       )}
     >
       <div className="flex flex-col gap-5">

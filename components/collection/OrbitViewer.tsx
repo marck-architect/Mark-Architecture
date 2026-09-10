@@ -1,37 +1,40 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Rotate3d, Move } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import Image from 'next/image';
+import React, { useState, useRef, useEffect } from "react";
+import { ZoomIn, ZoomOut, RotateCcw, Rotate3d, Move } from "lucide-react";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
 
-type ProductType = 'lounger' | 'vase';
+type ProductType = "lounger" | "vase";
 
 const products3D = {
   lounger: {
-    title: 'Ethereal Lounger',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBdv45ZiAB-0kcsC7QWcWUYrvqGWOf63PZTgdMoX6CDz8RQuR3IP5kBOZFYn_fYfaZl59P8VTYlL5pXaiaapTdMb0oc8CGnpGAOR7rFgkKi-FAoCLawT7tFuMxDmhS4Ec3tn2of0SdhoNIkL9RAW2QKc9TShvEmO-ob1tGIUlCu1vGjQ6iw3X5INGkJN1NVdwYn8BRqre0VQCmMnCDk0t11Ta60nsbBekThEtDJcwrObL4IK4_z4nlX146QuGXDctGXG_2YzE9E-odI',
-    widthClass: 'w-[75%] md:w-[65%]',
+    title: "Ethereal Lounger",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuBdv45ZiAB-0kcsC7QWcWUYrvqGWOf63PZTgdMoX6CDz8RQuR3IP5kBOZFYn_fYfaZl59P8VTYlL5pXaiaapTdMb0oc8CGnpGAOR7rFgkKi-FAoCLawT7tFuMxDmhS4Ec3tn2of0SdhoNIkL9RAW2QKc9TShvEmO-ob1tGIUlCu1vGjQ6iw3X5INGkJN1NVdwYn8BRqre0VQCmMnCDk0t11Ta60nsbBekThEtDJcwrObL4IK4_z4nlX146QuGXDctGXG_2YzE9E-odI",
+    widthClass: "w-[75%] md:w-[65%]",
     specs: [
-      { name: 'Finish', value: 'Walnut / Ivory' },
-      { name: 'Frames', value: 'Brushed Titanium' },
-      { name: 'Dimensions', value: '180x82x72 cm' },
-    ]
+      { name: "Finish", value: "Walnut / Ivory" },
+      { name: "Frames", value: "Brushed Titanium" },
+      { name: "Dimensions", value: "180x82x72 cm" },
+    ],
   },
   vase: {
-    title: 'Obsidian Vase',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDsCdl0mgaz1yLFj4bsGPi5W8iU8WbI7R_gea2l7KxNuKx0wtEfTJ2EwCEBjYQ_DVbPFh_jS7sbaWv3zWwZvAb6PyQwPCC7DM1w6jn1hYefm9q8VA9zZU2Ih4v9dCjyk8Zfs4VjOdUvRPGTRi1A6fdH6k1jd7bXVxNSAxtwBmPyJK7S1j6jMmkrVGsU-JnDCyM0sMDD6j_mvC3Ms9qbJ3STmeR5Wo2lzxVmB8SncnQcanqUqS1KEEW-DgwFzLNk1M8TTnKm7PwKkJGQ',
-    widthClass: 'w-[45%] md:w-[35%]',
+    title: "Obsidian Vase",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDsCdl0mgaz1yLFj4bsGPi5W8iU8WbI7R_gea2l7KxNuKx0wtEfTJ2EwCEBjYQ_DVbPFh_jS7sbaWv3zWwZvAb6PyQwPCC7DM1w6jn1hYefm9q8VA9zZU2Ih4v9dCjyk8Zfs4VjOdUvRPGTRi1A6fdH6k1jd7bXVxNSAxtwBmPyJK7S1j6jMmkrVGsU-JnDCyM0sMDD6j_mvC3Ms9qbJ3STmeR5Wo2lzxVmB8SncnQcanqUqS1KEEW-DgwFzLNk1M8TTnKm7PwKkJGQ",
+    widthClass: "w-[45%] md:w-[35%]",
     specs: [
-      { name: 'Material', value: 'Obsidian Crystal' },
-      { name: 'Base', value: 'Travertine Stone' },
-      { name: 'Weight', value: '14.2 kg' },
-    ]
-  }
+      { name: "Material", value: "Obsidian Crystal" },
+      { name: "Base", value: "Travertine Stone" },
+      { name: "Weight", value: "14.2 kg" },
+    ],
+  },
 };
 
 export const OrbitViewer: React.FC = () => {
-  const [selectedProduct, setSelectedProduct] = useState<ProductType>('lounger');
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductType>("lounger");
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
@@ -74,7 +77,7 @@ export const OrbitViewer: React.FC = () => {
 
       setRotation((prev) => {
         let newX = prev.x - deltaY * 0.5;
-        let newY = prev.y + deltaX * 0.5;
+        const newY = prev.y + deltaX * 0.5;
 
         // Clamp vertical axis
         newX = Math.max(-45, Math.min(45, newX));
@@ -85,12 +88,12 @@ export const OrbitViewer: React.FC = () => {
       dragStart.current = { x: e.clientX, y: e.clientY };
     };
 
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleGlobalMouseMove);
 
     return () => {
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
     };
   }, [isDragging]);
 
@@ -121,7 +124,9 @@ export const OrbitViewer: React.FC = () => {
             Interact with the blueprint.
           </h2>
           <p className="font-inter text-base text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-            Experience our signature product line in dynamic interactive 3D space. Drag, tilt, and explore the exquisite craftsmanship before it enters your home.
+            Experience our signature product line in dynamic interactive 3D
+            space. Drag, tilt, and explore the exquisite craftsmanship before it
+            enters your home.
           </p>
 
           <div className="space-y-4">
@@ -129,28 +134,28 @@ export const OrbitViewer: React.FC = () => {
             <div className="flex gap-2 p-1 bg-surface-container dark:bg-zinc-800 rounded-xl max-w-sm">
               <button
                 onClick={() => {
-                  setSelectedProduct('lounger');
+                  setSelectedProduct("lounger");
                   handleReset();
                 }}
                 className={cn(
-                  'flex-1 font-inter font-semibold py-2 px-3 text-xs rounded-lg transition-all focus:outline-none cursor-pointer',
-                  selectedProduct === 'lounger'
-                    ? 'bg-white dark:bg-zinc-700 text-secondary dark:text-white shadow-sm'
-                    : 'text-on-surface-variant hover:text-secondary'
+                  "flex-1 font-inter font-semibold py-2 px-3 text-xs rounded-lg transition-all focus:outline-none cursor-pointer",
+                  selectedProduct === "lounger"
+                    ? "bg-white dark:bg-zinc-700 text-secondary dark:text-white shadow-sm"
+                    : "text-on-surface-variant hover:text-secondary",
                 )}
               >
                 Lounger
               </button>
               <button
                 onClick={() => {
-                  setSelectedProduct('vase');
+                  setSelectedProduct("vase");
                   handleReset();
                 }}
                 className={cn(
-                  'flex-1 font-inter font-semibold py-2 px-3 text-xs rounded-lg transition-all focus:outline-none cursor-pointer',
-                  selectedProduct === 'vase'
-                    ? 'bg-white dark:bg-zinc-700 text-secondary dark:text-white shadow-sm'
-                    : 'text-on-surface-variant hover:text-secondary'
+                  "flex-1 font-inter font-semibold py-2 px-3 text-xs rounded-lg transition-all focus:outline-none cursor-pointer",
+                  selectedProduct === "vase"
+                    ? "bg-white dark:bg-zinc-700 text-secondary dark:text-white shadow-sm"
+                    : "text-on-surface-variant hover:text-secondary",
                 )}
               >
                 Obsidian Vase
@@ -160,7 +165,9 @@ export const OrbitViewer: React.FC = () => {
             <div className="glass-panel p-5 rounded-2xl border-l-4 border-tertiary flex gap-4 items-center bg-white/40 dark:bg-zinc-900/40">
               <Rotate3d className="text-tertiary text-2xl w-6 h-6 flex-shrink-0" />
               <div>
-                <h4 className="font-bold text-sm dark:text-zinc-200">3D Motion Capture</h4>
+                <h4 className="font-bold text-sm dark:text-zinc-200">
+                  3D Motion Capture
+                </h4>
                 <p className="text-xs text-on-surface-variant dark:text-zinc-400 font-light mt-0.5">
                   Move your cursor over the panel or drag to orbit the object.
                 </p>
@@ -197,10 +204,14 @@ export const OrbitViewer: React.FC = () => {
               className="product-3d-model transition-transform duration-100 ease-out relative"
               style={{
                 transform: `perspective(1000px) rotateY(${rotation.y}deg) rotateX(${rotation.x}deg) scale(${scale})`,
-                transformStyle: 'preserve-3d',
+                transformStyle: "preserve-3d",
               }}
             >
-              <div className={cn('relative aspect-square min-w-[280px] md:min-w-[380px]')}>
+              <div
+                className={cn(
+                  "relative aspect-square min-w-[280px] md:min-w-[380px]",
+                )}
+              >
                 <Image
                   fill
                   src={activeProduct.image}
@@ -219,7 +230,10 @@ export const OrbitViewer: React.FC = () => {
               Specifications
             </p>
             {activeProduct.specs.map((spec) => (
-              <div key={spec.name} className="flex justify-between gap-4 dark:text-zinc-300">
+              <div
+                key={spec.name}
+                className="flex justify-between gap-4 dark:text-zinc-300"
+              >
                 <span>{spec.name}:</span>
                 <span className="font-semibold text-right">{spec.value}</span>
               </div>

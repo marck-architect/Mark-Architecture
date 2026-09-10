@@ -1,10 +1,20 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ScrollReveal } from '@/components/ui/ScrollReveal';
-import { MapPin, Lightbulb, Users, ShieldCheck, Smile } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import {
+  MapPin,
+  Lightbulb,
+  ShieldCheck,
+  Building,
+  ArrowRight,
+  Clock,
+  Sparkles,
+  PhoneCall,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
@@ -13,12 +23,94 @@ export default function Home() {
     const handleScroll = () => {
       setScrollY(window.scrollY);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const featuredServices = [
+    {
+      title: "Online Video Consultation",
+      badge: "Immediate Guidance",
+      price: "PKR 3,000 / 5,000",
+      duration: "30–60 Min Live",
+      desc: "1-on-1 Zoom or WhatsApp session with lead architect Muhammad Rafiq. Mandatory drawing upload required.",
+      image: "/images/For Call.png",
+      href: "/consultation",
+    },
+    {
+      title: "House Plan Review",
+      badge: "Audit & Diagnostic",
+      price: "From PKR 5,000",
+      duration: "24–48 Hours",
+      desc: "Voice notes, marked PDF plans, and circulation/ventilation flaw corrections before construction.",
+      image: "/images/House Plan review.png",
+      href: "/services",
+    },
+    {
+      title: "Front Elevation 3D Render",
+      badge: "Exterior Visualization",
+      price: "From PKR 15,000",
+      duration: "2–5 Days",
+      desc: "Hyper-realistic facade visualizers (5M, 10M, 1 Kanal) with material and night illumination concepts.",
+      image: "/images/Front Elevation 3D (Exterior Render).png",
+      href: "/services",
+    },
+    {
+      title: "Full House Design Package",
+      badge: "Flagship Turnkey Suite",
+      price: "PKR 57 / sq. ft.",
+      duration: "2–6 Weeks",
+      desc: "Complete architectural, structural, MEP, and safety layout suite. 50% advance terms via Safepay.",
+      image: "/images/Full House Design Package.png",
+      href: "/services",
+    },
+  ];
+
+  const curatedProjects = [
+    {
+      title: "The Hayatabad Contemporary Estate",
+      category: "RESIDENTIAL VILLA",
+      location: "Ring Road, Hayatabad, Peshawar",
+      image: "/images/dha_lahore_villa.png",
+      scale: "1 Kanal • 6,200 sq. ft.",
+    },
+    {
+      title: "Margalla Hillside Modern Residence",
+      category: "LUXURY RESIDENTIAL",
+      location: "DHA Phase 2, Islamabad",
+      image: "/images/dha_islamabad_mansion.png",
+      scale: "2 Kanal • 9,500 sq. ft.",
+    },
+    {
+      title: "The Clifton Coastal Residence",
+      category: "CONTEMPORARY MASTERPIECE",
+      location: "Clifton Block 4, Karachi",
+      image: "/images/clifton_karachi_villa.png",
+      scale: "10 Marla • 3,850 sq. ft.",
+    },
+  ];
+
+  const studioLocations = [
+    {
+      city: "Peshawar (Principal HQ)",
+      address: "4A, AL Haj Sher Tower, Ring Rd, Near Hayatabad, Peshawar",
+      role: "Principal Architectural Atelier & Design Studio",
+      isHQ: true,
+    },
+    {
+      city: "Islamabad Studio",
+      address: "Blue Area & DHA Phase 2, Islamabad, Pakistan",
+      role: "Capital Region Liaison & Municipal Approvals",
+    },
+    {
+      city: "Karachi Studio",
+      address: "Clifton Block 4 & DHA Phase 6, Karachi, Pakistan",
+      role: "Southern Coastal Architecture & Interior Atelier",
+    },
+  ];
+
   return (
-    <div className="relative overflow-x-hidden min-h-screen">
+    <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
       {/* Fullscreen Parallax Hero */}
       <section className="relative h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -32,8 +124,8 @@ export default function Home() {
               fill
               priority
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbFjeCx7zKrtZdQ72tcNLVmphH8CwjUvRCA48s1Xry0McJ_Choy9QUYYnI5HNfYxa3TWSAOXJgOkcmspEHon-SkD56zgeuCoGvaVyPIuVts1wsyGRR86o7UiMV6z9qMDCIvG_ADxWjLKWWSlg6h9mnyUc0llDL-rxEk4PzRQ-TkQ1-jWYfSa2L9pewQXHH1yKbBz6EwJkCByK0gibnFXRAWeshbLcMuVEqv3rjINjsDyag0R5z4ywAOlEzqbbGnOGrDGiBVl3mtgkQ"
-              alt="MARK Architects Office Building"
-              className="object-cover brightness-[0.55]"
+              alt="MARK Architects Studio & Structures"
+              className="object-cover brightness-[0.45] contrast-[1.05]"
               sizes="100vw"
             />
           </div>
@@ -48,136 +140,167 @@ export default function Home() {
 
         <div className="relative z-20 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop text-white pt-20">
           <div className="max-w-4xl space-y-6">
-            <span className="font-inter text-xs md:text-sm font-bold tracking-[0.35em] text-tertiary-fixed-dim uppercase block">
-              Architectural Atelier
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="bg-tertiary/30 backdrop-blur-md text-tertiary-fixed-dim border border-tertiary/40 font-inter text-[11px] font-bold tracking-[0.25em] uppercase px-3.5 py-1.5 rounded-full">
+                Peshawar (HQ) • Islamabad • Karachi
+              </span>
+              <span className="text-white/60 text-xs font-inter font-light hidden sm:inline">
+                PCATP Licensed Practice
+              </span>
+            </div>
+
             <h1 className="font-playfair text-4xl md:text-6xl lg:text-7xl font-normal leading-[1.1] md:leading-[1.15]">
-              We Design Spaces <br /> That <span className="italic font-light">Inspire Generations</span>
+              Designing Spaces That <br />
+              <span className="italic font-light">Inspire Generations.</span>
             </h1>
-            <p className="font-inter text-base md:text-xl text-white/80 max-w-xl font-light leading-relaxed">
-              Ultra-premium architectural excellence and innovative design thinking tailored for the global elite.
+
+            <p className="font-inter text-base md:text-xl text-white/80 max-w-2xl font-light leading-relaxed">
+              Spearheaded by Muhammad Rafiq. We deliver mathematical rigor,
+              passive solar efficiency, and turnkey engineering drawings for
+              Pakistan&apos;s finest residential and commercial estates.
             </p>
-            <div className="flex flex-wrap gap-4 pt-6">
+
+            <div className="flex flex-wrap gap-4 pt-4">
               <Link
-                href="/portfolio"
-                className="bg-tertiary text-on-tertiary px-8 py-4 rounded-xl font-bold tracking-wide hover:bg-tertiary-fixed transition-all duration-300 shadow-lg active:scale-95 text-center"
+                href="/services"
+                className="bg-tertiary text-on-tertiary px-8 py-4 rounded-xl font-bold tracking-wide hover:bg-tertiary-fixed transition-all duration-300 shadow-xl active:scale-95 text-center flex items-center gap-2 font-inter text-xs uppercase"
               >
-                View Portfolio
+                <span>View Services &amp; Pricing</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/consultation"
-                className="border border-white/60 text-white px-8 py-4 rounded-xl font-bold tracking-wide hover:bg-white hover:text-black transition-all duration-300 active:scale-95 text-center"
+                className="border border-white/60 text-white px-8 py-4 rounded-xl font-bold tracking-wide hover:bg-white hover:text-black transition-all duration-300 active:scale-95 text-center font-inter text-xs uppercase"
               >
-                Book Consultation
+                Book Discovery Call
               </Link>
             </div>
           </div>
 
           {/* Floating Statistics */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-20 md:mt-24">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-16 md:mt-20">
             <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">15+</p>
+              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
+                15+
+              </p>
               <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-                Years Experience
+                Years in Practice
               </p>
             </div>
             <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">200+</p>
+              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
+                250+
+              </p>
               <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-                Masterpieces Completed
+                Projects Completed
               </p>
             </div>
             <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">150+</p>
+              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
+                100%
+              </p>
               <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-                Private Commissions
+                PDA &amp; CDA Code Approval
               </p>
             </div>
             <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">24+</p>
+              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
+                PKR 57
+              </p>
               <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-                Global Awards
+                Per Sq. Ft. Full Turnkey
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* About Section (Philosophy) */}
-      <section id="about-section" className="py-24 md:py-32 px-4 md:px-margin-desktop max-w-container-max mx-auto overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6">
-            <ScrollReveal>
-              <div className="relative rounded-3xl md:rounded-[40px] overflow-hidden aspect-[4/5] shadow-2xl">
-                <Image
-                  fill
-                  alt="Minimalist staircase design"
-                  className="object-cover transition-transform duration-700 hover:scale-105"
-                  sizes="(max-width: 1024px) 100vw, 550px"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqSKyI1VuMXpd5V0dv9hoKpU3ii6nRrI88gIqt8lURY80ydEBlqRDEjv6u7tyoUSJGjYc-YCLjxb2mx-hQk4fkPJd9XLasyFqEDSvTe28fArIDe-lvo-uPt9nAZu9gVyvp5bS7yeXgyz8uCLMhpS7LNTXNHedefqB1YprtHy_pWW-ckSHYTPkeX7OcULo4A2gm7K78AtHj_pioAhSc67BIvw0cqk6lB-jHtwDbf7grG0WyN2AgEDn1mOuPO5ByfY-7fR2hJL_dhADt"
-                />
-              </div>
-            </ScrollReveal>
-          </div>
-          <div className="lg:col-span-5 lg:col-start-8 space-y-8 md:space-y-10">
-            <ScrollReveal delay={0.2}>
-              <div className="space-y-4">
-                <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-[0.3em] block">
-                  The Philosophy
-                </span>
-                <h2 className="font-playfair text-3xl md:text-5xl text-on-surface leading-tight font-normal dark:text-zinc-100">
-                  Architecture as a Permanent Legacy
-                </h2>
-                <p className="font-inter text-base md:text-lg text-on-surface-variant font-light leading-relaxed dark:text-zinc-400">
-                  At MARK Architects, we believe that space is more than just a physical constraint—it is a canvas for human experience. Every structural beam and every glass pane is placed with mathematical precision to create an environment that feels both authoritative and ethereal.
-                </p>
-              </div>
-            </ScrollReveal>
+      {/* Transparent Service Catalog & Fixed Pricing Section */}
+      <section className="py-24 px-4 md:px-margin-desktop max-w-container-max mx-auto">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+          <ScrollReveal>
+            <div className="space-y-3">
+              <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-[0.3em] block">
+                Transparent Pricing
+              </span>
+              <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
+                Popular Design Packages.
+              </h2>
+              <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light max-w-2xl">
+                Fixed and formula-based pricing in Pakistani Rupees (PKR) with
+                secure Safepay checkout. No hidden drafting fees.
+              </p>
+            </div>
+          </ScrollReveal>
 
-            <ScrollReveal delay={0.3}>
-              <div className="grid grid-cols-1 gap-6 md:gap-8">
-                <div className="flex gap-5 group">
-                  <div className="w-12 h-12 flex-shrink-0 bg-surface-container dark:bg-zinc-800 rounded-xl flex items-center justify-center group-hover:bg-tertiary transition-colors duration-300">
-                    <Lightbulb className="text-tertiary group-hover:text-on-primary w-6 h-6 transition-colors" />
+          <ScrollReveal delay={0.1}>
+            <Link
+              href="/services"
+              className="font-inter text-xs font-bold text-primary dark:text-zinc-300 tracking-widest border-b border-primary dark:border-zinc-300 pb-1.5 hover:text-tertiary hover:border-tertiary transition-colors inline-flex items-center gap-2"
+            >
+              <span>VIEW FULL 7-SERVICE CATALOG</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </ScrollReveal>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {featuredServices.map((service, idx) => (
+            <ScrollReveal key={service.title} delay={0.07 * idx}>
+              <div className="bg-surface-container-low dark:bg-zinc-900/60 border border-outline-variant/30 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full group">
+                <div>
+                  <div className="relative aspect-[16/10] bg-zinc-950 overflow-hidden">
+                    <Image
+                      fill
+                      src={service.image}
+                      alt={service.title}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-tertiary text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border border-tertiary/30">
+                      {service.badge}
+                    </span>
+                    <span className="absolute bottom-3 right-3 text-white text-[11px] font-inter font-light flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-tertiary" />
+                      <span>{service.duration}</span>
+                    </span>
                   </div>
-                  <div>
-                    <h4 className="font-playfair text-xl font-bold mb-1 dark:text-zinc-200">Innovation</h4>
-                    <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                      Pushing boundaries with cutting-edge materials and adaptive structural designs.
+
+                  <div className="p-6 space-y-3">
+                    <h3 className="font-playfair text-xl font-bold text-on-surface dark:text-zinc-100">
+                      {service.title}
+                    </h3>
+                    <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                      {service.desc}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-5 group">
-                  <div className="w-12 h-12 flex-shrink-0 bg-surface-container dark:bg-zinc-800 rounded-xl flex items-center justify-center group-hover:bg-tertiary transition-colors duration-300">
-                    <ShieldCheck className="text-tertiary group-hover:text-on-primary w-6 h-6 transition-colors" />
+                <div className="p-6 pt-0 space-y-4">
+                  <div className="pt-4 border-t border-outline-variant/20 flex justify-between items-center">
+                    <span className="text-[10px] font-inter font-bold text-zinc-400 uppercase tracking-wider">
+                      Price
+                    </span>
+                    <span className="font-montserrat text-base font-extrabold text-secondary dark:text-zinc-100">
+                      {service.price}
+                    </span>
                   </div>
-                  <div>
-                    <h4 className="font-playfair text-xl font-bold mb-1 dark:text-zinc-200">Sustainability</h4>
-                    <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                      Integrating regenerative energy systems and eco-conscious construction methods.
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex gap-5 group">
-                  <div className="w-12 h-12 flex-shrink-0 bg-surface-container dark:bg-zinc-800 rounded-xl flex items-center justify-center group-hover:bg-tertiary transition-colors duration-300">
-                    <Users className="text-tertiary group-hover:text-on-primary w-6 h-6 transition-colors" />
-                  </div>
-                  <div>
-                    <h4 className="font-playfair text-xl font-bold mb-1 dark:text-zinc-200">Precision</h4>
-                    <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                      Mathematical rigor applied to every millimeter of the design process.
-                    </p>
-                  </div>
+                  <Link
+                    href={service.href}
+                    className="w-full bg-primary hover:bg-tertiary text-on-primary py-3 rounded-xl font-inter font-bold text-xs uppercase tracking-wider transition-all text-center block shadow-sm active:scale-95"
+                  >
+                    View Scope &amp; Book
+                  </Link>
                 </div>
               </div>
             </ScrollReveal>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Featured Portfolio Grid (Preview) */}
+      {/* Selected Works (Curated Pakistan Projects) */}
       <section className="bg-surface-container-low dark:bg-zinc-900/40 py-24 px-4 md:px-margin-desktop">
         <div className="max-w-container-max mx-auto space-y-16">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -187,8 +310,12 @@ export default function Home() {
                   Curation
                 </span>
                 <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-                  Selected Works
+                  Selected Masterpieces in Pakistan.
                 </h2>
+                <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light">
+                  Iconic residential developments executed across Peshawar,
+                  Islamabad, and Karachi.
+                </p>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
@@ -196,207 +323,226 @@ export default function Home() {
                 href="/portfolio"
                 className="font-inter text-xs font-bold text-primary dark:text-zinc-300 tracking-widest border-b border-primary dark:border-zinc-300 pb-1.5 hover:text-tertiary hover:border-tertiary transition-colors inline-block"
               >
-                VIEW ALL PROJECTS
+                VIEW FULL PORTFOLIO
               </Link>
             </ScrollReveal>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Project Card 1 */}
-            <ScrollReveal delay={0.1}>
-              <Link href="/portfolio" className="relative group rounded-3xl overflow-hidden aspect-[4/5] shadow-lg block">
-                <Image
-                  fill
-                  alt="The Indus Minimalist Villa"
-                  className="object-cover transition-transform duration-[0.9s] group-hover:scale-110"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 384px"
-                  src="/images/projects/dha_lahore_villa.png"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-500 flex flex-col justify-end p-8">
-                  <div className="translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="font-inter text-[10px] font-bold text-tertiary-fixed uppercase tracking-widest mb-1.5 block">
-                      RESIDENTIAL
-                    </span>
-                    <h3 className="font-playfair text-2xl text-white mb-2 font-normal">The Indus Minimalist Villa</h3>
-                    <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>Lahore, Pakistan</span>
+            {curatedProjects.map((project, idx) => (
+              <ScrollReveal key={project.title} delay={0.1 * idx}>
+                <Link
+                  href="/portfolio"
+                  className="relative group rounded-3xl overflow-hidden aspect-[4/5] shadow-lg block"
+                >
+                  <Image
+                    fill
+                    alt={project.title}
+                    className="object-cover transition-transform duration-[0.9s] group-hover:scale-110"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 384px"
+                    src={project.image}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-500 flex flex-col justify-end p-8">
+                    <div className="translate-y-2 group-hover:translate-y-0 transition-transform duration-500 space-y-1.5">
+                      <span className="font-inter text-[10px] font-bold text-tertiary-fixed uppercase tracking-widest block">
+                        {project.category}
+                      </span>
+                      <h3 className="font-playfair text-2xl text-white font-normal">
+                        {project.title}
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-white/75 text-xs pt-1">
+                        <MapPin className="w-3.5 h-3.5 text-tertiary" />
+                        <span>{project.location}</span>
+                      </div>
+                      <p className="font-inter text-[11px] text-white/50">
+                        {project.scale}
+                      </p>
                     </div>
                   </div>
-                </div>
-              </Link>
-            </ScrollReveal>
-
-            {/* Project Card 2 */}
-            <ScrollReveal delay={0.2}>
-              <Link href="/portfolio" className="relative group rounded-3xl overflow-hidden aspect-[4/5] shadow-lg block">
-                <Image
-                  fill
-                  alt="Helix Tech Park"
-                  className="object-cover transition-transform duration-[0.9s] group-hover:scale-110"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 384px"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_cLRTKmYAmsa74GtO-7kYhQowruR6rGdaZyJ4dcuKKZKNdos6x-sllZTyvW01uZAU-5v84hvHwuTEnQ-R2FIp7FlqXFuWKm0_OuknA2PJISNEFf_SWkujPsX5leV1DcUDlBOrFkpmDhwtisG4IvcbI4mv4ZFEJmisqNyaypxqfm_m4y7dA__ohFjJN3htn14N79OeFH900A3BAiesRQ-aYOfCHBYYz6TDYSaCW65R4BOiCYVnAmnvM-MqkzcscqlkocpMwj97j28h"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-500 flex flex-col justify-end p-8">
-                  <div className="translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="font-inter text-[10px] font-bold text-tertiary-fixed uppercase tracking-widest mb-1.5 block">
-                      COMMERCIAL
-                    </span>
-                    <h3 className="font-playfair text-2xl text-white mb-2 font-normal">Helix Tech Park</h3>
-                    <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>Dubai, UAE</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </ScrollReveal>
-
-            {/* Project Card 3 */}
-            <ScrollReveal delay={0.3}>
-              <Link href="/portfolio" className="relative group rounded-3xl overflow-hidden aspect-[4/5] shadow-lg block">
-                <Image
-                  fill
-                  alt="The Zenit Sanctuary"
-                  className="object-cover transition-transform duration-[0.9s] group-hover:scale-110"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 384px"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnUHfNGTzdM9nQwp6PSb6b5utCmNYIjsT60KyDtJhTKYypY9v5E9S7VAmcLQ8loFceevPDB7fj2IRZMUN_TBzdoxzczZ7teMUIl5oK5_tgVH-szwHnW0AW_bdcqfEURS1LzzPd8ysvYZFALERFcBkmT3N8lR4Chcyg0USkMoaHluQdvrJVlSHTy119d-oaZGFaq1BYy8FM3O4kUIcxC1vDttKtf_X__Kf_qbAP48sVeS_dfzRfmAPvvrF8xovGiFTE8_gqWEDxjI6V"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-500 flex flex-col justify-end p-8">
-                  <div className="translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="font-inter text-[10px] font-bold text-tertiary-fixed uppercase tracking-widest mb-1.5 block">
-                      HOSPITALITY
-                    </span>
-                    <h3 className="font-playfair text-2xl text-white mb-2 font-normal">The Zenit Sanctuary</h3>
-                    <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>Kyoto, Japan</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </ScrollReveal>
+                </Link>
+              </ScrollReveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Value Proposition */}
+      {/* Practice Principles Tailored to Pakistan */}
       <section className="py-24 px-4 md:px-margin-desktop max-w-container-max mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <ScrollReveal>
             <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-[0.3em] block">
-              Value Proposition
+              Why MARK Architects
             </span>
             <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-              Unmatched Architectural Rigor
+              Built for Pakistan&apos;s Landscape &amp; Climate.
             </h2>
             <p className="font-inter text-base text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-              We bridge the gap between architectural fantasy and structural reality, delivering results that exceed the highest global standards.
+              We engineer luxury spaces with mathematical precision, resolving
+              local soil conditions, earthquake resistance, and passive cooling.
             </p>
           </ScrollReveal>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <ScrollReveal delay={0.1}>
-            <div className="bg-surface dark:bg-zinc-900/50 p-10 rounded-[32px] border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full">
-              <Lightbulb className="w-10 h-10 text-tertiary mb-6 group-hover:scale-110 transition-transform" />
-              <h3 className="font-playfair text-xl font-bold mb-3 dark:text-zinc-200">Innovative Design</h3>
-              <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                Translating bold visions into iconic structural realities through creative engineering.
+            <div className="bg-surface dark:bg-zinc-900/50 p-8 rounded-3xl border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full space-y-4">
+              <Lightbulb className="w-9 h-9 text-tertiary group-hover:scale-110 transition-transform" />
+              <h3 className="font-playfair text-xl font-bold dark:text-zinc-200">
+                Passive Solar &amp; Climate Control
+              </h3>
+              <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                Strategic orientation to capture southern sun in winter and
+                cross-ventilation in peak summer heat.
               </p>
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
-            <div className="bg-surface dark:bg-zinc-900/50 p-10 rounded-[32px] border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full">
-              <Users className="w-10 h-10 text-tertiary mb-6 group-hover:scale-110 transition-transform" />
-              <h3 className="font-playfair text-xl font-bold mb-3 dark:text-zinc-200">Experienced Team</h3>
-              <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                Over 50 world-class designers and engineers working in perfect synchronization.
+            <div className="bg-surface dark:bg-zinc-900/50 p-8 rounded-3xl border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full space-y-4">
+              <Building className="w-9 h-9 text-tertiary group-hover:scale-110 transition-transform" />
+              <h3 className="font-playfair text-xl font-bold dark:text-zinc-200">
+                PDA, CDA &amp; KDA Bylaw Mastery
+              </h3>
+              <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                Full submission drawings ensuring frictionless municipal
+                approvals across Hayatabad, Islamabad, and Karachi.
               </p>
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={0.3}>
-            <div className="bg-surface dark:bg-zinc-900/50 p-10 rounded-[32px] border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full">
-              <ShieldCheck className="w-10 h-10 text-tertiary mb-6 group-hover:scale-110 transition-transform" />
-              <h3 className="font-playfair text-xl font-bold mb-3 dark:text-zinc-200">Premium Quality</h3>
-              <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                Sourcing only the finest materials from a vetted global supply network.
+            <div className="bg-surface dark:bg-zinc-900/50 p-8 rounded-3xl border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full space-y-4">
+              <ShieldCheck className="w-9 h-9 text-tertiary group-hover:scale-110 transition-transform" />
+              <h3 className="font-playfair text-xl font-bold dark:text-zinc-200">
+                Seismic &amp; Structural Safety
+              </h3>
+              <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                Complete structural engineering framing calculated for Building
+                Code of Pakistan seismic zones.
               </p>
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={0.4}>
-            <div className="bg-surface dark:bg-zinc-900/50 p-10 rounded-[32px] border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full">
-              <Smile className="w-10 h-10 text-tertiary mb-6 group-hover:scale-110 transition-transform" />
-              <h3 className="font-playfair text-xl font-bold mb-3 dark:text-zinc-200">Bespoke Journeys</h3>
-              <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                A specialized experience tailored to the unique lifestyle and goals of our clients.
+            <div className="bg-surface dark:bg-zinc-900/50 p-8 rounded-3xl border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full space-y-4">
+              <Sparkles className="w-9 h-9 text-tertiary group-hover:scale-110 transition-transform" />
+              <h3 className="font-playfair text-xl font-bold dark:text-zinc-200">
+                50% Advance Milestone Terms
+              </h3>
+              <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                Transparent stage payments processed securely via Safepay with
+                complete client review checkpoints.
               </p>
             </div>
           </ScrollReveal>
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Physical Studios Location Section (Matching Footer) */}
+      <section className="bg-surface-container-low dark:bg-zinc-900/40 py-20 px-4 md:px-margin-desktop border-y border-outline-variant/20">
+        <div className="max-w-container-max mx-auto space-y-12">
+          <ScrollReveal>
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
+                Physical Locations
+              </span>
+              <h2 className="font-playfair text-3xl md:text-4xl text-on-surface dark:text-zinc-100 font-normal">
+                Visit Our Design Studios.
+              </h2>
+              <p className="font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-400 font-light">
+                Consult with our lead architects in person or book a virtual
+                session.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {studioLocations.map((studio, sIdx) => (
+              <ScrollReveal key={studio.city} delay={0.08 * sIdx}>
+                <div
+                  className={`bg-white dark:bg-zinc-900 p-8 rounded-3xl border flex flex-col justify-between h-64 shadow-sm transition-all ${
+                    studio.isHQ
+                      ? "border-tertiary/70 shadow-md ring-1 ring-tertiary/20"
+                      : "border-outline-variant/30 hover:border-tertiary/40"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-inter text-[10px] font-bold text-tertiary uppercase tracking-widest">
+                        {studio.isHQ ? "★ HEADQUARTERS" : "REGIONAL ATELIER"}
+                      </span>
+                      <MapPin className="w-4 h-4 text-tertiary" />
+                    </div>
+                    <h3 className="font-playfair text-2xl font-bold text-on-surface dark:text-zinc-100">
+                      {studio.city}
+                    </h3>
+                    <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                      {studio.address}
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-inter text-zinc-500 dark:text-zinc-400 font-medium">
+                    {studio.role}
+                  </span>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pakistani Client Testimonial */}
       <section className="bg-inverse-surface dark:bg-zinc-950 py-24 px-4 md:px-margin-desktop overflow-hidden text-white">
         <div className="max-w-container-max mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-5">
               <ScrollReveal>
-                <div className="relative rounded-[32px] overflow-hidden aspect-[4/5] shadow-2xl">
+                <div className="relative rounded-3xl overflow-hidden aspect-[4/5] shadow-2xl bg-zinc-900 border border-white/10">
                   <Image
                     fill
-                    alt="Alexander Sterling"
-                    className="object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+                    alt="Peshawar Residence Architecture"
+                    className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 450px"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5LKzKTNt76hIVq8W4CVjuYxPo9-N9-ia9m5Cr4IjpxFryo7elYhAS5gg1Fc95_yYf6zSOjY1jKQjkNpR0MgSw2uFCTS2mtsEaY3L678LUzZSo-NxYeV9LFtldOCDdnVw2U61RdeKmeOYOD-mE95joNEY9AkY2Cxy1VQhzTwOHSVFF1tVEGKWstgPGknbkb7FUYE6TdGFFPv_3VVjS1Azg5p8a_vWpxFKy09hMu06EiT6D-0h1JV_3zZCis96XNGtq1cYv6XSe7TI5"
+                    src="/images/dha_lahore_villa.png"
                   />
                 </div>
               </ScrollReveal>
             </div>
-            <div className="lg:col-span-6 lg:col-start-7 space-y-10">
+            <div className="lg:col-span-6 lg:col-start-7 space-y-8">
               <ScrollReveal delay={0.2}>
-                <span className="font-playfair text-6xl text-tertiary-fixed opacity-40 block">“</span>
-                <blockquote className="font-playfair text-2xl md:text-4xl italic leading-relaxed text-surface-container-lowest font-light">
-                  "Working with MARK Architects was a revelation. They didn't just build a home; they captured the essence of my family's legacy and translated it into a physical form that breathes with life, light, and elegance."
+                <span className="font-playfair text-6xl text-tertiary-fixed opacity-40 block">
+                  “
+                </span>
+                <blockquote className="font-playfair text-2xl md:text-3xl italic leading-relaxed text-surface-container-lowest font-light">
+                  &ldquo;Working with Muhammad Rafiq and the MARK Architects
+                  team in Peshawar was a revelation. They transformed our 1
+                  Kanal plot into an open, light-filled sanctuary that naturally
+                  stays cool in summer and passed PDA approval without a single
+                  revision.&rdquo;
                 </blockquote>
                 <div className="space-y-1 mt-6">
-                  <p className="font-playfair text-2xl text-tertiary-fixed font-bold">Alexander Sterling</p>
-                  <p className="font-inter text-[10px] font-bold text-white/50 uppercase tracking-[0.25em]">
-                    CEO, Sterling Global Developments
+                  <p className="font-playfair text-2xl text-tertiary-fixed font-bold">
+                    Engr. Tariq K. Mansoor
+                  </p>
+                  <p className="font-inter text-xs font-semibold text-white/60 uppercase tracking-widest">
+                    Hayatabad Estate Owner, Peshawar
                   </p>
                 </div>
               </ScrollReveal>
 
-              {/* Partner Logos */}
               <ScrollReveal delay={0.3}>
-                <div className="flex flex-wrap gap-10 pt-6 opacity-30 grayscale contrast-125 items-center">
-                  <div className="relative h-6 w-32">
-                    <Image
-                      fill
-                      alt="Partner Logo 1"
-                      className="object-contain"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8ytfLm2W-DTFn52VeWTLsoY6sVE2EnxJ-NxpHya03Su7BwS-POdKsN1s8GoO6i44_Jsoq0Hb2LHI76tseayGA6Ss3et__GmclUnKeebO9YcP6EQc7j67SQfoGPYcZ19O0ETfGbIR_bhs5cB8ksuyEjhsHI7PqZJyiCZ2QGPGL7KM8PzdLiV-afVdo-tOGOiq0-ZSbxaSl02n6Ge48nBLMYcv6AxZWXwc20FUAZBt6Zb4urGVApxoP3JpgkoCrhGbJncJr7ZOTyNQV"
-                    />
-                  </div>
-                  <div className="relative h-6 w-32">
-                    <Image
-                      fill
-                      alt="Partner Logo 2"
-                      className="object-contain"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMAm7_kaF-_-CWyrhIp19YtJI9E2yOLjZVN0mNilKrVnldQVDrkTB0uNBlVDGcOU5kuPHNxhwJmPYJ-fZutc_NWjL61j7TH36VHpF1E_T3xd-iGdz_NagNEYKvCmxuWho3AnJ2kYNAIXcRBXSP-ur66bNBk3bhBv6etqKElV2S4jdJC51CdF68nxJVwe3org9Efh3bjfwERm0qkRwmrAsXh1hrB4yFBaajpYIwmgvzGgYOoBysO_LX_KfqnTPccCVk3UFaFUsKwYik"
-                    />
-                  </div>
-                  <div className="relative h-6 w-32">
-                    <Image
-                      fill
-                      alt="Partner Logo 3"
-                      className="object-contain"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGauEBGhrOMBB_oLIc1eLLkQvdjPuBZUKj763Lgp2y8XJvyXenA5_dzKZtl8UU75xGEPjnEDtba_MMMZNGXLMTNyQwbTo3CoIaotA_cBWiBMNI3I8NzkOhfN0cM38RqQl2m1RSxKf11lrEP7Z8T42juzyxn_mKvbl8VA-zteIT9QKMVu1Oiv06nNf3jYYk9blg0PrrkOfOoaibC6fUod1puMHSQ0dKIl-ZaHhqRBlGud7Y7buzTKjSGaT2P4HrMdoZH53CZI3y3ENH"
-                    />
-                  </div>
+                <div className="flex flex-wrap gap-4 pt-4 border-t border-white/10 text-xs text-white/60">
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary" />
+                    PCATP Registered Firm
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary" />
+                    PDA Peshawar Code Compliant
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary" />
+                    CDA Islamabad Approved
+                  </span>
                 </div>
               </ScrollReveal>
             </div>
@@ -409,17 +555,25 @@ export default function Home() {
         <ScrollReveal>
           <div className="max-w-3xl mx-auto space-y-8">
             <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-              Ready to start your journey?
+              Ready to Design Your Masterpiece?
             </h2>
             <p className="font-inter text-base md:text-lg text-on-surface-variant dark:text-zinc-400 font-light max-w-xl mx-auto">
-              Let's discuss how we can bring your architectural vision to life with precision and passion.
+              Schedule your 1-on-1 consultation or upload your blueprint for a
+              professional architectural audit.
             </p>
-            <div className="pt-4">
+            <div className="pt-4 flex flex-wrap justify-center gap-4">
               <Link
                 href="/consultation"
-                className="bg-primary text-on-primary hover:bg-tertiary px-12 py-5 rounded-2xl font-playfair text-lg md:text-xl font-bold hover:translate-y-[-3px] transition-all duration-300 shadow-xl active:scale-95 inline-block"
+                className="bg-primary text-on-primary hover:bg-tertiary px-10 py-4.5 rounded-xl font-inter text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-xl active:scale-95 inline-flex items-center gap-2"
               >
-                Schedule a Consultation
+                <span>Book Consultation (PKR 3,000)</span>
+                <PhoneCall className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/services"
+                className="border border-outline-variant hover:border-tertiary hover:text-tertiary px-10 py-4.5 rounded-xl font-inter text-xs font-bold tracking-widest uppercase transition-all active:scale-95 inline-block"
+              >
+                Explore All Packages
               </Link>
             </div>
           </div>

@@ -1,10 +1,19 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ShoppingBag, X, Trash2, Plus, Minus } from 'lucide-react';
-import { useStore } from '@/hooks/useStore';
-import Image from 'next/image';
+import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ShoppingBag,
+  X,
+  Trash2,
+  Plus,
+  Minus,
+  ShieldCheck,
+  ArrowRight,
+} from "lucide-react";
+import { useStore } from "@/hooks/useStore";
+import { SafepayService } from "@/lib/safepay";
+import Image from "next/image";
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -17,21 +26,18 @@ export const CartDrawer: React.FC = () => {
     clearCart,
   } = useStore();
 
-  const usdSubtotal = cart
-    .filter((item) => item.currency !== 'PKR')
-    .reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const pkrSubtotal = cart.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
 
-  const pkrSubtotal = cart
-    .filter((item) => item.currency === 'PKR')
-    .reduce((acc, item) => acc + item.price * item.quantity, 0);
-
-  const handleCheckout = () => {
+  const handleSafepayCheckout = () => {
     if (cart.length === 0) return;
     setCartDrawerOpen(false);
 
     openSuccessModal(
-      'Acquisition Initiated',
-      'Your private requisition draft has been logged. Our concierge representative will contact you via secure email within 12 hours to arrange premium shipping options and white-glove assembly.'
+      "Safepay Checkout Initiated",
+      `Your order total is ${SafepayService.formatPKR(pkrSubtotal)}. Your transaction is processed securely via Safepay. A confirmation email and project intake portal link have been dispatched.`,
     );
 
     clearCart();
@@ -53,17 +59,17 @@ export const CartDrawer: React.FC = () => {
           {/* Drawer Wrapper */}
           <div className="absolute inset-y-0 right-0 max-w-full flex">
             <motion.div
-              initial={{ x: '100%' }}
+              initial={{ x: "100%" }}
               animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.35, ease: 'easeOut' }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.35, ease: "easeOut" }}
               className="w-screen sm:max-w-md bg-white dark:bg-zinc-950 border-l border-outline-variant/35 shadow-2xl flex flex-col"
             >
               {/* Header */}
               <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low dark:bg-zinc-900">
                 <h3 className="font-playfair text-xl font-bold text-secondary dark:text-white flex items-center gap-2">
                   <ShoppingBag className="text-tertiary w-5 h-5" />
-                  <span>Your Collection</span>
+                  <span>Selected Packages &amp; Orders</span>
                 </h3>
                 <button
                   onClick={() => setCartDrawerOpen(false)}
@@ -75,30 +81,31 @@ export const CartDrawer: React.FC = () => {
               </div>
 
               {/* Cart Items List */}
-              <div className="flex-grow overflow-y-auto p-6 space-y-6">
+              <div className="flex-grow overflow-y-auto p-6 space-y-4">
                 {cart.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center text-on-surface-variant space-y-4">
                     <ShoppingBag className="w-12 h-12 text-outline-variant" />
                     <p className="font-playfair text-lg font-medium text-zinc-800 dark:text-zinc-200">
-                      Your collection is empty
+                      Your order is empty
                     </p>
                     <p className="text-xs max-w-xs font-light text-zinc-500">
-                      Commission an artifact from the curated store to begin your sanctuary collection.
+                      Choose an architectural review, 3D elevation, or custom
+                      design package to begin.
                     </p>
                     <button
                       onClick={() => {
                         setCartDrawerOpen(false);
-                        window.location.href = '/collection';
+                        window.location.href = "/services";
                       }}
                       className="bg-secondary text-white font-inter font-bold text-xs tracking-wider uppercase px-6 py-3 rounded-lg hover:bg-tertiary transition-colors cursor-pointer"
                     >
-                      Browse Collection
+                      Browse Services
                     </button>
                   </div>
                 ) : (
                   cart.map((item, index) => (
                     <div
-                      key={item.title}
+                      key={`${item.title}-${item.tier}-${item.plotSize}-${index}`}
                       className="flex gap-4 p-4 bg-surface-container-low dark:bg-zinc-900/50 border border-outline-variant/30 rounded-xl relative group"
                     >
                       <div className="relative w-20 h-20 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
@@ -111,9 +118,22 @@ export const CartDrawer: React.FC = () => {
                         />
                       </div>
                       <div className="flex-grow space-y-1 flex flex-col justify-center">
-                        <h4 className="font-playfair text-sm font-bold text-secondary dark:text-zinc-200">{item.title}</h4>
+                        <h4 className="font-playfair text-sm font-bold text-secondary dark:text-zinc-200">
+                          {item.title}
+                        </h4>
+                        {(item.tier || item.plotSize) && (
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-inter">
+                            {item.tier && (
+                              <span className="font-medium text-tertiary">
+                                {item.tier}
+                              </span>
+                            )}
+                            {item.tier && item.plotSize && " • "}
+                            {item.plotSize && <span>{item.plotSize}</span>}
+                          </p>
+                        )}
                         <p className="text-tertiary font-montserrat font-semibold text-xs">
-                          {item.currency === 'PKR' ? `PKR ${item.price.toLocaleString()}` : `$${item.price.toLocaleString()}`}
+                          {SafepayService.formatPKR(item.price)}
                         </p>
 
                         {/* Quantity Selector */}
@@ -150,36 +170,29 @@ export const CartDrawer: React.FC = () => {
               {/* Checkout Footer */}
               {cart.length > 0 && (
                 <div className="p-6 border-t border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900 space-y-4">
-                  <div className="flex flex-col gap-2 w-full">
-                    {usdSubtotal > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="font-inter text-sm text-on-surface-variant font-medium dark:text-zinc-400">
-                          USD Subtotal
-                        </span>
-                        <span className="font-montserrat text-lg font-bold text-secondary dark:text-zinc-100">
-                          ${usdSubtotal.toLocaleString()}
-                        </span>
-                      </div>
-                    )}
-                    {pkrSubtotal > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="font-inter text-sm text-on-surface-variant font-medium dark:text-zinc-400">
-                          PKR Subtotal
-                        </span>
-                        <span className="font-montserrat text-lg font-bold text-secondary dark:text-zinc-100">
-                          PKR {pkrSubtotal.toLocaleString()}
-                        </span>
-                      </div>
-                    )}
+                  <div className="flex justify-between items-center">
+                    <span className="font-inter text-sm text-on-surface-variant font-medium dark:text-zinc-400">
+                      Total Payable (PKR)
+                    </span>
+                    <span className="font-montserrat text-xl font-bold text-secondary dark:text-zinc-100">
+                      {SafepayService.formatPKR(pkrSubtotal)}
+                    </span>
                   </div>
-                  <p className="text-[10px] text-on-surface-variant font-light text-zinc-500 dark:text-zinc-400">
-                    Custom white-glove transport and worldwide secure freight handling calculated at checkout.
-                  </p>
+
+                  <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/60 p-2.5 rounded-lg">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>
+                      Secured with Safepay Pakistan payment gateway. Instant
+                      receipt issued.
+                    </span>
+                  </div>
+
                   <button
-                    onClick={handleCheckout}
-                    className="w-full bg-primary hover:bg-tertiary text-on-primary py-4 font-bold tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center"
+                    onClick={handleSafepayCheckout}
+                    className="w-full bg-primary hover:bg-tertiary text-on-primary py-4 font-bold tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2"
                   >
-                    REQUEST PRIVATE CHECKOUT
+                    <span>PROCEED WITH SAFEPAY</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               )}

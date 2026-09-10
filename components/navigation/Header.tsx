@@ -1,22 +1,18 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ShoppingBag, Menu, X } from 'lucide-react';
-import { useStore } from '@/hooks/useStore';
-import { cn } from '@/lib/utils';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ShoppingBag, Menu, X } from "lucide-react";
+import { useStore } from "@/hooks/useStore";
+import { cn } from "@/lib/utils";
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const {
-    toggleCartDrawer,
-    toggleMobileMenu,
-    mobileMenuOpen,
-    cart,
-  } = useStore();
+  const { toggleCartDrawer, toggleMobileMenu, mobileMenuOpen, cart } =
+    useStore();
 
   const totalCartQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -29,34 +25,50 @@ export const Header: React.FC = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'Portfolio', href: '/portfolio' },
-    { label: 'Services', href: '/services' },
-    { label: 'Collection', href: '/collection' },
-    { label: 'Consultation', href: '/consultation' },
+    { label: "Home", href: "/" },
+    { label: "About", href: "/about" },
+    { label: "Portfolio", href: "/portfolio" },
+    { label: "Services", href: "/services" },
+    { label: "Collection", href: "/collection" },
+    { label: "Consultation", href: "/consultation" },
   ];
+
+  const isHomeHero = pathname === "/" && !isScrolled;
 
   return (
     <header
       className={cn(
-        'fixed top-0 w-full z-40 transition-all duration-300 border-b border-transparent',
+        "fixed top-0 w-full z-40 transition-all duration-300 border-b",
         isScrolled
-          ? 'bg-white/85 dark:bg-zinc-950/85 backdrop-blur-xl shadow-[0px_10px_30px_rgba(0,0,0,0.02)] border-outline-variant/30'
-          : 'bg-surface/60 dark:bg-black/60 backdrop-blur-xl'
+          ? "bg-white/85 dark:bg-zinc-950/85 backdrop-blur-xl shadow-[0px_10px_30px_rgba(0,0,0,0.02)] border-outline-variant/30"
+          : "bg-transparent border-transparent",
       )}
     >
       <nav className="flex justify-between items-center px-4 md:px-margin-desktop py-4 w-full max-w-container-max mx-auto">
         {/* Brand Logo */}
         <Link
           href="/"
-          className="font-playfair text-2xl md:text-3xl font-bold tracking-tight text-secondary hover:text-tertiary transition-colors cursor-pointer"
+          className={cn(
+            "font-playfair text-2xl md:text-3xl font-bold tracking-tight transition-colors cursor-pointer",
+            isHomeHero
+              ? "text-white hover:text-tertiary-fixed"
+              : "text-secondary dark:text-white hover:text-tertiary",
+          )}
         >
-          MARK <span className="font-light italic text-primary">Archit</span>
+          MARK{" "}
+          <span
+            className={cn(
+              "font-light italic",
+              isHomeHero ? "text-tertiary-fixed-dim" : "text-primary",
+            )}
+          >
+            Archit
+          </span>
         </Link>
 
         {/* Desktop Nav Links */}
@@ -68,8 +80,14 @@ export const Header: React.FC = () => {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'font-inter text-sm font-semibold tracking-wide text-on-surface-variant hover:text-tertiary transition-colors pb-1 border-b-2 border-transparent',
-                  isActive && 'text-tertiary! border-tertiary!'
+                  "font-inter text-sm font-semibold tracking-wide transition-colors pb-1 border-b-2 border-transparent",
+                  isHomeHero
+                    ? "text-white/80 hover:text-tertiary-fixed"
+                    : "text-on-surface-variant hover:text-tertiary",
+                  isActive &&
+                    (isHomeHero
+                      ? "text-tertiary-fixed! border-tertiary-fixed!"
+                      : "text-tertiary! border-tertiary!"),
                 )}
               >
                 {link.label}
@@ -83,14 +101,22 @@ export const Header: React.FC = () => {
           {/* Interactive Shopping Cart Button */}
           <button
             onClick={toggleCartDrawer}
-            className="relative p-2.5 rounded-full hover:bg-surface-container transition-colors focus:outline-none cursor-pointer"
+            className={cn(
+              "relative p-2.5 rounded-full transition-colors focus:outline-none cursor-pointer",
+              isHomeHero ? "hover:bg-white/10" : "hover:bg-surface-container",
+            )}
             aria-label="Shopping Cart"
           >
-            <ShoppingBag className="text-secondary text-2xl w-6 h-6" />
+            <ShoppingBag
+              className={cn(
+                "text-2xl w-6 h-6 transition-colors",
+                isHomeHero ? "text-white" : "text-secondary dark:text-white",
+              )}
+            />
             <span
               className={cn(
-                'absolute -top-1 -right-1 bg-tertiary text-white font-montserrat text-[10px] font-extrabold w-5 h-5 flex items-center justify-center rounded-full transition-transform duration-300 shadow-md',
-                totalCartQuantity > 0 ? 'scale-100' : 'scale-0'
+                "absolute -top-1 -right-1 bg-tertiary text-white font-montserrat text-[10px] font-extrabold w-5 h-5 flex items-center justify-center rounded-full transition-transform duration-300 shadow-md",
+                totalCartQuantity > 0 ? "scale-100" : "scale-0",
               )}
             >
               {totalCartQuantity}
@@ -100,13 +126,26 @@ export const Header: React.FC = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMobileMenu}
-            className="lg:hidden p-2.5 rounded-full hover:bg-surface-container transition-colors focus:outline-none cursor-pointer"
+            className={cn(
+              "lg:hidden p-2.5 rounded-full transition-colors focus:outline-none cursor-pointer",
+              isHomeHero ? "hover:bg-white/10" : "hover:bg-surface-container",
+            )}
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? (
-              <X className="text-secondary text-2xl w-6 h-6" />
+              <X
+                className={cn(
+                  "text-2xl w-6 h-6 transition-colors",
+                  isHomeHero ? "text-white" : "text-secondary dark:text-white",
+                )}
+              />
             ) : (
-              <Menu className="text-secondary text-2xl w-6 h-6" />
+              <Menu
+                className={cn(
+                  "text-2xl w-6 h-6 transition-colors",
+                  isHomeHero ? "text-white" : "text-secondary dark:text-white",
+                )}
+              />
             )}
           </button>
         </div>

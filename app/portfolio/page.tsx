@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useStore } from '@/hooks/useStore';
-import { ScrollReveal } from '@/components/ui/ScrollReveal';
-import { MapPin } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from "react";
+import Image from "next/image";
+import { useStore } from "@/hooks/useStore";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { MapPin } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Project {
   title: string;
@@ -13,111 +14,140 @@ interface Project {
   imageSrc: string;
   year: string;
   description: string;
-  category: 'residential' | 'commercial' | 'interior' | 'landscape' | 'renovation';
+  category:
+    | "residential"
+    | "commercial"
+    | "interior"
+    | "landscape"
+    | "renovation";
   price?: string;
+  aspectClass?: string;
 }
 
 const projects: Project[] = [
   {
-    title: 'The Indus Minimalist Villa',
-    location: 'DHA Phase 6, Lahore, Pakistan',
-    imageSrc: '/images/projects/dha_lahore_villa.png',
-    year: '2025',
-    description: 'An ultra-luxury 1-Kanal villa in DHA Lahore Phase 6. Crafted with a minimalist concrete and warm teak wood facade, floor-to-ceiling high-performance structural glass, and bespoke spatial layouts.',
-    category: 'residential',
-    price: 'Est: PKR 14.5 Crore',
+    title: "The Hayatabad Minimalist Estate",
+    location: "Ring Road, Hayatabad, Peshawar, Pakistan",
+    imageSrc: "/images/dha_lahore_villa.png",
+    year: "2025",
+    description:
+      "An ultra-luxury 1-Kanal residence in Hayatabad, Peshawar. Designed with passive solar layout, exposed structural concrete, floor-to-ceiling thermal double-glazing, and private interior courtyard.",
+    category: "residential",
+    price: "1 Kanal • 6,200 sq. ft.",
+    aspectClass: "aspect-[4/5]",
   },
   {
-    title: 'Margalla Crest Mansion',
-    location: 'DHA Phase 2, Islamabad, Pakistan',
-    imageSrc: '/images/projects/dha_islamabad_mansion.png',
-    year: '2026',
-    description: 'An ultra-luxury modernist 2-Kanal mansion nestled against the backdrop of the Margalla Hills. Features rich travertine stone cladding, a majestic double-height entrance lobby, and expansive structural cantilever decks.',
-    category: 'residential',
-    price: 'Est: PKR 28.0 Crore',
+    title: "Margalla Crest Contemporary Mansion",
+    location: "DHA Phase 2, Islamabad, Pakistan",
+    imageSrc: "/images/dha_islamabad_mansion.png",
+    year: "2026",
+    description:
+      "A modernist 2-Kanal hillside mansion facing the Margalla ridges. Features seismic reinforcement calculations, double-height entrance atrium, travertine stone cladding, and wide cantilevered balconies.",
+    category: "residential",
+    price: "2 Kanal • 9,500 sq. ft.",
+    aspectClass: "aspect-[4/5]",
   },
   {
-    title: 'The Clifton Ocean Residence',
-    location: 'Clifton Block 4, Karachi, Pakistan',
-    imageSrc: '/images/projects/clifton_karachi_villa.png',
-    year: '2024',
-    description: 'An ultra-premium modern coastal-themed residence in Clifton, Karachi. Features custom filigree brass balconies, weather-resistant structural concrete facades, and a spectacular rooftop infinity pool looking over the Arabian Sea.',
-    category: 'residential',
-    price: 'Est: PKR 52.0 Crore',
+    title: "The Clifton Coastal Residence",
+    location: "Clifton Block 4, Karachi, Pakistan",
+    imageSrc: "/images/clifton_karachi_villa.png",
+    year: "2024",
+    description:
+      "An ultra-premium modern coastal residence in Clifton, Karachi. Features marine-grade corrosion-resistant concrete facades, geometric brise-soleil shading louvers, and a rooftop viewing pavilion over the Arabian Sea.",
+    category: "residential",
+    price: "10 Marla • 3,850 sq. ft.",
+    aspectClass: "aspect-[4/5]",
   },
   {
-    title: 'The Monolith Residence',
-    location: 'Oslo, Norway',
-    imageSrc: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCfUdhs95BD28RZ3lArCumyUe1awaW-4ZEJ5QWRBsGiBRSFq5HhkLC3hgL2YEQKvslTDVy1h2SKuDLWaBOOwamzlRZpPdkjtboyzwWGb9s_2xLgFXRUEZHygo_FTgp7U12IU8xTAjYVHxw1qVHllolhlihxnViftg480N36Z8D7fZNMbffWLOxqBqmbBRMpnFFMkW1Ag2B56ndKz9rlOa8rLxFRTrGNfnsglOFYd9snxUXVh1tPvPITjIrANF_wZmeFRvlOFO_hoZLX',
-    year: '2023',
-    description: 'A stunning residential estate designed to merge raw volcanic rock textures with polished structural glass.',
-    category: 'residential',
+    title: "AL Haj Sher Commercial Center",
+    location: "Ring Road, Near Hayatabad, Peshawar",
+    imageSrc: "/images/Full House Design Package.png",
+    year: "2025",
+    description:
+      "A multi-storey corporate hub and mixed-use commercial center. Features full MEP schematics, life safety egress plans, high-efficiency mechanical circulation, and PDA municipal submission drawings.",
+    category: "commercial",
+    price: "Multi-Storey Corporate Hub",
+    aspectClass: "aspect-[16/10]",
   },
   {
-    title: 'Nexus Headquarters',
-    location: 'Berlin, Germany',
-    imageSrc: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCJArPv4gIcKgt3pzkHD_KMaSgJA48xlFVIx_Yut79_VfJs4TjLs9fWhKHP09npffHCR7dM59jf7Md3nMULcShhRKeLOHiX-UEoPfRC9eE3kPhMAEx-Mes_2uxNhv4-ZEF9tVTRlgPv0pGOr5QL-wSg3qcQQeuxDVgQ6Mkg23mBHvP9U_2cOWRMeTX3UPRDYQeLqTrsK3QNSkLtickOyNOrstTtiLKPkFyjpLRYwwjShGTKUaEjRnGleCQjmr5Y6tjmR5_qy4rrMrTL',
-    year: '2022',
-    description: 'Corporate office featuring structural concrete trusses and floating glass corridors suspended over a central light atrium.',
-    category: 'commercial',
+    title: "Modern Facade Redesign & Elevation",
+    location: "Hayatabad Phase 5, Peshawar, Pakistan",
+    imageSrc: "/images/Front Elevation 3D (Exterior Render).png",
+    year: "2025",
+    description:
+      "Contemporary 3D facade transformation for a 1-Kanal residence. Replaced traditional brickwork with sleek composite stone panels, dramatic vertical illumination, and modern aluminum louvers.",
+    category: "renovation",
+    price: "1 Kanal Facade • 3D Elevation",
+    aspectClass: "aspect-[16/9]",
   },
   {
-    title: 'Cliffside Sanctuary',
-    location: 'Amalfi, Italy',
-    imageSrc: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAlFE570_xbK5UD2KEgI_-oMrbv4EYgDpNZ2MbrLgFaJRRYUByBF3poK5BceDukJdeoy6sRqpV006VG4gWX-9bYg2BMwa5z4Ib_GrQt197t3iRnCfYk6swU0dDNKOSbxgjKbyycRQSIuAwUdOt1lnumEgJ3T881UOxlEVXUATvHalZ4kR2gbvFgpxWLvCePKwtA1uEjli9E14d_5kBDFTKI659Rh6UJZ_Dp46lDJ097-R9_3Ppmx9sK5GOAd2FmFtT-1QBZlUV6qpEV',
-    year: '2024',
-    description: 'Boutique hotel suites carved directly into coastal stone cliffs, utilizing custom bronze hardware and travertine surfaces.',
-    category: 'interior',
+    title: "Executive Penthouse Suite & Lounge",
+    location: "Blue Area, Islamabad, Pakistan",
+    imageSrc: "/images/Interior Room Makeover.png",
+    year: "2025",
+    description:
+      "Luxury interior room makeover featuring bespoke Swat walnut wood millwork, acoustic ceiling geometry, architectural ambient cove lighting, and curated imported marble surfaces.",
+    category: "interior",
+    price: "Master Suite & Lounge",
+    aspectClass: "aspect-[16/10]",
   },
   {
-    title: 'The Geometric Grove',
-    location: 'Kyoto, Japan',
-    imageSrc: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBWAqdR_8SqY3r0hb41DAbkS_s2OITutM3iMujANqkAu2OB8LqvsPBbQcJQ0nH4thCkRbOJpmXSn4sXpjnvUCRoR4___ohS8xUWwza7C7RrFn7x4z936A1NVZ67b0il2Uv4G2tB-qKOTXps8PwGTRFhmI8lwndpNSvPAMAC1WyaTGEQG8Zno5-WJZn1IHwSCGeEGB8ERfFWAgGibgZbDY4ztce8TQ0RRQFOp0S97dAXhUTPjJbv2E8q-5LxCBcbXcxAJ30rBI-TxL-d',
-    year: '2023',
-    description: 'Sustainable biophilic landscaping utilizing layered linear stone pathways, local black pine, and clean concrete dividers.',
-    category: 'landscape',
+    title: "Comprehensive Layout Optimization",
+    location: "DHA Phase 6, Karachi, Pakistan",
+    imageSrc: "/images/House Plan Correction.png",
+    year: "2025",
+    description:
+      "Complete architectural redrafting for a 10 Marla corner plot with circulation bottlenecks. Restructured the layout to introduce natural light shafts, cross-ventilation, and dedicated family zones.",
+    category: "renovation",
+    price: "10 Marla • Corrected Blueprint",
+    aspectClass: "aspect-[16/10]",
   },
   {
-    title: 'The Heritage Loft',
-    location: 'Paris, France',
-    imageSrc: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAgf8GtOSxQbeM6OfNsQf6A5vDjcGX_HNBZmRp-gJWr1rLfgJ9eud7CHkazywznVs21TMQHgrF-8SwG49dkh5uNKI2nKw-RS766mK6MdQoiK1exwAOfhx4MqHAm6g0sXSfFQf-ZRoyC10BXcXTW8qLucZx-jbvzWgZlQ3v5vt3GH2LPB0VG8TCsgzAZzlz9q7Flgln5p_Gb61XVknXS1nCtMGGR4-asO8JOZkD6o92BKXXWS_1UVmt0IZdQqazAHSCcxvvGYfA6DKGL',
-    year: '2021',
-    description: 'A 19th-century luxury apartment carefully structured with high-diffusion glass panels, maintaining historical moldings.',
-    category: 'renovation',
+    title: "Biophilic Courtyard & Landscape Garden",
+    location: "DHA Phase 2, Islamabad, Pakistan",
+    imageSrc: "/images/House Plan review.png",
+    year: "2024",
+    description:
+      "Internal biophilic courtyard integrating indigenous flora, geometric stone water rills, and shaded outdoor seating designed for thermal microclimate regulation in peak summer months.",
+    category: "landscape",
+    price: "Estate Garden & Circulation Audit",
+    aspectClass: "aspect-[16/10]",
   },
 ];
 
 const filterCategories = [
-  { key: 'all', label: 'All Masterpieces' },
-  { key: 'residential', label: 'Residential' },
-  { key: 'commercial', label: 'Commercial' },
-  { key: 'interior', label: 'Interior' },
-  { key: 'landscape', label: 'Landscape' },
-  { key: 'renovation', label: 'Renovations' },
+  { key: "all", label: "All Masterpieces" },
+  { key: "residential", label: "Residential" },
+  { key: "commercial", label: "Commercial" },
+  { key: "interior", label: "Interior" },
+  { key: "landscape", label: "Landscape" },
+  { key: "renovation", label: "Renovations" },
 ];
 
 export default function PortfolioPage() {
   const { portfolioFilter, setPortfolioFilter, openLightbox } = useStore();
 
   const filteredProjects = projects.filter(
-    (project) => portfolioFilter === 'all' || project.category === portfolioFilter
+    (project) =>
+      portfolioFilter === "all" || project.category === portfolioFilter,
   );
 
   return (
-    <div className="relative overflow-x-hidden min-h-screen pt-20">
+    <div className="relative overflow-x-hidden min-h-screen pt-20 bg-surface dark:bg-zinc-950">
       {/* Title Header */}
       <header className="px-4 md:px-margin-desktop max-w-container-max mx-auto py-16 md:py-20 border-b border-outline-variant/30">
         <ScrollReveal>
           <div className="max-w-3xl space-y-4">
             <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
-              ARCHIVE OF EXCELLENCE
+              ARCHIVE OF REALIZED WORKS
             </span>
             <h1 className="font-playfair text-4xl md:text-6xl text-on-surface dark:text-zinc-100 font-normal leading-tight">
               Curating spaces where <br />
-              <span className="italic font-light">form meets soul.</span>
+              <span className="italic font-light">form meets precision.</span>
             </h1>
             <p className="font-inter text-base md:text-lg text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-              Our portfolio is a testament to architectural rigor and aesthetic purity. Explore a decade of structural masterpieces designed for the modern visionary.
+              Our real portfolio spans iconic luxury residences, corporate hubs,
+              and spatial redrafts across Peshawar, Islamabad, and Karachi.
             </p>
           </div>
         </ScrollReveal>
@@ -127,7 +157,7 @@ export default function PortfolioPage() {
       <section className="px-4 md:px-margin-desktop max-w-container-max mx-auto py-16">
         {/* Tag Filters */}
         <ScrollReveal delay={0.1}>
-          <div className="flex flex-wrap gap-3 mb-10 overflow-x-auto pb-4 scrollbar-hide">
+          <div className="flex flex-wrap gap-3 mb-12 overflow-x-auto pb-2 scrollbar-hide">
             {filterCategories.map((cat) => {
               const isActive = portfolioFilter === cat.key;
               return (
@@ -135,10 +165,10 @@ export default function PortfolioPage() {
                   key={cat.key}
                   onClick={() => setPortfolioFilter(cat.key)}
                   className={cn(
-                    'px-6 py-2 rounded-full border text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer',
+                    "px-6 py-2.5 rounded-full border text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer",
                     isActive
-                      ? 'border-primary bg-primary text-on-primary dark:border-zinc-300 dark:bg-zinc-300 dark:text-zinc-950'
-                      : 'border-outline-variant text-on-surface-variant hover:border-tertiary hover:text-tertiary'
+                      ? "border-primary bg-primary text-on-primary dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950 shadow-md"
+                      : "border-outline-variant text-on-surface-variant hover:border-tertiary hover:text-tertiary",
                   )}
                 >
                   {cat.label}
@@ -148,17 +178,17 @@ export default function PortfolioPage() {
           </div>
         </ScrollReveal>
 
-        {/* Animated Masonry Portfolio Layout */}
-        <div className="masonry-grid gap-6 min-h-[600px]">
+        {/* Responsive Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[600px]">
           <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project, idx) => (
+            {filteredProjects.map((project) => (
               <motion.div
                 layout
                 key={project.title}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.35 }}
                 onClick={() =>
                   openLightbox({
                     title: project.title,
@@ -170,31 +200,47 @@ export default function PortfolioPage() {
                     price: project.price,
                   })
                 }
-                className="masonry-item group relative overflow-hidden rounded-2xl cursor-pointer shadow-md"
+                className="group relative overflow-hidden rounded-3xl cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900 flex flex-col justify-between"
               >
-                <div className="relative w-full h-auto">
-                  <img
+                {/* Image Container with Next.js Image */}
+                <div
+                  className={cn(
+                    "relative w-full overflow-hidden bg-zinc-950",
+                    project.aspectClass || "aspect-[4/3]",
+                  )}
+                >
+                  <Image
+                    fill
                     src={project.imageSrc}
                     alt={project.title}
-                    className="w-full object-cover transition-transform duration-[0.8s] group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-[0.9s] group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
+
+                  <span className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-tertiary text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-tertiary/30">
+                    {project.category} • {project.year}
+                  </span>
+
+                  {project.price && (
+                    <span className="absolute top-4 right-4 bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full">
+                      {project.price}
+                    </span>
+                  )}
                 </div>
 
-                <div className="absolute bottom-0 left-0 w-full p-6 translate-y-[101%] group-hover:translate-y-0 transition-transform duration-500 glass-panel">
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <span className="font-inter text-[10px] font-bold text-tertiary block mb-1 uppercase">
-                        {project.category} • {project.year}
-                      </span>
-                      <h3 className="font-playfair text-xl font-bold mb-1 text-zinc-900">{project.title}</h3>
-                      <p className="font-inter text-xs text-on-surface-variant flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-tertiary" /> {project.location}
-                      </p>
-                    </div>
-                    <span className="font-inter text-[10px] font-bold border-b border-on-surface pb-0.5 group-hover:text-tertiary group-hover:border-tertiary transition-colors tracking-widest">
-                      DETAILS
-                    </span>
+                {/* Content Overlay / Card Footer */}
+                <div className="p-6 space-y-2 bg-surface-container-low dark:bg-zinc-900 border-t border-outline-variant/20">
+                  <h3 className="font-playfair text-xl font-bold text-on-surface dark:text-zinc-100 group-hover:text-tertiary transition-colors">
+                    {project.title}
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-xs text-on-surface-variant dark:text-zinc-400">
+                    <MapPin className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                    <span>{project.location}</span>
                   </div>
+                  <p className="font-inter text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 pt-1 font-light leading-relaxed">
+                    {project.description}
+                  </p>
                 </div>
               </motion.div>
             ))}
