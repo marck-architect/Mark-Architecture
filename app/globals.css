@@ -1,26 +1,193 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-tertiary-fixed-dim: #f2be72;
+  --color-on-primary-container: #747676;
+  --color-tertiary-fixed: #ffddb1;
+  --color-on-tertiary-fixed-variant: #624000;
+  --color-on-primary: #ffffff;
+  --color-on-secondary-container: #656464;
+  --color-error-container: #ffdad6;
+  --color-inverse-surface: #313030;
+  --color-on-surface: #1c1b1b;
+  --color-surface-variant: #e5e2e1;
+  --color-primary-fixed-dim: #c6c6c7;
+  --color-on-error-container: #93000a;
+  --color-on-surface-variant: #444748;
+  --color-inverse-primary: #c6c6c7;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-secondary: #ffffff;
+  --color-on-tertiary-fixed: #291800;
+  --color-surface-container-highest: #e5e2e1;
+  --color-tertiary-container: #ffffff;
+  --color-tertiary: #7e5714;
+  --color-surface-tint: #5d5f5f;
+  --color-on-error: #ffffff;
+  --color-surface-bright: #fcf8f8;
+  --color-primary: #5d5f5f;
+  --color-on-secondary-fixed-variant: #474646;
+  --color-on-background: #1c1b1b;
+  --color-surface: #fcf8f8;
+  --color-outline: #747878;
+  --color-on-tertiary: #ffffff;
+  --color-error: #ba1a1a;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-dim: #ddd9d9;
+  --color-primary-fixed: #e2e2e2;
+  --color-surface-container: #f1edec;
+  --color-on-tertiary-container: #986e2b;
+  --color-secondary-fixed-dim: #c8c6c5;
+  --color-background: #fcf8f8;
+  --color-secondary-container: #e5e2e1;
+  --color-on-primary-fixed: #1a1c1c;
+  --color-on-secondary-fixed: #1c1b1b;
+  --color-outline-variant: #c4c7c8;
+  --color-inverse-on-surface: #f4f0ef;
+  --color-on-primary-fixed-variant: #454747;
+  --color-surface-container-high: #ebe7e7;
+  --color-secondary: #5f5e5e;
+  --color-primary-container: #ffffff;
+  --color-secondary-fixed: #e5e2e1;
+
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2.5rem;
+  --radius-full: 9999px;
+
+  --spacing-margin-mobile: 20px;
+  --spacing-gutter: 32px;
+  --spacing-unit: 8px;
+  --spacing-container-max: 1440px;
+  --spacing-section-gap: 120px;
+  --spacing-margin-tablet: 40px;
+  --spacing-margin-desktop: 80px;
+
+  --font-playfair: var(--font-playfair);
+  --font-inter: var(--font-inter);
+  --font-montserrat: var(--font-montserrat);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Custom scrollbar for premium editorial feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+::-webkit-scrollbar-track {
+  background: #f6f3f2;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c4c7c8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #747878;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.glass-panel-dark {
+  background: rgba(28, 27, 27, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-text-outline {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.15);
+  color: transparent;
+}
+
+/* Reveal on scroll base classes */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-on-scroll.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Masonry column settings */
+.masonry-grid {
+  column-count: 1;
+}
+
+@media (min-width: 768px) {
+  .masonry-grid {
+    column-count: 2;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (min-width: 1024px) {
+  .masonry-grid {
+    column-count: 3;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 2rem;
+  transition: all 0.5s ease;
+}
+
+/* Slide hover effect for premium button */
+.btn-slide-hover {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: color 0.4s ease;
+}
+
+.btn-slide-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: #7e5714; /* Bronze color */
+  transition: left 0.4s ease;
+  z-index: -1;
+}
+
+.btn-slide-hover:hover::before {
+  left: 0;
+}
+
+/* Interactive 3D model perspective */
+.product-3d-canvas {
+  perspective: 1200px;
+}
+
+.product-3d-model {
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+
+/* Active nav indicator animation */
+.nav-link-active {
+  color: #7e5714 !important;
+  border-bottom: 2px solid #7e5714;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
