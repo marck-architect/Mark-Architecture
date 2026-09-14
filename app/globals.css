@@ -1,4 +1,23 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
+
+/* Ensure Lenis smooth scrolling container stability */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.transform-gpu {
+  transform: translateZ(0);
+}
+
+.will-change-transform {
+  will-change: transform;
+}
 
 @theme {
   --color-tertiary-fixed-dim: #f2be72;
@@ -91,15 +110,15 @@
 
 .glass-panel {
   background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .glass-panel-dark {
   background: rgba(28, 27, 27, 0.75);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -152,7 +171,7 @@
 }
 
 .btn-slide-hover::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;

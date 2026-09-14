@@ -4,18 +4,10 @@ import React from "react";
 import Link from "next/link";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
+import { mobileMenuLinks } from "@/data/navigation";
 
 export const MobileMenu: React.FC = () => {
   const { mobileMenuOpen, setMobileMenuOpen } = useStore();
-
-  const menuLinks = [
-    { label: "Home", href: "/" },
-    { label: "About", href: "/about" },
-    { label: "Portfolio", href: "/portfolio" },
-    { label: "Services", href: "/services" },
-    { label: "Collection", href: "/collection" },
-    { label: "Consultation", href: "/consultation" },
-  ];
 
   return (
     <div
@@ -27,7 +19,7 @@ export const MobileMenu: React.FC = () => {
       )}
     >
       <div className="flex flex-col gap-5">
-        {menuLinks.map((link) => (
+        {mobileMenuLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}

@@ -13,13 +13,13 @@ import {
   Sparkles,
   ChevronRight,
 } from "lucide-react";
-
-interface ServiceItem {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  defaultProjectType: string;
-}
+import type { ServiceItem, ServicesPopupProps } from "@/types";
+import {
+  popupScales as scales,
+  popupStyles as styles,
+  popupSectors as sectors,
+  popupTimelines as timelines,
+} from "@/data/services";
 
 const servicesData: ServiceItem[] = [
   {
@@ -66,13 +66,6 @@ const servicesData: ServiceItem[] = [
   },
 ];
 
-interface ServicesPopupProps {
-  isOpen: boolean;
-  onClose: () => void;
-  initialServiceTitle: string;
-  onSelectService: (projectType: string, customBriefText: string) => void;
-}
-
 export const ServicesPopup: React.FC<ServicesPopupProps> = ({
   isOpen,
   onClose,
@@ -93,27 +86,6 @@ export const ServicesPopup: React.FC<ServicesPopupProps> = ({
   // Find currently selected service details
   const activeService =
     servicesData.find((s) => s.title === selectedTitle) || servicesData[0];
-
-  const scales = [
-    "Small (< 1,500 sq ft)",
-    "Medium (1,500 - 5,000 sq ft)",
-    "Large (5,000 - 10,000 sq ft)",
-    "Estate (> 10,000 sq ft)",
-  ];
-  const styles = [
-    "Minimalist Modern",
-    "Classic Luxury",
-    "Biophilic Organic",
-    "Industrial High-Tech",
-  ];
-  const sectors = [
-    { value: "residential", label: "Luxury Residential Estate" },
-    { value: "commercial", label: "Premium Commercial Hub" },
-    { value: "interior", label: "Bespoke Interior Design" },
-    { value: "landscape", label: "Landscape & Biophilic Design" },
-    { value: "renovation", label: "Legacy Renovations" },
-  ];
-  const timelines = ["1-3 Months", "3-6 Months", "6-12+ Months"];
 
   // Dynamic brief formulation
   const getDynamicBrief = () => {

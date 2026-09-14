@@ -1,125 +1,23 @@
 import { create } from "zustand";
+import type {
+  CartItem,
+  AttachedFile,
+  BookingState,
+  QuickViewProduct,
+  LightboxProject,
+  ToastState,
+  AppStore,
+} from "@/types";
 
-export interface CartItem {
-  title: string;
-  price: number;
-  image: string;
-  quantity: number;
-  currency?: "PKR" | "USD";
-  tier?: string;
-  plotSize?: string;
-}
-
-export interface AttachedFile {
-  name: string;
-  size: number;
-  type: string;
-  dataUrl?: string;
-}
-
-export interface BookingState {
-  selectedDate: { day: number; month: number; year: number } | null;
-  selectedTime: string | null;
-  monthOffset: number;
-  callTier: "Basic Call" | "Premium Call";
-  attachedFile: AttachedFile | null;
-}
-
-export interface QuickViewProduct {
-  title: string;
-  price: string; // e.g. "PKR 15,000"
-  category: string;
-  image: string;
-  description: string;
-  deliveryTime?: string;
-  tier?: string;
-}
-
-export interface LightboxProject {
-  title: string;
-  location: string;
-  imageSrc: string;
-  year: string;
-  description: string;
-  category: string;
-  price?: string;
-}
-
-interface ToastState {
-  message: string;
-  type: "success" | "warning";
-  isOpen: boolean;
-}
-
-interface AppStore {
-  // Navigation & UI States
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (open: boolean) => void;
-  toggleMobileMenu: () => void;
-
-  cartDrawerOpen: boolean;
-  setCartDrawerOpen: (open: boolean) => void;
-  toggleCartDrawer: () => void;
-
-  // Cart State
-  cart: CartItem[];
-  addToCart: (item: {
-    title: string;
-    price: number;
-    image: string;
-    currency?: "PKR" | "USD";
-    tier?: string;
-    plotSize?: string;
-  }) => void;
-  removeFromCart: (index: number) => void;
-  changeQuantity: (index: number, delta: number) => void;
-  clearCart: () => void;
-
-  // Quick View Modal
-  quickView: {
-    isOpen: boolean;
-    product: QuickViewProduct | null;
-  };
-  openQuickView: (product: QuickViewProduct) => void;
-  closeQuickView: () => void;
-
-  // Lightbox Modal
-  lightbox: {
-    isOpen: boolean;
-    project: LightboxProject | null;
-  };
-  openLightbox: (project: LightboxProject) => void;
-  closeLightbox: () => void;
-
-  // Success Modal
-  successModal: {
-    isOpen: boolean;
-    title: string;
-    description: string;
-  };
-  openSuccessModal: (title: string, description: string) => void;
-  closeSuccessModal: () => void;
-
-  // Booking Scheduler State
-  booking: BookingState;
-  selectDate: (day: number, month: number, year: number) => void;
-  selectTimeSlot: (time: string) => void;
-  changeMonth: (direction: number) => void;
-  setCallTier: (tier: "Basic Call" | "Premium Call") => void;
-  setAttachedFile: (file: AttachedFile | null) => void;
-  unlinkAppointment: () => void;
-  isAppointmentLinked: boolean;
-  setAppointmentLinked: (linked: boolean) => void;
-
-  // Portfolio Filters
-  portfolioFilter: string;
-  setPortfolioFilter: (filter: string) => void;
-
-  // Toast System
-  toast: ToastState;
-  showToast: (message: string, type?: "success" | "warning") => void;
-  hideToast: () => void;
-}
+export type {
+  CartItem,
+  AttachedFile,
+  BookingState,
+  QuickViewProduct,
+  LightboxProject,
+  ToastState,
+  AppStore,
+};
 
 let toastTimeout: NodeJS.Timeout;
 

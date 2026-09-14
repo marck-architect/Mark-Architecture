@@ -23,11 +23,14 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://markarchitects.com"),
   title: "MARK Architects | Digital Atelier & Curated Store",
-  description: "Precision in every pixel. Defining the future of architectural luxury and spatial legacy across the globe.",
+  description:
+    "Precision in every pixel. Defining the future of architectural luxury and spatial legacy across the globe.",
   openGraph: {
     title: "MARK Architects | Digital Atelier",
-    description: "Ultra-premium architectural excellence and innovative design thinking tailored for the global elite.",
+    description:
+      "Ultra-premium architectural excellence and innovative design thinking tailored for the global elite.",
     url: "https://markarchitects.com",
     siteName: "MARK Architects",
     locale: "en_US",
@@ -36,7 +39,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "MARK Architects",
-    description: "Defining the future of architectural luxury and spatial legacy across the globe.",
+    description:
+      "Defining the future of architectural luxury and spatial legacy across the globe.",
   },
 };
 
@@ -48,9 +52,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${inter.variable} ${montserrat.variable} h-full antialiased`}
+      className={`${playfair.variable} ${inter.variable} ${montserrat.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-surface text-on-surface font-inter selection:bg-tertiary-fixed selection:text-on-tertiary-fixed overflow-x-hidden">
+      <body className="min-h-screen flex flex-col bg-surface text-on-surface font-inter selection:bg-tertiary-fixed selection:text-on-tertiary-fixed">
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

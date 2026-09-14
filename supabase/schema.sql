@@ -89,13 +89,15 @@ CREATE TABLE public.consultations (
     client_name TEXT NOT NULL,
     client_email TEXT NOT NULL,
     client_phone TEXT NOT NULL,
-    tier_name TEXT NOT NULL CHECK (tier_name IN ('Basic Call', 'Premium Call')),
+    tier_name TEXT NOT NULL,
     price_pkr NUMERIC(12, 2) NOT NULL,
     booking_date DATE NOT NULL,
     booking_time TEXT NOT NULL,
-    attachment_urls TEXT[] NOT NULL, -- Client must upload plan or site photos before confirmation
+    attachment_urls TEXT[] NOT NULL DEFAULT '{}', -- Client uploaded plan or site photos
     notes TEXT,
-    payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded')),
+    meeting_url TEXT, -- Google Meet or Zoom URL set by admin
+    admin_notes TEXT, -- Internal notes set by architect/admin
+    payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded', 'completed', 'rescheduled')),
     safepay_tracker TEXT,
     safepay_token TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
@@ -171,17 +173,51 @@ CREATE POLICY "Client read own consultation" ON public.consultations
 CREATE POLICY "Client read own order" ON public.orders
     FOR SELECT USING (true);
 
+-- Authenticated Admin management policies (update meeting URLs, notes, status)
+CREATE POLICY "Admin update consultation" ON public.consultations
+    FOR UPDATE TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+CREATE POLICY "Admin delete consultation" ON public.consultations
+    FOR DELETE TO authenticated
+    USING (true);
+
+CREATE POLICY "Admin update orders" ON public.orders
+    FOR UPDATE TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
 -- ------------------------------------------------------------------------------
--- 8. Supabase Storage Configuration (SQL script representation)
+-- 8. Supabase Storage Configuration
 -- ------------------------------------------------------------------------------
--- INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
--- VALUES (
---     'client-attachments',
---     'client-attachments',
---     true,
---     26214400, -- 25MB max
---     ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'application/zip']
--- );
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'client-attachments',
+    'client-attachments',
+    true,
+    26214400, -- 25MB max
+    ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'application/zip']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage RLS policies for client attachment uploads & downloads
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE policyname = 'Public Upload Attachments' AND tablename = 'objects' AND schemaname = 'storage'
+    ) THEN
+        CREATE POLICY "Public Upload Attachments" ON storage.objects
+            FOR INSERT WITH CHECK (bucket_id = 'client-attachments');
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE policyname = 'Public View Attachments' AND tablename = 'objects' AND schemaname = 'storage'
+    ) THEN
+        CREATE POLICY "Public View Attachments" ON storage.objects
+            FOR SELECT USING (bucket_id = 'client-attachments');
+    END IF;
+END $$;
 
 -- ------------------------------------------------------------------------------
 -- 9. Authoritative Seed Data Injection

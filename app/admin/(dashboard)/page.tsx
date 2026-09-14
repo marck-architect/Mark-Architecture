@@ -1,0 +1,63 @@
+import React from "react";
+import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import { AdminDashboardView } from "@/components/admin/AdminDashboardView";
+import type { ConsultationRecord, OrderRecord } from "@/types";
+import { seedConsultations, seedOrders } from "@/data/adminSeed";
+
+export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Admin Atelier Dashboard | MARK Architects",
+  description:
+    "Executive control panel for managing architectural consultation bookings, schedules, and Safepay payments.",
+};
+
+export default async function AdminDashboardPage() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  let consultations: ConsultationRecord[] = [];
+  let orders: OrderRecord[] = [];
+
+  try {
+    // 1. Fetch all consultation bookings
+    const { data: consultationData, error: consultationError } = await supabase
+      .from("consultations")
+      .select("*")
+      .order("booking_date", { ascending: false })
+      .order("booking_time", { ascending: false });
+
+    if (!consultationError && consultationData) {
+      consultations = consultationData as ConsultationRecord[];
+    }
+
+    // 2. Fetch all design orders
+    const { data: orderData, error: orderError } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!orderError && orderData) {
+      orders = orderData as OrderRecord[];
+    }
+  } catch (err) {
+    console.error("Error fetching admin dashboard data:", err);
+  }
+
+  // If database is brand new / has no records yet, provide initial seed showcase rows
+  if (consultations.length === 0) {
+    consultations = seedConsultations;
+  }
+
+  if (orders.length === 0) {
+    orders = seedOrders;
+  }
+
+  return (
+    <AdminDashboardView
+      initialConsultations={consultations}
+      initialOrders={orders}
+    />
+  );
+}
