@@ -1,0 +1,21 @@
+{
+  "frameCount": 96,
+  "cols": 8,
+  "rows": 12,
+  "tiers": {
+    "lg": {
+      "cellW": 1000,
+      "cellH": 563,
+      "sheetW": 8000,
+      "sheetH": 6756,
+      "src": "/hero-atlas/villa-lg.webp"
+    },
+    "sm": {
+      "cellW": 480,
+      "cellH": 270,
+      "sheetW": 3840,
+      "sheetH": 3240,
+      "src": "/hero-atlas/villa-sm.webp"
+    }
+  }
+}

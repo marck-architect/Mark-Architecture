@@ -1,0 +1,21 @@
+{
+  "frameCount": 120,
+  "cols": 10,
+  "rows": 12,
+  "tiers": {
+    "lg": {
+      "cellW": 800,
+      "cellH": 450,
+      "sheetW": 8000,
+      "sheetH": 5400,
+      "src": "/hero-atlas/balcony-lg.webp"
+    },
+    "sm": {
+      "cellW": 400,
+      "cellH": 225,
+      "sheetW": 4000,
+      "sheetH": 2700,
+      "src": "/hero-atlas/balcony-sm.webp"
+    }
+  }
+}

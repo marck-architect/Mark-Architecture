@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { HeroCinematic } from "@/components/home/HeroCinematic";
 import {
   MapPin,
   Lightbulb,
@@ -23,134 +24,47 @@ import {
 } from "@/data/home";
 
 export const HomeView: React.FC = () => {
-  const heroImageRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          if (
-            heroImageRef.current &&
-            window.scrollY < window.innerHeight * 1.2
-          ) {
-            heroImageRef.current.style.transform = `translate3d(0, ${window.scrollY * 0.16}px, 0) scale(1.05)`;
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
-      {/* Fullscreen Parallax Hero */}
-      <section className="relative h-screen flex items-center overflow-hidden bg-zinc-950">
-        <div className="absolute inset-0 z-0">
-          <div
-            ref={heroImageRef}
-            className="w-full h-full relative will-change-transform transform-gpu"
-            style={{
-              transform: "translate3d(0, 0, 0) scale(1.05)",
-            }}
-          >
-            <Image
-              fill
-              priority
-              src="/images/Front Elevation 3D (Exterior Render).png"
-              alt="Front Elevation 3D Exterior Render - MARK Architects"
-              className="object-cover object-top brightness-[0.45] contrast-[1.05] pt-10 md:pt-10"
-              sizes="100vw"
-            />
-            {/* Soft gradient blend for top padding and bottom transition */}
-            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-transparent to-black/60 pointer-events-none" />
-          </div>
-        </div>
+      {/* Hero: interactive orbit viewer that crossfades into a scroll-driven
+          balcony push-in on desktop (see HeroCinematic) — one continuous
+          pinned section, not a separate section stacked below it. */}
+      <HeroCinematic />
 
-        {/* Massive Background Typography */}
-        <div className="absolute inset-0 flex items-center justify-center z-10 select-none pointer-events-none overflow-hidden">
-          <span className="hero-text-outline font-montserrat text-[22vw] font-extrabold opacity-[0.07] tracking-tighter">
-            MARK
-          </span>
-        </div>
-
-        <div className="relative z-20 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop text-white pt-20">
-          <div className="max-w-4xl space-y-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-tertiary/30 backdrop-blur-md text-tertiary-fixed-dim border border-tertiary/40 font-inter text-[11px] font-bold tracking-[0.25em] uppercase px-3.5 py-1.5 rounded-full">
-                Peshawar (HQ) • Islamabad • Karachi
-              </span>
-              <span className="text-white/60 text-xs font-inter font-light hidden sm:inline">
-                PCATP Licensed Practice
-              </span>
-            </div>
-
-            <h1 className="font-playfair text-4xl md:text-6xl lg:text-7xl font-normal leading-[1.1] md:leading-[1.15]">
-              Designing Spaces That <br />
-              <span className="italic font-light">Inspire Generations.</span>
-            </h1>
-
-            <p className="font-inter text-base md:text-xl text-white/80 max-w-2xl font-light leading-relaxed">
-              Spearheaded by Muhammad Rafiq. We deliver mathematical rigor,
-              passive solar efficiency, and turnkey engineering drawings for
-              Pakistan&apos;s finest residential and commercial estates.
+      {/* Stats bar — its own section, not overlaid on the villa */}
+      <section className="bg-zinc-950 border-t border-white/10 py-10 px-4 md:px-margin-desktop">
+        <div className="max-w-container-max mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
+            <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
+              15+
             </p>
-
-            <div className="flex flex-wrap gap-4 pt-4">
-              <Link
-                href="/consultation"
-                className="bg-tertiary text-on-tertiary px-8 py-4 rounded-xl font-bold tracking-wide hover:bg-tertiary-fixed transition-all duration-300 shadow-xl active:scale-95 text-center flex items-center gap-2 font-inter text-xs uppercase"
-              >
-                <span>View Services &amp; Consultation</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/consultation"
-                className="border border-white/60 text-white px-8 py-4 rounded-xl font-bold tracking-wide hover:bg-white hover:text-black transition-all duration-300 active:scale-95 text-center font-inter text-xs uppercase"
-              >
-                Book Discovery Call
-              </Link>
-            </div>
+            <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
+              Years in Practice
+            </p>
           </div>
-
-          {/* Floating Statistics */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-16 md:mt-20">
-            <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
-                15+
-              </p>
-              <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-                Years in Practice
-              </p>
-            </div>
-            <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
-                250+
-              </p>
-              <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-                Projects Completed
-              </p>
-            </div>
-            <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
-                100%
-              </p>
-              <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-                PDA &amp; CDA Code Approval
-              </p>
-            </div>
-            <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-              <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
-                PKR 57
-              </p>
-              <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-                Per Sq. Ft. Full Turnkey
-              </p>
-            </div>
+          <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
+            <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
+              250+
+            </p>
+            <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
+              Projects Completed
+            </p>
+          </div>
+          <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
+            <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
+              100%
+            </p>
+            <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
+              PDA &amp; CDA Code Approval
+            </p>
+          </div>
+          <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
+            <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
+              PKR 57
+            </p>
+            <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
+              Per Sq. Ft. Full Turnkey
+            </p>
           </div>
         </div>
       </section>
