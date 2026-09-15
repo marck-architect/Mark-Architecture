@@ -2,7 +2,7 @@ import type { Leader, Achievement, StudioLocation } from "@/types";
 
 export const leaders: Leader[] = [
   {
-    name: "Muhammad Rafiq",
+    name: "Muhammad Arsalan",
     role: "Principal Architect & Founder",
     credentials: "PCATP Registered • B.Arch • Lead Structural Designer",
     experience: "14+ Years Experience",

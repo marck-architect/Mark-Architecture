@@ -112,7 +112,7 @@ export const faqsData: FaqItem[] = [
     question:
       "What happens during the online architectural consultation via Zoom or WhatsApp?",
     shortAnswer:
-      "You meet directly with Principal Architect Muhammad Rafiq to review your plot dimensions, diagnose layout bottlenecks, evaluate natural lighting and ventilation, and receive an actionable design roadmap.",
+      "You meet directly with Principal Architect Muhammad Arsalan to review your plot dimensions, diagnose layout bottlenecks, evaluate natural lighting and ventilation, and receive an actionable design roadmap.",
     fullAnswer: [
       "During the 30-minute or 60-minute video audit, we share screens to annotate your existing blueprint, floor sketch, or site photographs in real time.",
       "We calculate room circulation efficiency, check municipal setback compliance (PDA, CDA, DHA), and recommend structural grid alignments that avoid unnecessary RCC column costs.",
@@ -121,7 +121,7 @@ export const faqsData: FaqItem[] = [
     keywords: [
       "online architect consultation zoom",
       "whatsapp architect call pakistan",
-      "muhammad rafiq architect",
+      "muhammad arsalan architect",
       "floor plan audit",
       "house design review online",
     ],

@@ -20,10 +20,26 @@ export const Header: React.FC = () => {
 
   useEffect(() => {
     let ticking = false;
+
+    const evaluateScroll = () => {
+      if (pathname === "/") {
+        const nextSection = document.getElementById("home-content");
+        if (nextSection) {
+          const rect = nextSection.getBoundingClientRect();
+          // Keep header completely transparent during both hero images
+          // until the next content section reaches the top of the viewport
+          return rect.top <= 80;
+        }
+      }
+      return window.scrollY > 40;
+    };
+
+    setIsScrolled(evaluateScroll());
+
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          const scrolled = window.scrollY > 40;
+          const scrolled = evaluateScroll();
           setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
           ticking = false;
         });
@@ -33,7 +49,7 @@ export const Header: React.FC = () => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [pathname]);
 
   const isHomeHero = pathname === "/" && !isScrolled;
 

@@ -88,7 +88,7 @@ export const ConsultationServicesSidebar: React.FC<
         </div>
         <p className="font-inter text-[11px] text-zinc-600 dark:text-zinc-400 font-light leading-relaxed">
           Need immediate guidance regarding plot size regulations or bespoke
-          commercial scopes? Message Muhammad Rafiq directly.
+          commercial scopes? Message Muhammad Arsalan directly.
         </p>
         <a
           href="https://wa.me/923000000000"

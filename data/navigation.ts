@@ -4,7 +4,7 @@ export const navLinks: NavLink[] = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Portfolio", href: "/portfolio" },
-  { label: "Collection", href: "/collection" },
+  { label: "Products", href: "/collection" },
   { label: "Services & Consultation", href: "/consultation" },
   { label: "FAQs", href: "/faqs" },
 ];
@@ -14,7 +14,7 @@ export const mobileMenuLinks: NavLink[] = [
   { label: "About", href: "/about" },
   { label: "Portfolio", href: "/portfolio" },
   { label: "Services & Consultation", href: "/consultation" },
-  { label: "Collection", href: "/collection" },
+  { label: "Products", href: "/collection" },
   { label: "FAQs & Guide", href: "/faqs" },
 ];
 

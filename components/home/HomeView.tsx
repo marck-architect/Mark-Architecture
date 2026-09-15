@@ -25,52 +25,17 @@ import {
 
 export const HomeView: React.FC = () => {
   return (
-    <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
+    <div className="relative overflow-x-hidden min-h-screen bg-surface">
       {/* Hero: interactive orbit viewer that crossfades into a scroll-driven
           balcony push-in on desktop (see HeroCinematic) — one continuous
           pinned section, not a separate section stacked below it. */}
       <HeroCinematic />
 
-      {/* Stats bar — its own section, not overlaid on the villa */}
-      <section className="bg-zinc-950 border-t border-white/10 py-10 px-4 md:px-margin-desktop">
-        <div className="max-w-container-max mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-            <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
-              15+
-            </p>
-            <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-              Years in Practice
-            </p>
-          </div>
-          <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-            <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
-              250+
-            </p>
-            <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-              Projects Completed
-            </p>
-          </div>
-          <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-            <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
-              100%
-            </p>
-            <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-              PDA &amp; CDA Code Approval
-            </p>
-          </div>
-          <div className="glass-panel p-5 md:p-6 rounded-2xl border border-white/10">
-            <p className="text-tertiary-fixed font-montserrat text-3xl md:text-4xl font-extrabold mb-1">
-              PKR 57
-            </p>
-            <p className="font-inter text-[10px] md:text-xs font-semibold tracking-wider text-white/70 uppercase">
-              Per Sq. Ft. Full Turnkey
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Transparent Service Catalog & Fixed Pricing Section */}
-      <section className="py-24 px-4 md:px-margin-desktop max-w-container-max mx-auto">
+      <section
+        id="home-content"
+        className="py-24 px-4 md:px-margin-desktop max-w-container-max mx-auto"
+      >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <ScrollReveal>
             <div className="space-y-3">
@@ -292,58 +257,6 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
-      {/* Physical Studios Location Section (Matching Footer) */}
-      <section className="bg-surface-container-low dark:bg-zinc-900/40 py-20 px-4 md:px-margin-desktop border-y border-outline-variant/20">
-        <div className="max-w-container-max mx-auto space-y-12">
-          <ScrollReveal>
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
-                Physical Locations
-              </span>
-              <h2 className="font-playfair text-3xl md:text-4xl text-on-surface dark:text-zinc-100 font-normal">
-                Visit Our Design Studios.
-              </h2>
-              <p className="font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-400 font-light">
-                Consult with our lead architects in person or book a virtual
-                session.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {studioLocations.map((studio, sIdx) => (
-              <ScrollReveal key={studio.city} delay={0.08 * sIdx}>
-                <div
-                  className={`bg-white dark:bg-zinc-900 p-8 rounded-3xl border flex flex-col justify-between h-64 shadow-sm transition-all ${
-                    studio.isHQ
-                      ? "border-tertiary/70 shadow-md ring-1 ring-tertiary/20"
-                      : "border-outline-variant/30 hover:border-tertiary/40"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-inter text-[10px] font-bold text-tertiary uppercase tracking-widest">
-                        {studio.isHQ ? "★ HEADQUARTERS" : "REGIONAL ATELIER"}
-                      </span>
-                      <MapPin className="w-4 h-4 text-tertiary" />
-                    </div>
-                    <h3 className="font-playfair text-2xl font-bold text-on-surface dark:text-zinc-100">
-                      {studio.city}
-                    </h3>
-                    <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                      {studio.address}
-                    </p>
-                  </div>
-                  <span className="text-[11px] font-inter text-zinc-500 dark:text-zinc-400 font-medium">
-                    {studio.role}
-                  </span>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Pakistani Client Testimonial */}
       <section className="bg-inverse-surface dark:bg-zinc-950 py-24 px-4 md:px-margin-desktop overflow-hidden text-white">
         <div className="max-w-container-max mx-auto">
@@ -367,7 +280,7 @@ export const HomeView: React.FC = () => {
                   “
                 </span>
                 <blockquote className="font-playfair text-2xl md:text-3xl italic leading-relaxed text-surface-container-lowest font-light">
-                  &ldquo;Working with Muhammad Rafiq and the MARK Architects
+                  &ldquo;Working with Muhammad Arsalan and the MARK Architects
                   team in Peshawar was a revelation. They transformed our 1
                   Kanal plot into an open, light-filled sanctuary that naturally
                   stays cool in summer and passed PDA approval without a single

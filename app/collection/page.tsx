@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { CollectionView } from "@/components/collection/CollectionView";
 
 export const metadata: Metadata = {
-  title: "Bespoke Design Packages & Atelier Collection | MARK Architects",
+  title: "Standardized Architectural Design Packages | MARK Architects",
   description:
-    "Explore standardized fixed-price architectural design packages with 1-click checkout and bespoke physical artifacts. Turnkey 5 Marla, 10 Marla, and 1 Kanal blueprints.",
+    "Explore standardized fixed-price architectural design packages with 1-click checkout. Turnkey 5 Marla, 10 Marla, and 1 Kanal blueprints.",
   keywords: [
     "architectural design packages",
     "house plans online buy pakistan",
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
     "direct checkout blueprints",
   ],
   openGraph: {
-    title: "Bespoke Design Packages & Atelier Collection | MARK Architects",
+    title: "Standardized Architectural Design Packages | MARK Architects",
     description:
-      "Standardized fixed-price architectural blueprints and handcrafted atelier artifacts with direct checkout.",
+      "Standardized fixed-price architectural blueprints and design packages with direct checkout.",
     url: "https://markarchitects.com/collection",
     images: [
       {

@@ -98,7 +98,7 @@ export const AboutView: React.FC = () => {
               Principal Architect &amp; Founder.
             </h2>
             <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light">
-              Every project is personally spearheaded by Muhammad Rafiq,
+              Every project is personally spearheaded by Muhammad Arsalan,
               ensuring structural stability, functional elegance, and strict
               compliance with local municipal codes.
             </p>

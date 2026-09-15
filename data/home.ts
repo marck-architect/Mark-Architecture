@@ -6,7 +6,7 @@ export const featuredServices: FeaturedService[] = [
     badge: "Immediate Guidance",
     price: "PKR 3,000 / 5,000",
     duration: "30–60 Min Live",
-    desc: "1-on-1 Zoom or WhatsApp session with lead architect Muhammad Rafiq. Mandatory drawing upload required.",
+    desc: "1-on-1 Zoom or WhatsApp session with lead architect Muhammad Arsalan. Mandatory drawing upload required.",
     image: "/images/For Call.png",
     href: "/consultation",
   },
