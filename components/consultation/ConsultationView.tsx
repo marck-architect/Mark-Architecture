@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -17,6 +17,9 @@ import {
   CreditCard,
   ArrowDown,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Lock,
 } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -62,6 +65,33 @@ export const ConsultationView: React.FC = () => {
   const [isServiceModalOpen, setIsServiceModalOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
+  const [bookedDates, setBookedDates] = useState<string[]>([]);
+  const [isLoadingBookedDates, setIsLoadingBookedDates] =
+    useState<boolean>(true);
+
+  // Fetch booked dates from API to ensure already booked dates cannot be selected again
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchBookedDates() {
+      try {
+        const res = await fetch("/api/consultations/booked-dates");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data.bookedDates)) {
+            setBookedDates(data.bookedDates);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch booked dates:", err);
+      } finally {
+        if (isMounted) setIsLoadingBookedDates(false);
+      }
+    }
+    fetchBookedDates();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const {
     register,
@@ -81,15 +111,20 @@ export const ConsultationView: React.FC = () => {
     },
   });
 
-  // Calculate calendar elements
-  const currentYear = 2026;
-  const currentMonthIdx = 8 + booking.monthOffset; // September 2026 anchor
-  const dateObj = new Date(currentYear, currentMonthIdx, 1);
+  // Calculate dynamic calendar elements based on current date
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const baseYear = today.getFullYear();
+  const baseMonth = today.getMonth();
+
+  // Target month object based on monthOffset
+  const dateObj = new Date(baseYear, baseMonth + booking.monthOffset, 1);
   const displayedMonth = dateObj.getMonth();
   const displayedYear = dateObj.getFullYear();
 
   let startDay = dateObj.getDay();
-  if (startDay === 0) startDay = 7;
+  if (startDay === 0) startDay = 7; // Convert Sunday (0) to 7 for Mon-Sun grid
 
   const daysInMonth = new Date(displayedYear, displayedMonth + 1, 0).getDate();
 
@@ -100,6 +135,32 @@ export const ConsultationView: React.FC = () => {
   for (let day = 1; day <= daysInMonth; day++) {
     calendarDays.push({ day, key: `day-${day}` });
   }
+
+  // Safe date selection handler: enforces future-only and single-booking rules
+  const handleSelectDate = (day: number, month: number, year: number) => {
+    const targetDate = new Date(year, month, day);
+    targetDate.setHours(0, 0, 0, 0);
+
+    const formattedKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    if (targetDate.getTime() < today.getTime()) {
+      showToast(
+        "Past dates cannot be selected. Please choose an upcoming date.",
+        "warning",
+      );
+      return;
+    }
+
+    if (bookedDates.includes(formattedKey)) {
+      showToast(
+        "This date is already booked and reserved. Please select another date.",
+        "warning",
+      );
+      return;
+    }
+
+    selectDate(day, month, year);
+  };
 
   // Handle file uploads (Mandatory for booking)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,6 +230,18 @@ export const ConsultationView: React.FC = () => {
       showToast("Please select a date and time slot first.", "warning");
       return;
     }
+
+    const { day, month, year } = booking.selectedDate;
+    const formattedDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    if (bookedDates.includes(formattedDate)) {
+      showToast(
+        "This date is already booked and reserved. Please select another date.",
+        "warning",
+      );
+      return;
+    }
+
     setAppointmentLinked(true);
     showToast(
       "Consultation schedule locked. Proceed to complete your brief & attach drawings.",
@@ -205,6 +278,19 @@ export const ConsultationView: React.FC = () => {
 
     const { day, month, year } = booking.selectedDate;
     const formattedDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    if (bookedDates.includes(formattedDate)) {
+      showToast(
+        "This date is already booked and reserved. Please select another date.",
+        "warning",
+      );
+      return;
+    }
+
+    // Immediately mark date as booked so it cannot be selected again
+    setBookedDates((prev) =>
+      prev.includes(formattedDate) ? prev : [...prev, formattedDate],
+    );
 
     setIsSubmitting(true);
     try {
@@ -417,7 +503,7 @@ export const ConsultationView: React.FC = () => {
 
                       <div className="pt-4 border-t border-outline-variant/20 flex items-center justify-between">
                         <span className="text-[11px] font-inter text-zinc-500">
-                          Paid via Safepay
+                          Paid
                         </span>
                         <span
                           className={`font-inter text-xs font-bold uppercase tracking-wider ${
@@ -469,33 +555,98 @@ export const ConsultationView: React.FC = () => {
               </ScrollReveal>
 
               <ScrollReveal delay={0.1}>
-                <div className="bg-surface-container-low dark:bg-zinc-900 p-6 md:p-8 border border-outline-variant/30 rounded-3xl shadow-sm space-y-8">
-                  {/* Month selector */}
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-playfair text-lg font-bold text-secondary dark:text-zinc-200">
-                      {months[displayedMonth]} {displayedYear}
-                    </h4>
-                    <div className="flex gap-2">
+                <div className="bg-surface-container-low dark:bg-zinc-900 p-6 md:p-8 border border-outline-variant/30 rounded-3xl shadow-sm space-y-6">
+                  {/* Month selector header */}
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 pb-4 border-b border-outline-variant/20">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-playfair text-2xl font-bold text-secondary dark:text-zinc-100">
+                          {months[displayedMonth]} {displayedYear}
+                        </h4>
+                        {booking.monthOffset === 0 && (
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-tertiary/15 text-tertiary border border-tertiary/30 uppercase tracking-wider">
+                            Current Month
+                          </span>
+                        )}
+                        {isLoadingBookedDates && (
+                          <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-400">
+                            <Loader2 className="w-3 h-3 animate-spin text-tertiary" />
+                            <span>Syncing slots...</span>
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light mt-0.5">
+                        Dates in the future are open for booking. Booked dates
+                        cannot be selected again.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
                       <button
+                        type="button"
+                        disabled={booking.monthOffset <= 0}
                         onClick={() => changeMonth(-1)}
-                        className="p-2 border border-outline-variant hover:bg-secondary hover:text-white transition-colors cursor-pointer dark:border-zinc-700 dark:text-zinc-300 rounded-lg"
+                        className={cn(
+                          "p-2.5 border rounded-xl transition-all flex items-center justify-center",
+                          booking.monthOffset <= 0
+                            ? "opacity-30 cursor-not-allowed border-outline-variant/30 text-zinc-400 dark:text-zinc-600"
+                            : "border-outline-variant hover:bg-tertiary hover:text-white hover:border-tertiary cursor-pointer dark:border-zinc-700 dark:text-zinc-300",
+                        )}
                         aria-label="Previous Month"
+                        title={
+                          booking.monthOffset <= 0
+                            ? "Past months are not accessible"
+                            : "Previous Month"
+                        }
                       >
-                        &larr;
+                        <ChevronLeft className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => changeMonth(1)}
-                        className="p-2 border border-outline-variant hover:bg-secondary hover:text-white transition-colors cursor-pointer dark:border-zinc-700 dark:text-zinc-300 rounded-lg"
+                        className="p-2.5 border border-outline-variant hover:bg-tertiary hover:text-white hover:border-tertiary transition-all cursor-pointer dark:border-zinc-700 dark:text-zinc-300 rounded-xl flex items-center justify-center"
                         aria-label="Next Month"
+                        title="Next Month"
                       >
-                        &rarr;
+                        <ChevronRight className="w-4 h-4" />
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Status Legend Bar */}
+                  <div className="flex flex-wrap items-center gap-3 md:gap-5 text-xs font-inter py-2.5 px-4 rounded-2xl bg-surface-container/60 dark:bg-zinc-800/50 border border-outline-variant/20">
+                    <span className="font-bold text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      Legend:
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
+                      <span className="text-zinc-700 dark:text-zinc-300 text-[11px] font-medium">
+                        Available
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-tertiary ring-2 ring-tertiary/30" />
+                      <span className="text-zinc-700 dark:text-zinc-300 text-[11px] font-semibold">
+                        Selected
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-rose-500/20" />
+                      <span className="text-zinc-700 dark:text-zinc-300 text-[11px] font-medium">
+                        Booked (Unavailable)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                      <span className="text-zinc-400 dark:text-zinc-500 text-[11px]">
+                        Past Date
+                      </span>
                     </div>
                   </div>
 
                   {/* Days labels */}
                   <div>
-                    <div className="grid grid-cols-7 text-center font-inter text-[10px] font-extrabold tracking-widest text-on-surface/50 mb-3 uppercase dark:text-zinc-500">
+                    <div className="grid grid-cols-7 text-center font-inter text-[11px] font-extrabold tracking-widest text-on-surface/50 mb-3 uppercase dark:text-zinc-500">
                       <div>Mon</div>
                       <div>Tue</div>
                       <div>Wed</div>
@@ -506,55 +657,145 @@ export const ConsultationView: React.FC = () => {
                     </div>
 
                     {/* Days grid */}
-                    <div className="grid grid-cols-7 gap-1 text-center font-inter text-sm font-bold">
+                    <div className="grid grid-cols-7 gap-1.5 sm:gap-2 text-center font-inter text-sm font-bold">
                       {calendarDays.map((cell) => {
                         if (cell.day === null) {
                           return (
-                            <div key={cell.key} className="py-4 opacity-20" />
+                            <div key={cell.key} className="py-4 opacity-10" />
                           );
                         }
 
+                        const cellDate = new Date(
+                          displayedYear,
+                          displayedMonth,
+                          cell.day,
+                        );
+                        cellDate.setHours(0, 0, 0, 0);
+
+                        const dateKey = `${displayedYear}-${String(displayedMonth + 1).padStart(2, "0")}-${String(cell.day).padStart(2, "0")}`;
+
+                        const isPast = cellDate.getTime() < today.getTime();
+                        const isToday = cellDate.getTime() === today.getTime();
+                        const isBooked = bookedDates.includes(dateKey);
                         const isSelected =
                           booking.selectedDate &&
                           booking.selectedDate.day === cell.day &&
                           booking.selectedDate.month === displayedMonth &&
                           booking.selectedDate.year === displayedYear;
 
+                        const isDisabled = isPast || isBooked;
+
                         return (
                           <button
                             key={cell.key}
+                            type="button"
+                            disabled={isDisabled}
                             onClick={() =>
-                              selectDate(
+                              handleSelectDate(
                                 cell.day!,
                                 displayedMonth,
                                 displayedYear,
                               )
                             }
                             className={cn(
-                              "py-4 rounded-xl transition-colors border border-transparent flex items-center justify-center cursor-pointer",
-                              isSelected
-                                ? "bg-tertiary text-white font-bold border-tertiary shadow-md"
-                                : "hover:bg-tertiary/10 dark:text-zinc-300 hover:text-tertiary",
+                              "relative py-3.5 sm:py-4 px-1 rounded-2xl transition-all border flex flex-col items-center justify-center gap-0.5",
+                              isSelected &&
+                                "bg-tertiary text-white font-bold border-tertiary shadow-lg ring-2 ring-tertiary/40 scale-[1.02] cursor-pointer",
+                              isBooked &&
+                                !isSelected &&
+                                "bg-rose-500/10 dark:bg-rose-950/20 text-rose-700/80 dark:text-rose-400 border-rose-500/30 cursor-not-allowed",
+                              isPast &&
+                                "bg-zinc-100/40 dark:bg-zinc-900/40 text-zinc-300 dark:text-zinc-600 border-transparent cursor-not-allowed line-through",
+                              !isDisabled &&
+                                !isSelected &&
+                                "bg-white dark:bg-zinc-800/90 text-on-surface dark:text-zinc-200 border-outline-variant/30 hover:border-tertiary hover:bg-tertiary/10 hover:text-tertiary cursor-pointer shadow-xs active:scale-95",
                             )}
+                            title={
+                              isBooked
+                                ? "This date is already booked and cannot be selected"
+                                : isPast
+                                  ? "Past dates cannot be selected"
+                                  : isSelected
+                                    ? "Your selected appointment date"
+                                    : `Available for booking (${dateKey})`
+                            }
                           >
-                            {cell.day}
+                            <span className="text-sm font-bold leading-none">
+                              {cell.day}
+                            </span>
+
+                            {isBooked ? (
+                              <span className="flex items-center gap-0.5 text-[8px] font-extrabold uppercase tracking-tighter text-rose-600 dark:text-rose-400 mt-0.5">
+                                <Lock className="w-2 h-2" />
+                                <span>Booked</span>
+                              </span>
+                            ) : isSelected ? (
+                              <span className="text-[8px] font-extrabold uppercase tracking-tighter text-white/90 mt-0.5">
+                                Selected
+                              </span>
+                            ) : isToday ? (
+                              <span className="text-[8px] font-bold text-tertiary tracking-tighter mt-0.5">
+                                Today
+                              </span>
+                            ) : !isPast ? (
+                              <span className="w-1 h-1 rounded-full bg-emerald-500 mt-1" />
+                            ) : null}
                           </button>
                         );
                       })}
                     </div>
                   </div>
 
+                  {/* Selected Date Indicator Banner */}
+                  {booking.selectedDate && (
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-tertiary/10 border border-tertiary/30">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-tertiary text-white shadow-xs">
+                          <CalendarIcon className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-tertiary uppercase tracking-widest block">
+                            Reserved Appointment Date
+                          </span>
+                          <p className="font-playfair text-sm md:text-base font-bold text-on-surface dark:text-zinc-100">
+                            {new Date(
+                              booking.selectedDate.year,
+                              booking.selectedDate.month,
+                              booking.selectedDate.day,
+                            ).toLocaleDateString("en-US", {
+                              weekday: "long",
+                              month: "long",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-semibold text-tertiary bg-white dark:bg-zinc-800 px-3 py-1.5 rounded-full border border-tertiary/30 shadow-xs">
+                        Date Locked
+                      </span>
+                    </div>
+                  )}
+
                   {/* Time Slots */}
-                  <div className="pt-6 border-t border-outline-variant/20 space-y-4">
-                    <h5 className="font-inter text-xs font-bold text-secondary dark:text-zinc-300 uppercase tracking-widest">
-                      Available Time Slots (Pakistan Time)
-                    </h5>
+                  <div className="pt-4 border-t border-outline-variant/20 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h5 className="font-inter text-xs font-bold text-secondary dark:text-zinc-300 uppercase tracking-widest">
+                        Available Time Slots (Pakistan Time)
+                      </h5>
+                      {booking.selectedTime && (
+                        <span className="text-xs font-semibold text-tertiary">
+                          Selected: {booking.selectedTime} PKT
+                        </span>
+                      )}
+                    </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {timeSlots.map((slot) => {
                         const isSelected = booking.selectedTime === slot;
                         return (
                           <button
                             key={slot}
+                            type="button"
                             onClick={() => selectTimeSlot(slot)}
                             className={cn(
                               "py-3.5 text-xs font-bold border rounded-xl transition-all duration-300 cursor-pointer",
@@ -572,8 +813,9 @@ export const ConsultationView: React.FC = () => {
 
                   <div className="flex justify-end pt-4">
                     <button
+                      type="button"
                       onClick={handleLinkAppointment}
-                      className="bg-primary hover:bg-tertiary text-on-primary px-8 py-3.5 rounded-xl font-inter font-bold text-xs tracking-wider uppercase transition-all duration-300 active:scale-95 cursor-pointer text-center"
+                      className="bg-primary hover:bg-tertiary text-on-primary px-8 py-3.5 rounded-xl font-inter font-bold text-xs tracking-wider uppercase transition-all duration-300 active:scale-95 cursor-pointer text-center shadow-md"
                     >
                       Confirm Slot &amp; Proceed to Upload
                     </button>

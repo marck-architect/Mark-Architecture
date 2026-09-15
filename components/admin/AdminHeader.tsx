@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
-import { LogOut, Compass, Loader2 } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { AdminHeaderProps } from "@/types";
 
@@ -28,8 +29,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ adminEmail }) => {
             href="/admin"
             className="flex items-center gap-2.5 text-stone-900 hover:text-[#7E5714] transition-colors group"
           >
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-[#7E5714] group-hover:scale-105 transition-transform">
-              <Compass className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center p-1.5 group-hover:scale-105 transition-transform">
+              <Image
+                src="/images/icon-dark.png"
+                alt="MARK"
+                width={20}
+                height={20}
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <span className="font-playfair text-base sm:text-lg font-medium tracking-wide">

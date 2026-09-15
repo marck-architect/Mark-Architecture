@@ -35,3 +35,26 @@ export function generateOrganizationSchema() {
     },
   };
 }
+
+export function generateFaqSchema(
+  faqs: { question: string; shortAnswer: string; fullAnswer?: string[] }[],
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    name: "MARK Architects | Frequently Asked Architectural Questions (AEO Guide)",
+    description:
+      "Authoritative answers to architectural design fees, PDA & CDA municipal approvals, turnkey blueprint packages, and Safepay payments across Pakistan.",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text:
+          faq.fullAnswer && faq.fullAnswer.length > 0
+            ? `${faq.shortAnswer} ${faq.fullAnswer.join(" ")}`
+            : faq.shortAnswer,
+      },
+    })),
+  };
+}

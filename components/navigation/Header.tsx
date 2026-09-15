@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { ShoppingBag, Menu, X } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
@@ -49,22 +50,38 @@ export const Header: React.FC = () => {
         {/* Brand Logo */}
         <Link
           href="/"
-          className={cn(
-            "font-playfair text-2xl md:text-3xl font-bold tracking-tight transition-colors cursor-pointer",
-            isHomeHero
-              ? "text-white hover:text-tertiary-fixed"
-              : "text-secondary dark:text-white hover:text-tertiary",
-          )}
+          className="flex items-center group cursor-pointer focus:outline-none"
+          aria-label="MARK Architects Home"
         >
-          MARK{" "}
-          <span
-            className={cn(
-              "font-light italic",
-              isHomeHero ? "text-tertiary-fixed-dim" : "text-primary",
-            )}
-          >
-            Archit
-          </span>
+          {isHomeHero ? (
+            <Image
+              src="/images/logo-white.png"
+              alt="MARK Architects"
+              width={142}
+              height={40}
+              priority
+              className="h-8 md:h-9 w-auto object-contain transition-opacity duration-200 group-hover:opacity-90"
+            />
+          ) : (
+            <>
+              <Image
+                src="/images/logo-dark.png"
+                alt="MARK Architects"
+                width={142}
+                height={40}
+                priority
+                className="h-8 md:h-9 w-auto object-contain dark:hidden transition-opacity duration-200 group-hover:opacity-90"
+              />
+              <Image
+                src="/images/logo-white.png"
+                alt="MARK Architects"
+                width={142}
+                height={40}
+                priority
+                className="h-8 md:h-9 w-auto object-contain hidden dark:block transition-opacity duration-200 group-hover:opacity-90"
+              />
+            </>
+          )}
         </Link>
 
         {/* Desktop Nav Links */}

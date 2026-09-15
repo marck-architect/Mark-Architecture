@@ -6,6 +6,7 @@ export const navLinks: NavLink[] = [
   { label: "Portfolio", href: "/portfolio" },
   { label: "Collection", href: "/collection" },
   { label: "Services & Consultation", href: "/consultation" },
+  { label: "FAQs", href: "/faqs" },
 ];
 
 export const mobileMenuLinks: NavLink[] = [
@@ -14,6 +15,7 @@ export const mobileMenuLinks: NavLink[] = [
   { label: "Portfolio", href: "/portfolio" },
   { label: "Services & Consultation", href: "/consultation" },
   { label: "Collection", href: "/collection" },
+  { label: "FAQs & Guide", href: "/faqs" },
 ];
 
 export const footerNavigationLinks: NavLink[] = [
@@ -21,9 +23,11 @@ export const footerNavigationLinks: NavLink[] = [
   { label: "Selected Works", href: "/portfolio" },
   { label: "Services & Consultation", href: "/consultation" },
   { label: "Store Collection", href: "/collection" },
+  { label: "Architectural FAQs", href: "/faqs" },
 ];
 
 export const footerResourceLinks: NavLink[] = [
+  { label: "FAQs & Client Guide", href: "/faqs" },
   { label: "Blueprint Access", href: "#" },
   { label: "Press Kit", href: "#" },
   { label: "Privacy Policy", href: "#" },

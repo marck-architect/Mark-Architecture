@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Globe, Mail, MapPin, Video } from "lucide-react";
 import { footerNavigationLinks, footerResourceLinks } from "@/data/navigation";
 
@@ -13,12 +14,16 @@ export const Footer: React.FC = () => {
         <div className="col-span-12 md:col-span-4 space-y-6">
           <Link
             href="/"
-            className="font-playfair text-2xl font-bold tracking-tight text-white inline-block"
+            className="inline-block group focus:outline-none"
+            aria-label="MARK Architects Home"
           >
-            MARK{" "}
-            <span className="font-light italic text-tertiary-fixed-dim">
-              Architects
-            </span>
+            <Image
+              src="/images/logo-white.png"
+              alt="MARK Architects"
+              width={160}
+              height={45}
+              className="h-9 md:h-10 w-auto object-contain transition-opacity group-hover:opacity-90"
+            />
           </Link>
           <p className="font-inter text-sm text-outline-variant max-w-xs font-light leading-relaxed">
             Precision in every pixel. Defining the future of architectural

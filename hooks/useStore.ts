@@ -130,7 +130,7 @@ export const useStore = create<AppStore>((set, get) => ({
     set((state) => ({
       booking: {
         ...state.booking,
-        monthOffset: state.booking.monthOffset + direction,
+        monthOffset: Math.max(0, state.booking.monthOffset + direction),
       },
     })),
   setCallTier: (tier) =>
