@@ -12,7 +12,13 @@ export const createClient = async (request: NextRequest) => {
     },
   });
 
-  const supabase = createServerClient(supabaseUrl!, supabaseKey!, {
+  if (!supabaseUrl || !supabaseKey) {
+    // Local UI-only dev fallback: no Supabase project configured, skip
+    // auth/session handling entirely instead of throwing on every request.
+    return supabaseResponse;
+  }
+
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

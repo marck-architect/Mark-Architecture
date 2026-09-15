@@ -51,6 +51,18 @@ export default function HomePage() {
   return (
     <>
       <JsonLd data={orgSchema} />
+      <link
+        rel="preload"
+        as="image"
+        href="/hero-atlas/villa-lg.webp"
+        media="(min-width: 768px)"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/hero-atlas/villa-sm.webp"
+        media="(max-width: 767px)"
+      />
       <HomeView />
     </>
   );
