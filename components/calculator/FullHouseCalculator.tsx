@@ -56,7 +56,7 @@ export const FullHouseCalculator: React.FC = () => {
   };
 
   return (
-    <div className="bg-surface dark:bg-zinc-900 border border-outline-variant/30 rounded-3xl p-6 md:p-10 shadow-xl space-y-8">
+    <div className="bg-surface dark:bg-zinc-900 border border-outline-variant/30 rounded-3xl p-4 sm:p-6 md:p-10 shadow-xl space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
         <div>
@@ -66,7 +66,7 @@ export const FullHouseCalculator: React.FC = () => {
               Live Architectural Quote Calculator
             </span>
           </div>
-          <h3 className="font-playfair text-2xl md:text-3xl font-bold text-on-surface dark:text-zinc-100">
+          <h3 className="font-playfair text-xl sm:text-2xl md:text-3xl font-bold text-on-surface dark:text-zinc-100">
             Full House Design Package
           </h3>
           <p className="font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-400 font-light mt-1">
@@ -75,7 +75,7 @@ export const FullHouseCalculator: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-tertiary/10 text-tertiary px-4 py-2 rounded-xl text-xs font-semibold shrink-0">
+        <div className="flex items-center gap-2 bg-tertiary/10 text-tertiary px-3.5 sm:px-4 py-2 rounded-xl text-xs font-semibold shrink-0 self-start md:self-auto">
           <Clock className="w-4 h-4" />
           <span>Timeline: 2–6 Weeks</span>
         </div>
@@ -86,13 +86,13 @@ export const FullHouseCalculator: React.FC = () => {
         <label className="font-inter text-xs font-bold text-on-surface dark:text-zinc-300 uppercase tracking-wider block">
           Step 1: Enter Covered Area (Sq. Ft.) or Choose a Standard Preset
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
           {plotPresets.map((preset) => (
             <button
               key={preset.label}
               type="button"
               onClick={() => setCoveredArea(preset.sqft)}
-              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+              className={`p-3 sm:p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                 coveredArea === preset.sqft
                   ? "border-tertiary bg-tertiary/10 text-tertiary font-bold shadow-sm"
                   : "border-outline-variant/40 bg-surface-container-low dark:bg-zinc-800/40 text-on-surface dark:text-zinc-300 hover:border-tertiary/60"
@@ -171,13 +171,13 @@ export const FullHouseCalculator: React.FC = () => {
       </div>
 
       {/* Live Quote Breakdown & 50% Advance Display */}
-      <div className="bg-surface-container-low dark:bg-zinc-950 p-6 md:p-8 rounded-2xl border border-outline-variant/30 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-outline-variant/20 pb-6 text-center sm:text-left">
+      <div className="bg-surface-container-low dark:bg-zinc-950 p-4 sm:p-6 md:p-8 rounded-2xl border border-outline-variant/30 space-y-5 sm:space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 border-b border-outline-variant/20 pb-6 text-center sm:text-left">
           <div>
             <span className="text-[11px] font-inter font-bold text-on-surface-variant uppercase tracking-wider block">
               Cumulative Rate
             </span>
-            <span className="font-montserrat text-xl font-bold text-on-surface dark:text-zinc-200">
+            <span className="font-montserrat text-lg sm:text-xl font-bold text-on-surface dark:text-zinc-200">
               PKR {ratePerSqFt}{" "}
               <span className="text-xs font-normal">/ sq. ft.</span>
             </span>
@@ -187,7 +187,7 @@ export const FullHouseCalculator: React.FC = () => {
             <span className="text-[11px] font-inter font-bold text-on-surface-variant uppercase tracking-wider block">
               Full Package Value
             </span>
-            <span className="font-montserrat text-xl font-bold text-on-surface dark:text-zinc-200">
+            <span className="font-montserrat text-lg sm:text-xl font-bold text-on-surface dark:text-zinc-200">
               {SafepayService.formatPKR(totalAmount)}
             </span>
           </div>
@@ -196,7 +196,7 @@ export const FullHouseCalculator: React.FC = () => {
             <span className="text-[11px] font-inter font-bold text-tertiary uppercase tracking-wider block">
               50% Advance Required to Start
             </span>
-            <span className="font-montserrat text-2xl font-extrabold text-tertiary">
+            <span className="font-montserrat text-xl sm:text-2xl font-extrabold text-tertiary">
               {SafepayService.formatPKR(advanceAmount)}
             </span>
             <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
@@ -207,7 +207,7 @@ export const FullHouseCalculator: React.FC = () => {
         </div>
 
         {/* Disclaimer & Policy Notice */}
-        <div className="flex items-start gap-2.5 text-[11px] text-zinc-500 dark:text-zinc-400 bg-surface dark:bg-zinc-900 p-3.5 rounded-xl border border-outline-variant/20">
+        <div className="flex items-start gap-2.5 text-[11px] text-zinc-500 dark:text-zinc-400 bg-surface dark:bg-zinc-900 p-3 sm:p-3.5 rounded-xl border border-outline-variant/20">
           <AlertCircle className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
           <p className="leading-relaxed">
             <strong>Terms &amp; Liability Note:</strong> Work commences strictly
@@ -219,19 +219,19 @@ export const FullHouseCalculator: React.FC = () => {
         </div>
 
         {/* CTA Button */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
           <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>Safepay Escrow Protection • 100% Licensed Architects</span>
           </div>
 
           <button
             type="button"
             onClick={handleBookPackage}
-            className="w-full sm:w-auto bg-primary hover:bg-tertiary text-on-primary px-8 py-4 rounded-xl font-inter font-bold text-xs tracking-widest uppercase transition-all duration-300 shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full sm:w-auto bg-primary hover:bg-tertiary text-on-primary px-5 sm:px-8 py-3.5 sm:py-4 rounded-xl font-inter font-bold text-[11px] sm:text-xs tracking-wider sm:tracking-widest uppercase transition-all duration-300 shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2 min-h-[48px]"
           >
             <span>BOOK FULL PACKAGE (50% ADVANCE)</span>
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 shrink-0" />
           </button>
         </div>
       </div>

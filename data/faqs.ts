@@ -41,7 +41,7 @@ export const faqCategories: FaqCategory[] = [
     key: "consultation",
     label: "Consultation & Booking",
     description:
-      "Online 1-on-1 video sessions with principal architects via Zoom or WhatsApp.",
+      "Online 1-on-1 video sessions with principal architects via Live HD Video.",
   },
   {
     key: "approvals",
@@ -110,7 +110,7 @@ export const faqsData: FaqItem[] = [
     id: "what-happens-during-the-online-architectural-consultation",
     category: "consultation",
     question:
-      "What happens during the online architectural consultation via Zoom or WhatsApp?",
+      "What happens during the online architectural consultation via Live Video Session?",
     shortAnswer:
       "You meet directly with Principal Architect Muhammad Arsalan to review your plot dimensions, diagnose layout bottlenecks, evaluate natural lighting and ventilation, and receive an actionable design roadmap.",
     fullAnswer: [
@@ -120,7 +120,7 @@ export const faqsData: FaqItem[] = [
     ],
     keywords: [
       "online architect consultation zoom",
-      "whatsapp architect call pakistan",
+      "architect video call pakistan",
       "muhammad arsalan architect",
       "floor plan audit",
       "house design review online",

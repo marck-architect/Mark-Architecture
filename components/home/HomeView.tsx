@@ -17,15 +17,11 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-import {
-  featuredServices,
-  curatedProjects,
-  homeStudioLocations as studioLocations,
-} from "@/data/home";
+import { featuredServices, curatedProjects } from "@/data/home";
 
 export const HomeView: React.FC = () => {
   return (
-    <div className="relative overflow-x-hidden min-h-screen bg-surface">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#f7f4ef]">
       {/* Hero: interactive orbit viewer that crossfades into a scroll-driven
           balcony push-in on desktop (see HeroCinematic) — one continuous
           pinned section, not a separate section stacked below it. */}
@@ -34,20 +30,21 @@ export const HomeView: React.FC = () => {
       {/* Transparent Service Catalog & Fixed Pricing Section */}
       <section
         id="home-content"
-        className="py-24 px-4 md:px-margin-desktop max-w-container-max mx-auto"
+        className="mx-auto max-w-container-max px-4 py-24 md:px-margin-desktop md:py-32"
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <ScrollReveal>
             <div className="space-y-3">
-              <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-[0.3em] block">
-                Transparent Pricing
+              <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#8a6125] md:text-sm">
+                The right brief, clearly priced
               </span>
-              <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-                Popular Design Packages.
+              <h2 className="max-w-2xl font-playfair text-4xl font-normal leading-[1.05] text-[#272522] md:text-6xl">
+                Design that earns its place.
               </h2>
-              <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light max-w-2xl">
-                Fixed and formula-based pricing in Pakistani Rupees (PKR) with
-                secure Safepay checkout. No hidden drafting fees.
+              <p className="max-w-2xl font-inter text-sm font-light leading-7 text-[#77716a] md:text-base">
+                Fixed and formula-based architectural services in Pakistani
+                Rupees, with every deliverable and milestone made visible from
+                the start.
               </p>
             </div>
           </ScrollReveal>
@@ -57,7 +54,7 @@ export const HomeView: React.FC = () => {
               href="/consultation"
               className="font-inter text-xs font-bold text-primary dark:text-zinc-300 tracking-widest border-b border-primary dark:border-zinc-300 pb-1.5 hover:text-tertiary hover:border-tertiary transition-colors inline-flex items-center gap-2"
             >
-              <span>VIEW FULL 7-SERVICE CATALOG</span>
+              <span>Explore all services</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </ScrollReveal>
@@ -66,7 +63,7 @@ export const HomeView: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredServices.map((service, idx) => (
             <ScrollReveal key={service.title} delay={0.07 * idx}>
-              <div className="bg-surface-container-low dark:bg-zinc-900/60 border border-outline-variant/30 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full group">
+              <div className="group flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#ded7cc] bg-white/70 shadow-[0_8px_30px_rgba(58,45,28,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-[#bca477] hover:shadow-[0_18px_45px_rgba(58,45,28,0.12)]">
                 <div>
                   <div className="relative aspect-[16/10] bg-zinc-950 overflow-hidden">
                     <Image
@@ -86,11 +83,17 @@ export const HomeView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="p-6 space-y-3">
-                    <h3 className="font-playfair text-xl font-bold text-on-surface dark:text-zinc-100">
+                  <div className="space-y-3 p-6">
+                    <div className="flex items-center justify-between">
+                      <span className="font-montserrat text-[10px] font-bold tracking-[0.2em] text-[#a79068]">
+                        0{idx + 1}
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-[#a79068] transition-transform group-hover:translate-x-1" />
+                    </div>
+                    <h3 className="font-playfair text-xl font-bold text-[#272522]">
                       {service.title}
                     </h3>
-                    <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                    <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
                       {service.desc}
                     </p>
                   </div>
@@ -101,14 +104,14 @@ export const HomeView: React.FC = () => {
                     <span className="text-[10px] font-inter font-bold text-zinc-400 uppercase tracking-wider">
                       Price
                     </span>
-                    <span className="font-montserrat text-base font-extrabold text-secondary dark:text-zinc-100">
+                    <span className="font-montserrat text-base font-extrabold text-[#8a6125]">
                       {service.price}
                     </span>
                   </div>
 
                   <Link
                     href={service.href}
-                    className="w-full bg-primary hover:bg-tertiary text-on-primary py-3 rounded-xl font-inter font-bold text-xs uppercase tracking-wider transition-all text-center block shadow-sm active:scale-95"
+                    className="block w-full rounded-xl bg-[#292722] py-3 text-center font-inter text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-[#8a6125] active:scale-95"
                   >
                     View Scope &amp; Book
                   </Link>
@@ -120,18 +123,18 @@ export const HomeView: React.FC = () => {
       </section>
 
       {/* Selected Works (Curated Pakistan Projects) */}
-      <section className="bg-surface-container-low dark:bg-zinc-900/40 py-24 px-4 md:px-margin-desktop">
+      <section className="border-y border-[#e1d9ce] bg-[#eee9e1] px-4 py-24 md:px-margin-desktop md:py-32">
         <div className="max-w-container-max mx-auto space-y-16">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <ScrollReveal>
               <div className="space-y-3">
-                <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-[0.3em] block">
-                  Curation
+                <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#8a6125] md:text-sm">
+                  A considered portfolio
                 </span>
-                <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-                  Selected Masterpieces in Pakistan.
+                <h2 className="max-w-2xl font-playfair text-4xl font-normal leading-[1.05] text-[#272522] md:text-6xl">
+                  Places with a point of view.
                 </h2>
-                <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light">
+                <p className="max-w-xl font-inter text-sm font-light leading-7 text-[#77716a] md:text-base">
                   Iconic residential developments executed across Peshawar,
                   Islamabad, and Karachi.
                 </p>
@@ -140,7 +143,7 @@ export const HomeView: React.FC = () => {
             <ScrollReveal delay={0.1}>
               <Link
                 href="/portfolio"
-                className="font-inter text-xs font-bold text-primary dark:text-zinc-300 tracking-widest border-b border-primary dark:border-zinc-300 pb-1.5 hover:text-tertiary hover:border-tertiary transition-colors inline-block"
+                className="inline-block border-b border-[#8a6125] pb-1.5 font-inter text-xs font-bold tracking-widest text-[#8a6125] transition-colors hover:border-[#292722] hover:text-[#292722]"
               >
                 VIEW FULL PORTFOLIO
               </Link>
@@ -152,7 +155,7 @@ export const HomeView: React.FC = () => {
               <ScrollReveal key={project.title} delay={0.1 * idx}>
                 <Link
                   href="/portfolio"
-                  className="relative group rounded-3xl overflow-hidden aspect-[4/5] shadow-lg block"
+                  className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-[#292722] shadow-lg"
                 >
                   <Image
                     fill
@@ -163,7 +166,7 @@ export const HomeView: React.FC = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-500 flex flex-col justify-end p-8">
                     <div className="translate-y-2 group-hover:translate-y-0 transition-transform duration-500 space-y-1.5">
-                      <span className="font-inter text-[10px] font-bold text-tertiary-fixed uppercase tracking-widest block">
+                      <span className="block font-inter text-[10px] font-bold uppercase tracking-widest text-[#e8c889]">
                         {project.category}
                       </span>
                       <h3 className="font-playfair text-2xl text-white font-normal">
@@ -186,16 +189,16 @@ export const HomeView: React.FC = () => {
       </section>
 
       {/* Practice Principles Tailored to Pakistan */}
-      <section className="py-24 px-4 md:px-margin-desktop max-w-container-max mx-auto">
+      <section className="mx-auto max-w-container-max px-4 py-24 md:px-margin-desktop md:py-32">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <ScrollReveal>
-            <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-[0.3em] block">
-              Why MARK Architects
+            <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#8a6125] md:text-sm">
+              The MARK standard
             </span>
-            <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-              Built for Pakistan&apos;s Landscape &amp; Climate.
+            <h2 className="font-playfair text-4xl font-normal leading-[1.05] text-[#272522] md:text-6xl">
+              Beauty is better when it performs.
             </h2>
-            <p className="font-inter text-base text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+            <p className="font-inter text-base font-light leading-relaxed text-[#77716a]">
               We engineer luxury spaces with mathematical precision, resolving
               local soil conditions, earthquake resistance, and passive cooling.
             </p>
@@ -204,12 +207,12 @@ export const HomeView: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <ScrollReveal delay={0.1}>
-            <div className="bg-surface dark:bg-zinc-900/50 p-8 rounded-3xl border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full space-y-4">
-              <Lightbulb className="w-9 h-9 text-tertiary group-hover:scale-110 transition-transform" />
-              <h3 className="font-playfair text-xl font-bold dark:text-zinc-200">
+            <div className="group h-full space-y-5 rounded-2xl border border-[#ded7cc] bg-white/65 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-[#bca477] hover:bg-white">
+              <Lightbulb className="h-9 w-9 text-[#8a6125] transition-transform group-hover:scale-110" />
+              <h3 className="font-playfair text-xl font-bold text-[#272522]">
                 Passive Solar &amp; Climate Control
               </h3>
-              <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+              <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
                 Strategic orientation to capture southern sun in winter and
                 cross-ventilation in peak summer heat.
               </p>
@@ -217,12 +220,12 @@ export const HomeView: React.FC = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
-            <div className="bg-surface dark:bg-zinc-900/50 p-8 rounded-3xl border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full space-y-4">
-              <Building className="w-9 h-9 text-tertiary group-hover:scale-110 transition-transform" />
-              <h3 className="font-playfair text-xl font-bold dark:text-zinc-200">
+            <div className="group h-full space-y-5 rounded-2xl border border-[#ded7cc] bg-white/65 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-[#bca477] hover:bg-white">
+              <Building className="h-9 w-9 text-[#8a6125] transition-transform group-hover:scale-110" />
+              <h3 className="font-playfair text-xl font-bold text-[#272522]">
                 PDA, CDA &amp; KDA Bylaw Mastery
               </h3>
-              <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+              <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
                 Full submission drawings ensuring frictionless municipal
                 approvals across Hayatabad, Islamabad, and Karachi.
               </p>
@@ -230,12 +233,12 @@ export const HomeView: React.FC = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={0.3}>
-            <div className="bg-surface dark:bg-zinc-900/50 p-8 rounded-3xl border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full space-y-4">
-              <ShieldCheck className="w-9 h-9 text-tertiary group-hover:scale-110 transition-transform" />
-              <h3 className="font-playfair text-xl font-bold dark:text-zinc-200">
+            <div className="group h-full space-y-5 rounded-2xl border border-[#ded7cc] bg-white/65 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-[#bca477] hover:bg-white">
+              <ShieldCheck className="h-9 w-9 text-[#8a6125] transition-transform group-hover:scale-110" />
+              <h3 className="font-playfair text-xl font-bold text-[#272522]">
                 Seismic &amp; Structural Safety
               </h3>
-              <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+              <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
                 Complete structural engineering framing calculated for Building
                 Code of Pakistan seismic zones.
               </p>
@@ -243,12 +246,12 @@ export const HomeView: React.FC = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={0.4}>
-            <div className="bg-surface dark:bg-zinc-900/50 p-8 rounded-3xl border border-outline-variant/40 hover:border-tertiary/40 transition-all duration-500 group h-full space-y-4">
-              <Sparkles className="w-9 h-9 text-tertiary group-hover:scale-110 transition-transform" />
-              <h3 className="font-playfair text-xl font-bold dark:text-zinc-200">
+            <div className="group h-full space-y-5 rounded-2xl border border-[#ded7cc] bg-white/65 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-[#bca477] hover:bg-white">
+              <Sparkles className="h-9 w-9 text-[#8a6125] transition-transform group-hover:scale-110" />
+              <h3 className="font-playfair text-xl font-bold text-[#272522]">
                 50% Advance Milestone Terms
               </h3>
-              <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+              <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
                 Transparent stage payments processed securely via Safepay with
                 complete client review checkpoints.
               </p>
@@ -258,12 +261,14 @@ export const HomeView: React.FC = () => {
       </section>
 
       {/* Pakistani Client Testimonial */}
-      <section className="bg-inverse-surface dark:bg-zinc-950 py-24 px-4 md:px-margin-desktop overflow-hidden text-white">
+      <section className="relative overflow-hidden bg-[#292722] px-4 py-24 text-white md:px-margin-desktop md:py-32">
+        <div className="pointer-events-none absolute -right-24 top-0 h-80 w-80 rounded-full border border-[#c9a86e]/20" />
+        <div className="pointer-events-none absolute -right-8 top-8 h-64 w-64 rounded-full border border-[#c9a86e]/10" />
         <div className="max-w-container-max mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-5">
               <ScrollReveal>
-                <div className="relative rounded-3xl overflow-hidden aspect-[4/5] shadow-2xl bg-zinc-900 border border-white/10">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl">
                   <Image
                     fill
                     alt="Peshawar Residence Architecture"
@@ -274,12 +279,12 @@ export const HomeView: React.FC = () => {
                 </div>
               </ScrollReveal>
             </div>
-            <div className="lg:col-span-6 lg:col-start-7 space-y-8">
+            <div className="space-y-8 lg:col-span-6 lg:col-start-7">
               <ScrollReveal delay={0.2}>
-                <span className="font-playfair text-6xl text-tertiary-fixed opacity-40 block">
+                <span className="block font-playfair text-7xl leading-none text-[#e8c889]/40">
                   “
                 </span>
-                <blockquote className="font-playfair text-2xl md:text-3xl italic leading-relaxed text-surface-container-lowest font-light">
+                <blockquote className="max-w-2xl font-playfair text-xl sm:text-2xl md:text-4xl font-light italic leading-relaxed text-[#f7f4ef]">
                   &ldquo;Working with Muhammad Arsalan and the MARK Architects
                   team in Peshawar was a revelation. They transformed our 1
                   Kanal plot into an open, light-filled sanctuary that naturally
@@ -287,7 +292,7 @@ export const HomeView: React.FC = () => {
                   revision.&rdquo;
                 </blockquote>
                 <div className="space-y-1 mt-6">
-                  <p className="font-playfair text-2xl text-tertiary-fixed font-bold">
+                  <p className="font-playfair text-2xl font-bold text-[#e8c889]">
                     Engr. Tariq K. Mansoor
                   </p>
                   <p className="font-inter text-xs font-semibold text-white/60 uppercase tracking-widest">
@@ -297,18 +302,18 @@ export const HomeView: React.FC = () => {
               </ScrollReveal>
 
               <ScrollReveal delay={0.3}>
-                <div className="flex flex-wrap gap-4 pt-4 border-t border-white/10 text-xs text-white/60">
+                <div className="flex flex-wrap gap-3 sm:gap-4 pt-4 border-t border-white/10 text-xs text-white/60">
                   <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary" />
-                    PCATP Registered Firm
+                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                    <span>PCATP Registered Firm</span>
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary" />
-                    PDA Peshawar Code Compliant
+                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                    <span>PDA Peshawar Code Compliant</span>
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary" />
-                    CDA Islamabad Approved
+                    <CheckCircle2 className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                    <span>CDA Islamabad Approved</span>
                   </span>
                 </div>
               </ScrollReveal>
@@ -318,27 +323,30 @@ export const HomeView: React.FC = () => {
       </section>
 
       {/* Call to Action Home */}
-      <section className="py-24 px-4 md:px-margin-desktop bg-surface dark:bg-zinc-900 text-center">
+      <section className="bg-[#f7f4ef] px-4 py-20 md:px-margin-desktop md:py-32 text-center">
         <ScrollReveal>
-          <div className="max-w-3xl mx-auto space-y-8">
-            <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-              Ready to Design Your Masterpiece?
+          <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8">
+            <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#8a6125]">
+              Start with a conversation
+            </span>
+            <h2 className="font-playfair text-3xl sm:text-5xl md:text-6xl font-normal leading-[1.08] text-[#272522]">
+              Ready to make something lasting?
             </h2>
-            <p className="font-inter text-base md:text-lg text-on-surface-variant dark:text-zinc-400 font-light max-w-xl mx-auto">
+            <p className="mx-auto max-w-xl font-inter text-sm sm:text-base font-light leading-7 text-[#77716a] md:text-lg">
               Schedule your 1-on-1 consultation or upload your blueprint for a
               professional architectural audit.
             </p>
-            <div className="pt-4 flex flex-wrap justify-center gap-4">
+            <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
               <Link
                 href="/consultation"
-                className="bg-primary text-on-primary hover:bg-tertiary px-10 py-4.5 rounded-xl font-inter text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-xl active:scale-95 inline-flex items-center gap-2"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#292722] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-white shadow-xl transition-all duration-300 hover:bg-[#8a6125] active:scale-95 text-center min-h-[48px]"
               >
                 <span>Book Consultation (PKR 3,000)</span>
                 <PhoneCall className="w-4 h-4" />
               </Link>
               <Link
                 href="/consultation"
-                className="border border-outline-variant hover:border-tertiary hover:text-tertiary px-10 py-4.5 rounded-xl font-inter text-xs font-bold tracking-widest uppercase transition-all active:scale-95 inline-block"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-[#c9c0b2] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-[#5f5951] transition-all hover:border-[#8a6125] hover:text-[#8a6125] active:scale-95 text-center min-h-[48px]"
               >
                 Explore All Packages
               </Link>

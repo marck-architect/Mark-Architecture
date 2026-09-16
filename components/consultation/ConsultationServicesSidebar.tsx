@@ -78,25 +78,23 @@ export const ConsultationServicesSidebar: React.FC<
         ))}
       </div>
 
-      {/* WhatsApp Help Banner */}
+      {/* Direct Studio Hotline Banner */}
       <div className="p-5 rounded-2xl bg-tertiary/10 border border-tertiary/25 space-y-3">
         <div className="flex items-center gap-2">
           <PhoneCall className="w-4 h-4 text-tertiary shrink-0" />
           <span className="font-inter text-xs font-bold uppercase tracking-wider text-secondary dark:text-zinc-200">
-            Direct Architect Hotline
+            Direct Studio Hotline
           </span>
         </div>
         <p className="font-inter text-[11px] text-zinc-600 dark:text-zinc-400 font-light leading-relaxed">
           Need immediate guidance regarding plot size regulations or bespoke
-          commercial scopes? Message Muhammad Arsalan directly.
+          commercial scopes? Speak with our principal architect directly.
         </p>
         <a
-          href="https://wa.me/923000000000"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="tel:+923000000000"
           className="inline-flex items-center gap-2 text-xs font-bold text-tertiary hover:underline"
         >
-          <span>Connect via WhatsApp</span>
+          <span>Call +92 300 0000000</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </a>
       </div>

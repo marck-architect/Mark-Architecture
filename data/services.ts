@@ -8,7 +8,7 @@ export const briefFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   phone: z
     .string()
-    .min(10, { message: "Please enter a valid contact/WhatsApp number." }),
+    .min(10, { message: "Please enter a valid contact phone number." }),
   projectType: z
     .string()
     .min(1, { message: "Please select your property category." }),
@@ -48,7 +48,7 @@ export const callTiers: CallTierOption[] = [
     description:
       "Focused video session for immediate layout review, structural feedback, and quick solutions.",
     features: [
-      "30 min Zoom / WhatsApp Video",
+      "30 min Live Video Session",
       "Immediate layout flaw diagnosis",
       "Material & design directional advice",
     ],
@@ -76,7 +76,7 @@ export const serviceCatalog: ServiceData[] = [
     category: "Consultation",
     popularityRank: 1,
     shortDesc:
-      "Live 1-on-1 strategy sessions with a principal architect via Zoom or WhatsApp.",
+      "Live 1-on-1 strategy sessions with a principal architect via Live HD Video.",
     image: "/images/For Call.png",
     pricingType: "flat",
     tiers: [
@@ -85,7 +85,7 @@ export const serviceCatalog: ServiceData[] = [
         deliveryTime: "30 Minutes Live",
         details: "Discussion + design guidance + immediate layout solutions.",
         deliverables: [
-          "30 min Zoom/WhatsApp Call",
+          "30 min Live Video Session",
           "Spatial Flow Guidance",
           "Live Q&A with Lead Architect",
         ],

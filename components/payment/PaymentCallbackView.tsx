@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Copy,
   ExternalLink,
+  PhoneCall,
 } from "lucide-react";
 
 function PaymentCallbackContent() {
@@ -79,13 +80,6 @@ function PaymentCallbackContent() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const whatsappMessage = encodeURIComponent(
-    `Hello MARK Architects! I have completed my payment via Safepay.\n\n` +
-      `Reference / Order ID: ${orderId}\n` +
-      `Safepay Tracker: ${tracker}\n\n` +
-      `Please confirm receipt and dispatch meeting coordinates.`,
-  );
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-4 py-16 relative overflow-hidden font-inter">
@@ -201,14 +195,11 @@ function PaymentCallbackContent() {
           {/* Action CTAs */}
           <div className="space-y-3 pt-2">
             <a
-              href={`https://wa.me/923001234567?text=${whatsappMessage}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-lg active:scale-98"
+              href="tel:+923001234567"
+              className="w-full py-3.5 px-6 rounded-xl bg-primary hover:bg-tertiary text-on-primary font-medium text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-lg active:scale-98 cursor-pointer"
             >
-              <MessageSquare className="w-4 h-4" />
-              <span>Notify Principal Architect on WhatsApp</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <PhoneCall className="w-4 h-4" />
+              <span>Call Studio Hotline (+92 300 1234567)</span>
             </a>
 
             <div className="flex items-center gap-3">

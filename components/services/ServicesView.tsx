@@ -40,7 +40,7 @@ const serviceCatalog: ServiceData[] = [
     category: "Consultation",
     popularityRank: 1,
     shortDesc:
-      "Live 1-on-1 strategy sessions with a principal architect via Zoom or WhatsApp.",
+      "Live 1-on-1 strategy sessions with a principal architect via Live HD Video.",
     image: "/images/For Call.png",
     pricingType: "flat",
     tiers: [
@@ -49,7 +49,7 @@ const serviceCatalog: ServiceData[] = [
         deliveryTime: "30 Minutes Live",
         details: "Discussion + design guidance + immediate layout solutions.",
         deliverables: [
-          "30 min Zoom/WhatsApp Call",
+          "30 min Live Video Session",
           "Spatial Flow Guidance",
           "Live Q&A with Lead Architect",
         ],
@@ -447,7 +447,7 @@ export const ServicesView: React.FC = () => {
             <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
               Authoritative Architectural Catalog
             </span>
-            <h1 className="font-playfair text-4xl md:text-6xl text-on-surface dark:text-zinc-100 font-normal leading-tight">
+            <h1 className="font-playfair text-3xl sm:text-5xl md:text-6xl text-on-surface dark:text-zinc-100 font-normal leading-tight">
               Bespoke Design, Audits &amp; <br />
               <span className="italic font-light">Engineering Packages.</span>
             </h1>
@@ -547,7 +547,7 @@ export const ServicesView: React.FC = () => {
                     </div>
 
                     {/* Right: Tiers, Plot Selector & Pricing */}
-                    <div className="lg:w-3/5 p-6 md:p-10 flex flex-col justify-between space-y-6">
+                    <div className="lg:w-3/5 p-5 sm:p-7 md:p-10 flex flex-col justify-between space-y-6">
                       <div className="space-y-6">
                         {/* Plot Size Selector (if size_based) */}
                         {service.pricingType === "size_based" && (
@@ -555,7 +555,7 @@ export const ServicesView: React.FC = () => {
                             <label className="font-inter text-[11px] font-bold text-on-surface dark:text-zinc-300 uppercase tracking-wider block">
                               Select Plot Scale
                             </label>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                               {(
                                 ["5 Marla", "10 Marla", "1 Kanal"] as PlotSize[]
                               ).map((plot) => (
@@ -565,7 +565,7 @@ export const ServicesView: React.FC = () => {
                                   onClick={() =>
                                     handlePlotChange(service.id, plot)
                                   }
-                                  className={`py-2.5 px-3 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer text-center ${
+                                  className={`py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-xl border text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer text-center min-h-[40px] flex items-center justify-center ${
                                     currentPlot === plot
                                       ? "bg-tertiary text-white border-tertiary shadow-sm"
                                       : "bg-surface dark:bg-zinc-800/60 border-outline-variant/40 text-on-surface dark:text-zinc-300 hover:border-tertiary/60"
@@ -592,7 +592,7 @@ export const ServicesView: React.FC = () => {
                                   onClick={() =>
                                     handleTierChange(service.id, tIdx)
                                   }
-                                  className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer ${
+                                  className={`px-3.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer min-h-[38px] flex items-center justify-center ${
                                     currentTierIdx === tIdx
                                       ? "bg-primary text-white border border-primary dark:bg-zinc-100 dark:text-zinc-950 font-bold shadow-sm"
                                       : "bg-surface dark:bg-zinc-800/40 border border-outline-variant/40 text-on-surface dark:text-zinc-400 hover:border-tertiary"
@@ -607,7 +607,7 @@ export const ServicesView: React.FC = () => {
 
                         {/* Active Tier Description & Deliverables */}
                         {currentTier && (
-                          <div className="bg-surface dark:bg-zinc-950 p-5 rounded-2xl border border-outline-variant/30 space-y-3">
+                          <div className="bg-surface dark:bg-zinc-950 p-4 sm:p-5 rounded-2xl border border-outline-variant/30 space-y-3">
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/20 pb-3">
                               <span className="font-playfair text-base font-bold text-on-surface dark:text-zinc-200">
                                 {currentTier.name} Package Scope
@@ -642,21 +642,21 @@ export const ServicesView: React.FC = () => {
                       </div>
 
                       {/* Pricing Summary & Actions */}
-                      <div className="pt-4 border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="pt-4 border-t border-outline-variant/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                           <span className="text-[11px] font-inter font-bold text-on-surface-variant dark:text-zinc-400 uppercase tracking-wider block">
                             Fixed Price (PKR)
                           </span>
-                          <span className="font-montserrat text-2xl font-extrabold text-secondary dark:text-zinc-100">
+                          <span className="font-montserrat text-xl sm:text-2xl font-extrabold text-secondary dark:text-zinc-100">
                             {SafepayService.formatPKR(currentPrice)}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <div className="flex flex-col xs:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                           <button
                             type="button"
                             onClick={() => handleOpenInquiry(service)}
-                            className="flex-1 sm:flex-none border border-outline-variant hover:border-tertiary hover:text-tertiary px-5 py-3.5 rounded-xl font-inter font-bold text-xs tracking-wider uppercase transition-all text-center cursor-pointer"
+                            className="flex-1 sm:flex-none border border-outline-variant hover:border-tertiary hover:text-tertiary px-4 sm:px-5 py-3 rounded-xl font-inter font-bold text-xs tracking-wider uppercase transition-all text-center cursor-pointer min-h-[44px] flex items-center justify-center"
                           >
                             Inquire Brief
                           </button>
@@ -664,7 +664,7 @@ export const ServicesView: React.FC = () => {
                           {service.id === "consultation" ? (
                             <Link
                               href="/consultation"
-                              className="flex-1 sm:flex-none bg-primary hover:bg-tertiary text-on-primary px-6 py-3.5 rounded-xl font-inter font-bold text-xs tracking-wider uppercase transition-all shadow-md active:scale-95 text-center flex items-center justify-center gap-1.5"
+                              className="flex-1 sm:flex-none bg-primary hover:bg-tertiary text-on-primary px-5 sm:px-6 py-3 rounded-xl font-inter font-bold text-xs tracking-wider uppercase transition-all shadow-md active:scale-95 text-center flex items-center justify-center gap-1.5 min-h-[44px]"
                             >
                               <span>Book Call Slot</span>
                               <ArrowRight className="w-4 h-4" />
@@ -673,7 +673,7 @@ export const ServicesView: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleAddToCart(service)}
-                              className="flex-1 sm:flex-none bg-primary hover:bg-tertiary text-on-primary px-6 py-3.5 rounded-xl font-inter font-bold text-xs tracking-wider uppercase transition-all shadow-md active:scale-95 text-center cursor-pointer flex items-center justify-center gap-1.5"
+                              className="flex-1 sm:flex-none bg-primary hover:bg-tertiary text-on-primary px-5 sm:px-6 py-3 rounded-xl font-inter font-bold text-xs tracking-wider uppercase transition-all shadow-md active:scale-95 text-center cursor-pointer flex items-center justify-center gap-1.5 min-h-[44px]"
                             >
                               <span>Direct Checkout</span>
                               <ArrowRight className="w-4 h-4" />
@@ -691,8 +691,8 @@ export const ServicesView: React.FC = () => {
 
       {/* Tailored Service Inquiry Modal */}
       {activeInquiryService && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-surface dark:bg-zinc-900 border border-outline-variant/40 rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl relative my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contain p-4 bg-black/70 backdrop-blur-sm">
+          <div className="relative my-8 max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto overscroll-contain bg-surface dark:bg-zinc-900 border border-outline-variant/40 rounded-3xl p-6 md:p-8 shadow-2xl">
             <button
               onClick={() => setActiveInquiryService(null)}
               className="absolute top-5 right-5 p-2 rounded-full hover:bg-surface-container dark:hover:bg-zinc-800 text-on-surface-variant cursor-pointer"
@@ -744,7 +744,7 @@ export const ServicesView: React.FC = () => {
 
               <div>
                 <label className="font-inter text-xs font-bold text-on-surface dark:text-zinc-300 uppercase tracking-wider block mb-1">
-                  Phone / WhatsApp
+                  Phone Number
                 </label>
                 <input
                   type="tel"

@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Move, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import heroAtlasManifest from "@/data/heroAtlasManifest.json";
@@ -35,7 +42,12 @@ type DragState = {
   mode: "rotate" | "pan";
 };
 
-type Fit = { containerW: number; containerH: number; cellW: number; cellH: number };
+type Fit = {
+  containerW: number;
+  containerH: number;
+  cellW: number;
+  cellH: number;
+};
 
 type VillaOrbitViewerProps = {
   /** Full-bleed background mode: fills its positioned parent edge-to-edge
@@ -52,10 +64,23 @@ type VillaOrbitViewerProps = {
   onSourceChange?: (source: SourceKey) => void;
 };
 
-export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false, compareSources = false, onSourceChange }) => {
+export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({
+  fill = false,
+  compareSources = false,
+  onSourceChange,
+}) => {
   const [source, setSource] = useState<SourceKey>("1");
   const { frameCount, cols, rows, tiers } = SOURCES[source];
-  const tierData = tiers as Record<TierKey, { cellW: number; cellH: number; sheetW: number; sheetH: number; src: string }>;
+  const tierData = tiers as Record<
+    TierKey,
+    {
+      cellW: number;
+      cellH: number;
+      sheetW: number;
+      sheetH: number;
+      src: string;
+    }
+  >;
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
@@ -137,8 +162,10 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
       const rect = el.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
       const containerAspect = rect.width / rect.height;
-      const cellW = containerAspect > cellAspect ? rect.width : rect.height * cellAspect;
-      const cellH = containerAspect > cellAspect ? rect.width / cellAspect : rect.height;
+      const cellW =
+        containerAspect > cellAspect ? rect.width : rect.height * cellAspect;
+      const cellH =
+        containerAspect > cellAspect ? rect.width / cellAspect : rect.height;
       setFit({ containerW: rect.width, containerH: rect.height, cellW, cellH });
     };
     compute();
@@ -169,7 +196,9 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
   const settleFrame = useCallback(() => {
     cancelBounce();
     if (reducedMotion) {
-      setFrameFloat((prev) => Math.min(Math.max(Math.round(prev), 0), frameCount - 1));
+      setFrameFloat((prev) =>
+        Math.min(Math.max(Math.round(prev), 0), frameCount - 1),
+      );
       return;
     }
     const step = () => {
@@ -187,19 +216,22 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
     bounceRAF.current = requestAnimationFrame(step);
   }, [frameCount, reducedMotion]);
 
-  const clampPan = useCallback((next: { x: number; y: number }, nextScale: number) => {
-    const rect = viewportRef.current?.getBoundingClientRect();
-    if (!rect) return next;
-    // Below 1x the content is smaller than the viewport, so there's nothing
-    // to pan — clamp to 0 rather than letting a negative bound lock pan at
-    // a fixed nonzero offset (Math.min/max below would otherwise force it).
-    const maxX = Math.max(0, ((nextScale - 1) * rect.width) / 2);
-    const maxY = Math.max(0, ((nextScale - 1) * rect.height) / 2);
-    return {
-      x: Math.min(maxX, Math.max(-maxX, next.x)),
-      y: Math.min(maxY, Math.max(-maxY, next.y)),
-    };
-  }, []);
+  const clampPan = useCallback(
+    (next: { x: number; y: number }, nextScale: number) => {
+      const rect = viewportRef.current?.getBoundingClientRect();
+      if (!rect) return next;
+      // Below 1x the content is smaller than the viewport, so there's nothing
+      // to pan — clamp to 0 rather than letting a negative bound lock pan at
+      // a fixed nonzero offset (Math.min/max below would otherwise force it).
+      const maxX = Math.max(0, ((nextScale - 1) * rect.width) / 2);
+      const maxY = Math.max(0, ((nextScale - 1) * rect.height) / 2);
+      return {
+        x: Math.min(maxX, Math.max(-maxX, next.x)),
+        y: Math.min(maxY, Math.max(-maxY, next.y)),
+      };
+    },
+    [],
+  );
 
   const applyScale = useCallback(
     (nextScale: number) => {
@@ -229,7 +261,10 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
     if (pointersRef.current.size === 2) {
       dragRef.current = null;
       const pts = Array.from(pointersRef.current.values());
-      pinchStartDistRef.current = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      pinchStartDistRef.current = Math.hypot(
+        pts[0].x - pts[1].x,
+        pts[0].y - pts[1].y,
+      );
       pinchStartScaleRef.current = scale;
       return;
     }
@@ -252,10 +287,18 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
     // touch/pen keep plain drag-to-rotate untouched (hover has no meaning on
     // touch). Only applies at 1x — zoomed in, drag is for panning instead,
     // and hover driving rotation underneath a pan wouldn't make sense.
-    if (e.pointerType === "mouse" && e.buttons === 0 && scale <= 1.01 && !dragRef.current) {
+    if (
+      e.pointerType === "mouse" &&
+      e.buttons === 0 &&
+      scale <= 1.01 &&
+      !dragRef.current
+    ) {
       const rect = viewportRef.current?.getBoundingClientRect();
       if (rect && rect.width > 0) {
-        const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+        const ratio = Math.min(
+          1,
+          Math.max(0, (e.clientX - rect.left) / rect.width),
+        );
         cancelBounce();
         setFrameFloat(ratio * (frameCount - 1));
       }
@@ -268,7 +311,9 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
     if (pointersRef.current.size === 2 && pinchStartDistRef.current) {
       const pts = Array.from(pointersRef.current.values());
       const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-      applyScale(pinchStartScaleRef.current * (dist / pinchStartDistRef.current));
+      applyScale(
+        pinchStartScaleRef.current * (dist / pinchStartDistRef.current),
+      );
       return;
     }
 
@@ -281,9 +326,13 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
     if (drag.mode === "rotate") {
       const raw = drag.startFrameFloat - dx / PX_PER_FRAME;
       const overshootCap = frameCount - 1 + OVERSHOOT_MAX_FRAMES;
-      setFrameFloat(Math.min(overshootCap, Math.max(-OVERSHOOT_MAX_FRAMES, raw)));
+      setFrameFloat(
+        Math.min(overshootCap, Math.max(-OVERSHOOT_MAX_FRAMES, raw)),
+      );
     } else {
-      setPan(clampPan({ x: drag.startPan.x + dx, y: drag.startPan.y + dy }, scale));
+      setPan(
+        clampPan({ x: drag.startPan.x + dx, y: drag.startPan.y + dy }, scale),
+      );
     }
   };
 
@@ -331,10 +380,14 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "ArrowLeft") {
       cancelBounce();
-      setFrameFloat((f) => Math.min(Math.max(Math.round(f) - 1, 0), frameCount - 1));
+      setFrameFloat((f) =>
+        Math.min(Math.max(Math.round(f) - 1, 0), frameCount - 1),
+      );
     } else if (e.key === "ArrowRight") {
       cancelBounce();
-      setFrameFloat((f) => Math.min(Math.max(Math.round(f) + 1, 0), frameCount - 1));
+      setFrameFloat((f) =>
+        Math.min(Math.max(Math.round(f) + 1, 0), frameCount - 1),
+      );
     } else if (e.key === "+" || e.key === "=") {
       applyScale(scale * 1.15);
     } else if (e.key === "-" || e.key === "_") {
@@ -379,7 +432,9 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
               onClick={() => selectSource(key)}
               className={cn(
                 "pointer-events-auto w-7 h-7 rounded-full text-[11px] font-inter font-bold transition-colors cursor-pointer",
-                source === key ? "bg-tertiary text-on-tertiary" : "text-white/70 hover:text-white",
+                source === key
+                  ? "bg-tertiary text-on-tertiary"
+                  : "text-white/70 hover:text-white",
               )}
             >
               {key}
@@ -395,7 +450,9 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
           <Move className="w-3.5 h-3.5 animate-pulse" />
           {/* Rotation is hover-driven on mouse/trackpad, drag-driven on
               touch — (hover: hover) picks the copy that matches, no JS. */}
-          <span className="hidden [@media(hover:hover)]:inline">Move to Rotate</span>
+          <span className="hidden [@media(hover:hover)]:inline">
+            Move to Rotate
+          </span>
           <span className="[@media(hover:hover)]:hidden">Drag to Rotate</span>
         </div>
       )}
@@ -410,7 +467,10 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
       >
         {/* Rotation window — background-position selects the current frame */}
         <div
-          className={cn("w-full h-full", fill && "brightness-[0.6] contrast-[1.05]")}
+          className={cn(
+            "w-full h-full",
+            fill && "brightness-[0.6] contrast-[1.05]",
+          )}
           style={bgStyle}
         />
       </div>
@@ -423,8 +483,10 @@ export const VillaOrbitViewer: React.FC<VillaOrbitViewerProps> = ({ fill = false
           and it never fades, so the interactivity stays visible at rest. */}
       <div
         className={cn(
-          "absolute flex items-center gap-4 bg-black/60 backdrop-blur-md px-5 py-2 rounded-full z-20 shadow-lg border border-white/10",
-          fill ? "bottom-6 right-6" : "bottom-4 left-1/2 -translate-x-1/2",
+          "absolute flex items-center gap-2.5 sm:gap-4 bg-black/60 backdrop-blur-md px-3 sm:px-5 py-1.5 sm:py-2 rounded-full z-20 shadow-lg border border-white/10 max-w-[calc(100vw-1.5rem)]",
+          fill
+            ? "bottom-4 sm:bottom-6 right-3 sm:right-6"
+            : "bottom-4 left-1/2 -translate-x-1/2",
         )}
       >
         {fill && (

@@ -30,6 +30,15 @@ export const CartDrawer: React.FC = () => {
     clearCart,
   } = useStore();
 
+  React.useEffect(() => {
+    if (!cartDrawerOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [cartDrawerOpen]);
+
   const [step, setStep] = React.useState<"cart" | "checkout">("cart");
   const [customerName, setCustomerName] = React.useState("");
   const [customerEmail, setCustomerEmail] = React.useState("");
@@ -184,23 +193,28 @@ export const CartDrawer: React.FC = () => {
           />
 
           {/* Drawer Wrapper */}
-          <div className="absolute inset-y-0 right-0 max-w-full flex">
+          <div className="absolute inset-y-0 right-0 max-w-full min-w-0 flex">
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "tween", duration: 0.35, ease: "easeOut" }}
-              className="w-screen sm:max-w-md bg-white dark:bg-zinc-950 border-l border-outline-variant/35 shadow-2xl flex flex-col"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Shopping cart"
+              className="w-[min(100vw,28rem)] max-w-full min-w-0 bg-white dark:bg-zinc-950 border-l border-outline-variant/35 shadow-2xl flex flex-col"
             >
               {/* Header */}
-              <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low dark:bg-zinc-900">
-                <h3 className="font-playfair text-xl font-bold text-secondary dark:text-white flex items-center gap-2">
-                  <ShoppingBag className="text-tertiary w-5 h-5" />
-                  <span>Selected Packages &amp; Orders</span>
+              <div className="p-4 sm:p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low dark:bg-zinc-900">
+                <h3 className="font-playfair text-lg sm:text-xl font-bold text-secondary dark:text-white flex items-center gap-2 truncate">
+                  <ShoppingBag className="text-tertiary w-5 h-5 shrink-0" />
+                  <span className="truncate">
+                    Selected Packages &amp; Orders
+                  </span>
                 </h3>
                 <button
                   onClick={() => setCartDrawerOpen(false)}
-                  className="p-2 rounded-full hover:bg-surface-container dark:hover:bg-zinc-800 transition-colors focus:outline-none cursor-pointer"
+                  className="p-2 rounded-full hover:bg-surface-container dark:hover:bg-zinc-800 transition-colors focus:outline-none cursor-pointer shrink-0 ml-2"
                   aria-label="Close Cart"
                 >
                   <X className="text-secondary dark:text-zinc-400 w-5 h-5" />
@@ -210,7 +224,7 @@ export const CartDrawer: React.FC = () => {
               {/* Cart Items List or Checkout Form */}
               <div
                 data-lenis-prevent
-                className="flex-grow overflow-y-auto overscroll-contain min-h-0 p-6 space-y-4 touch-pan-y"
+                className="flex-grow overflow-y-auto overscroll-contain min-h-0 p-4 sm:p-6 space-y-4 touch-pan-y"
               >
                 {step === "checkout" ? (
                   <form
@@ -272,7 +286,7 @@ export const CartDrawer: React.FC = () => {
 
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-                        WhatsApp / Phone Number *
+                        Contact / Phone Number *
                       </label>
                       <input
                         type="tel"
@@ -465,17 +479,17 @@ export const CartDrawer: React.FC = () => {
 
               {/* Checkout Footer */}
               {cart.length > 0 && (
-                <div className="p-6 border-t border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900 space-y-4">
+                <div className="p-4 sm:p-6 border-t border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900 space-y-3 sm:space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="font-inter text-sm text-on-surface-variant font-medium dark:text-zinc-400">
+                    <span className="font-inter text-xs sm:text-sm text-on-surface-variant font-medium dark:text-zinc-400">
                       Total Payable (PKR)
                     </span>
-                    <span className="font-montserrat text-xl font-bold text-secondary dark:text-zinc-100">
+                    <span className="font-montserrat text-lg sm:text-xl font-bold text-secondary dark:text-zinc-100">
                       {SafepayService.formatPKR(pkrSubtotal)}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/60 p-2.5 rounded-lg">
+                  <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/60 p-2 sm:p-2.5 rounded-lg">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span>
                       Secured with Safepay Pakistan payment gateway. Instant
@@ -488,7 +502,7 @@ export const CartDrawer: React.FC = () => {
                       type="submit"
                       form="cart-checkout-form"
                       disabled={isSubmitting}
-                      className="w-full bg-primary hover:bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed text-on-primary py-4 font-bold tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2"
+                      className="w-full bg-primary hover:bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed text-on-primary py-3.5 sm:py-4 font-bold tracking-wider sm:tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 min-h-[48px]"
                     >
                       {isSubmitting ? (
                         <>
@@ -509,7 +523,7 @@ export const CartDrawer: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleProceedToDetails}
-                      className="w-full bg-primary hover:bg-tertiary text-on-primary py-4 font-bold tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2"
+                      className="w-full bg-primary hover:bg-tertiary text-on-primary py-3.5 sm:py-4 font-bold tracking-wider sm:tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 min-h-[48px]"
                     >
                       <span>PROCEED TO CHECKOUT</span>
                       <ArrowRight className="w-4 h-4" />

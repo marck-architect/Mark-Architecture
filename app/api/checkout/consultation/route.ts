@@ -27,9 +27,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Authoritative PKR Pricing
-    const isPremium = callTier === "Premium Call";
-    const pricePkr = isPremium ? 5000 : 3000;
-    const tierName = isPremium ? "Premium Call" : "Basic Call";
+    const pricing: Record<string, number> = {
+      "Basic Call": 3000,
+      "Premium Call": 5000,
+    };
+    const pricePkr = pricing[callTier] || pricing["Basic Call"];
+    const tierName = pricing[callTier] ? callTier : "Basic Call";
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);

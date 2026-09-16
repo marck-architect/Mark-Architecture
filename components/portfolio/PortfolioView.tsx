@@ -21,7 +21,7 @@ export const PortfolioView: React.FC = () => {
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
       {/* Whole-screen Hero Section (Full Initial Page) */}
-      <header className="relative w-full h-screen min-h-[100dvh] flex items-center overflow-hidden border-b border-outline-variant/30">
+      <header className="relative w-full min-h-[100dvh] flex items-center overflow-hidden border-b border-outline-variant/30">
         {/* Background Architectural Drafting Grid Pattern */}
         <div className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
 
@@ -36,30 +36,30 @@ export const PortfolioView: React.FC = () => {
         <div className="relative z-10 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop pt-16">
           <ScrollReveal>
             <div className="max-w-4xl space-y-6">
-              <h1 className="font-playfair text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight">
+              <h1 className="font-playfair text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight">
                 Curating spaces where <br />
                 <span className="italic font-light text-tertiary">
                   form meets precision.
                 </span>
               </h1>
 
-              <p className="font-inter text-base sm:text-lg md:text-xl text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl">
+              <p className="font-inter text-sm sm:text-base md:text-lg lg:text-xl text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl">
                 Our realized portfolio spans iconic luxury residences, corporate
                 hubs, and spatial redrafts across Peshawar, Islamabad, and
                 Karachi.
               </p>
 
-              <div className="pt-2 flex flex-wrap gap-4 items-center">
+              <div className="pt-2 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 items-stretch sm:items-center">
                 <a
                   href="#portfolio-grid"
-                  className="bg-primary hover:bg-tertiary text-on-primary px-8 py-4 rounded-xl font-bold tracking-wider transition-all duration-300 shadow-md active:scale-95 text-center inline-flex items-center gap-2 font-inter text-xs uppercase cursor-pointer"
+                  className="w-full sm:w-auto bg-primary hover:bg-tertiary text-on-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-bold tracking-wider transition-all duration-300 shadow-md active:scale-95 text-center inline-flex items-center justify-center gap-2 font-inter text-xs uppercase cursor-pointer min-h-[48px]"
                 >
                   <span>Explore Masterpieces</span>
                   <ArrowDown className="w-4 h-4" />
                 </a>
                 <Link
                   href="/consultation"
-                  className="border border-outline-variant hover:border-tertiary hover:text-tertiary px-8 py-4 rounded-xl font-bold tracking-wider transition-all active:scale-95 text-center font-inter text-xs uppercase"
+                  className="w-full sm:w-auto border border-outline-variant hover:border-tertiary hover:text-tertiary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-bold tracking-wider transition-all active:scale-95 text-center font-inter text-xs uppercase min-h-[48px] inline-flex items-center justify-center"
                 >
                   Book Consultation
                 </Link>
@@ -76,7 +76,7 @@ export const PortfolioView: React.FC = () => {
       >
         {/* Tag Filters */}
         <ScrollReveal delay={0.1}>
-          <div className="flex flex-wrap gap-3 mb-12 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex flex-wrap gap-2 sm:gap-3 mb-12 overflow-x-auto pb-2 scrollbar-hide">
             {filterCategories.map((cat) => {
               const isActive = portfolioFilter === cat.key;
               return (
@@ -84,7 +84,7 @@ export const PortfolioView: React.FC = () => {
                   key={cat.key}
                   onClick={() => setPortfolioFilter(cat.key)}
                   className={cn(
-                    "px-6 py-2.5 rounded-full border text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer",
+                    "px-4 sm:px-6 py-2 sm:py-2.5 rounded-full border text-[11px] sm:text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer min-h-[40px] flex items-center justify-center shrink-0",
                     isActive
                       ? "border-primary bg-primary text-on-primary dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950 shadow-md"
                       : "border-outline-variant text-on-surface-variant hover:border-tertiary hover:text-tertiary",

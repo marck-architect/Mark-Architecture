@@ -34,7 +34,9 @@ export const Header: React.FC = () => {
       return window.scrollY > 40;
     };
 
-    setIsScrolled(evaluateScroll());
+    const initialFrame = requestAnimationFrame(() => {
+      setIsScrolled(evaluateScroll());
+    });
 
     const handleScroll = () => {
       if (!ticking) {
@@ -48,7 +50,10 @@ export const Header: React.FC = () => {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      cancelAnimationFrame(initialFrame);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [pathname]);
 
   const isHomeHero = pathname === "/" && !isScrolled;

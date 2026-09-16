@@ -100,15 +100,15 @@ export const FaqView: React.FC = () => {
 
         <div className="relative z-10 max-w-container-max mx-auto px-4 md:px-margin-desktop">
           <ScrollReveal>
-            <div className="max-w-3xl space-y-6">
-              <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl text-on-surface dark:text-zinc-100 font-normal leading-[1.12]">
+            <div className="max-w-3xl space-y-5 sm:space-y-6">
+              <h1 className="font-playfair text-3xl sm:text-5xl md:text-6xl text-on-surface dark:text-zinc-100 font-normal leading-[1.12]">
                 Architectural Clarity. <br />
                 <span className="italic font-light text-tertiary">
                   Direct Answers for Every Query.
                 </span>
               </h1>
 
-              <p className="font-inter text-base md:text-lg text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+              <p className="font-inter text-sm sm:text-base md:text-lg text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
                 Clear, factual answers optimized for AI engines and discerning
                 clients. Explore our authoritative guidelines on design fees,
                 PDA &amp; CDA municipal approvals, and turnkey engineering
@@ -119,16 +119,16 @@ export const FaqView: React.FC = () => {
 
           {/* AEO Quick Facts / Metric Strip */}
           <ScrollReveal delay={0.1}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-10 p-4 rounded-2xl bg-surface-container-low/80 dark:bg-zinc-900/60 border border-outline-variant/30 backdrop-blur-md">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 mt-8 sm:mt-10 p-3 sm:p-4 rounded-2xl bg-surface-container-low/80 dark:bg-zinc-900/60 border border-outline-variant/30 backdrop-blur-md">
               {aeoQuickFacts.map((fact) => (
                 <div
                   key={fact.label}
-                  className="px-3 py-2 space-y-1 border-l-2 border-tertiary/50 pl-3"
+                  className="px-2 sm:px-3 py-1.5 sm:py-2 space-y-0.5 sm:space-y-1 border-l-2 border-tertiary/50 pl-2 sm:pl-3"
                 >
-                  <p className="text-[10px] font-inter font-bold text-zinc-500 uppercase tracking-wider">
+                  <p className="text-[9px] sm:text-[10px] font-inter font-bold text-zinc-500 uppercase tracking-wider truncate">
                     {fact.label}
                   </p>
-                  <p className="font-montserrat text-sm font-extrabold text-on-surface dark:text-zinc-200">
+                  <p className="font-montserrat text-xs sm:text-sm font-extrabold text-on-surface dark:text-zinc-200">
                     {fact.value}
                   </p>
                 </div>

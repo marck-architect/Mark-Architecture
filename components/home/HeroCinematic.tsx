@@ -174,7 +174,7 @@ export const HeroCinematic: React.FC = () => {
   return (
     <section
       ref={heroRef}
-      className="relative w-full h-screen min-h-[100dvh] flex items-center overflow-hidden bg-zinc-950"
+      className="relative w-full min-h-[100dvh] flex items-center overflow-hidden bg-zinc-950"
     >
       {/* Poster image fallback so the hero never renders as a black screen while the atlas loads */}
       <div
@@ -228,30 +228,32 @@ export const HeroCinematic: React.FC = () => {
             Stays visible throughout the scroll (z-40, above the balcony
             layer's z-30) rather than fading out — the scrim above keeps it
             legible against either image. */}
-      <div className="relative z-40 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop text-white pt-28 pointer-events-none">
-        <div className="max-w-xl lg:max-w-[55%] space-y-6">
-          <h1 className="font-playfair text-4xl md:text-6xl lg:text-7xl font-normal leading-[1.1] md:leading-[1.15]">
+      <div className="relative z-40 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop text-white pt-24 sm:pt-28 pointer-events-none">
+        <div className="max-w-xl lg:max-w-[55%] space-y-5 sm:space-y-6">
+          <h1 className="font-playfair text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.1] md:leading-[1.15]">
             Designing Spaces That <br />
             <span className="italic font-light">Inspire Generations.</span>
           </h1>
 
-          <p className="font-inter text-base md:text-lg text-white/80 max-w-md font-light leading-relaxed">
-            By Muhammad Arsalan — mathematical rigor, passive solar design.
+          <p className="font-inter text-sm sm:text-base md:text-lg text-white/85 max-w-lg font-light leading-relaxed">
+            Where mathematical precision meets climate-responsive luxury. We
+            craft bespoke residential estates and visionary spaces engineered to
+            capture light, elevate living, and endure across generations.
           </p>
 
-          <div className="flex flex-wrap gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2">
             <Link
               href="/consultation"
-              className="pointer-events-auto bg-tertiary text-on-tertiary px-8 py-4 rounded-xl font-bold tracking-wide hover:bg-tertiary-fixed transition-all duration-300 shadow-xl active:scale-95 text-center flex items-center gap-2 font-inter text-xs uppercase"
+              className="pointer-events-auto w-full sm:w-auto bg-tertiary text-on-tertiary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-bold tracking-wide hover:bg-tertiary-fixed transition-all duration-300 shadow-xl active:scale-95 text-center flex items-center justify-center gap-2 font-inter text-xs uppercase min-h-[48px]"
             >
-              <span>View Services &amp; Consultation</span>
+              <span>Explore Services &amp; Consultation</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/consultation"
-              className="pointer-events-auto border border-white/60 text-white px-8 py-4 rounded-xl font-bold tracking-wide hover:bg-white hover:text-black transition-all duration-300 active:scale-95 text-center font-inter text-xs uppercase"
+              href="/portfolio"
+              className="pointer-events-auto w-full sm:w-auto border border-white/60 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-bold tracking-wide hover:bg-white hover:text-black transition-all duration-300 active:scale-95 text-center font-inter text-xs uppercase min-h-[48px] flex items-center justify-center"
             >
-              Book Discovery Call
+              View Selected Works
             </Link>
           </div>
         </div>

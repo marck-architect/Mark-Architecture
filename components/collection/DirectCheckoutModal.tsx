@@ -313,7 +313,7 @@ export const DirectCheckoutModal: React.FC<DirectCheckoutModalProps> = ({
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block">
-                    WhatsApp / Phone Number *
+                    Contact / Phone Number *
                   </label>
                   <input
                     type="tel"

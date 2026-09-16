@@ -264,10 +264,10 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
       {/* Tab Navigation & Toolbar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-200 pb-4">
         {/* Tabs */}
-        <div className="flex items-center gap-2 p-1 bg-stone-100 border border-stone-200/80 rounded-xl w-fit">
+        <div className="flex max-w-full items-center gap-2 overflow-x-auto p-1 bg-stone-100 border border-stone-200/80 rounded-xl">
           <button
             onClick={() => setActiveTab("consultations")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`flex shrink-0 items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === "consultations"
                 ? "bg-white text-stone-900 shadow-xs font-semibold"
                 : "text-stone-600 hover:text-stone-900"
@@ -279,7 +279,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
 
           <button
             onClick={() => setActiveTab("orders")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`flex shrink-0 items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === "orders"
                 ? "bg-white text-stone-900 shadow-xs font-semibold"
                 : "text-stone-600 hover:text-stone-900"
