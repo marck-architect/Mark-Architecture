@@ -31,7 +31,7 @@ export const MobileMenu: React.FC = () => {
       {/* Mobile backdrop overlay */}
       <div
         className={cn(
-          "fixed inset-0 top-[4.5rem] z-30 bg-black/50 backdrop-blur-xs transition-opacity duration-300 lg:hidden",
+          "fixed inset-0 top-[4.5rem] z-[60] bg-black/50 backdrop-blur-xs transition-opacity duration-300 lg:hidden",
           mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
         onClick={() => setMobileMenuOpen(false)}
@@ -42,7 +42,7 @@ export const MobileMenu: React.FC = () => {
       <div
         data-lenis-prevent
         className={cn(
-          "fixed inset-x-0 top-[4.5rem] z-30 border-t border-outline-variant/30 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl px-5 sm:px-6 py-6 sm:py-8 shadow-2xl transition-all duration-300 transform origin-top lg:hidden max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain",
+          "fixed inset-x-0 top-[4.5rem] z-[65] border-t border-outline-variant/30 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl px-5 sm:px-6 py-6 sm:py-8 shadow-2xl transition-all duration-300 transform origin-top lg:hidden max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain",
           mobileMenuOpen
             ? "scale-y-100 opacity-100"
             : "scale-y-0 opacity-0 pointer-events-none",

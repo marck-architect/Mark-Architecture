@@ -56,18 +56,18 @@ export const Header: React.FC = () => {
     };
   }, [pathname]);
 
-  const isHomeHero = pathname === "/" && !isScrolled;
+  const isHomeHero = pathname === "/" && !isScrolled && !mobileMenuOpen;
 
   return (
     <header
       className={cn(
-        "fixed top-0 w-full z-40 transition-all duration-300 border-b",
-        isScrolled
-          ? "bg-white/85 dark:bg-zinc-950/85 backdrop-blur-xl shadow-[0px_10px_30px_rgba(0,0,0,0.02)] border-outline-variant/30"
+        "fixed top-0 w-full h-[4.5rem] z-[70] transition-all duration-300 border-b flex items-center",
+        isScrolled || mobileMenuOpen
+          ? "bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl shadow-[0px_10px_30px_rgba(0,0,0,0.02)] border-outline-variant/30"
           : "bg-transparent border-transparent",
       )}
     >
-      <nav className="flex justify-between items-center px-4 md:px-margin-desktop py-4 w-full max-w-container-max mx-auto">
+      <nav className="flex justify-between items-center px-4 md:px-margin-desktop w-full max-w-container-max mx-auto h-full">
         {/* Brand Logo */}
         <Link
           href="/"

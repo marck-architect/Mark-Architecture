@@ -21,7 +21,7 @@ export const LightboxModal: React.FC = () => {
   return (
     <AnimatePresence>
       {lightbox.isOpen && lightbox.project && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contain p-3 sm:p-4">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto overscroll-contain p-3 sm:p-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}

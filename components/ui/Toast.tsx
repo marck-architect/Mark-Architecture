@@ -16,7 +16,7 @@ export const Toast: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 glass-panel-dark text-white text-xs px-5 py-3.5 rounded-xl flex items-start gap-3 shadow-2xl pointer-events-none"
+          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-[110] glass-panel-dark text-white text-xs px-5 py-3.5 rounded-xl flex items-start gap-3 shadow-2xl pointer-events-none"
         >
           {toast.type === "success" ? (
             <CheckCircle className="text-tertiary w-5 h-5 flex-shrink-0" />

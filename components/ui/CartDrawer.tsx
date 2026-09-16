@@ -182,7 +182,7 @@ export const CartDrawer: React.FC = () => {
   return (
     <AnimatePresence>
       {cartDrawerOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-[80] overflow-hidden">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
