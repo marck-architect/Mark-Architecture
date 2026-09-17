@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { logAdminAction } from "@/lib/server/audit";
+import { getAppOrigin } from "@/lib/server/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -34,12 +35,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine application origin for redirect
-    const origin =
-      request.headers.get("origin") ||
-      process.env.NEXT_PUBLIC_APP_URL ||
-      "http://localhost:3000";
-
+    // Determine application origin for redirect (production live link vs local development)
+    const origin = getAppOrigin(request);
     const redirectTo = `${origin}/auth/callback?next=/admin/reset-password`;
 
     const cookieStore = await cookies();

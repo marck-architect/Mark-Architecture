@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { createSafepayCheckoutSession } from "@/lib/server/safepay";
+import { getAppOrigin } from "@/lib/server/origin";
 
 export const runtime = "nodejs";
 
@@ -86,10 +87,7 @@ export async function POST(req: NextRequest) {
       console.warn("Database storage deferred:", dbErr);
     }
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      req.headers.get("origin") ||
-      "http://localhost:3000";
+    const appUrl = getAppOrigin(req);
 
     const redirectUrl = `${appUrl}/payment/callback?orderId=${orderId}&type=order`;
     const cancelUrl = `${appUrl}/collection?canceled=true`;
