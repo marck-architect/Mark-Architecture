@@ -17,9 +17,11 @@ export async function GET(request: Request) {
   // If Supabase returned an explicit error parameter, redirect to reset-password with error
   if (error || errorDescription) {
     const errorMsg = encodeURIComponent(
-      errorDescription || error || "Recovery link is invalid or has expired."
+      errorDescription || error || "Recovery link is invalid or has expired.",
     );
-    return NextResponse.redirect(`${origin}/admin/reset-password?error=${errorMsg}`);
+    return NextResponse.redirect(
+      `${origin}/admin/reset-password?error=${errorMsg}`,
+    );
   }
 
   // Handle PKCE Code exchange
@@ -35,15 +37,17 @@ export async function GET(request: Request) {
       } else {
         console.error(
           "[Auth Callback] Error exchanging code for session:",
-          exchangeError
+          exchangeError,
         );
         const errorMsg = encodeURIComponent(exchangeError.message);
-        return NextResponse.redirect(`${origin}/admin/reset-password?error=${errorMsg}`);
+        return NextResponse.redirect(
+          `${origin}/admin/reset-password?error=${errorMsg}`,
+        );
       }
     } catch (err) {
       console.error(
         "[Auth Callback] Unexpected error during code exchange:",
-        err
+        err,
       );
     }
   }
@@ -61,12 +65,20 @@ export async function GET(request: Request) {
       if (!verifyError) {
         return NextResponse.redirect(`${origin}${next}`);
       } else {
-        console.error("[Auth Callback] Error verifying token hash:", verifyError);
+        console.error(
+          "[Auth Callback] Error verifying token hash:",
+          verifyError,
+        );
         const errorMsg = encodeURIComponent(verifyError.message);
-        return NextResponse.redirect(`${origin}/admin/reset-password?error=${errorMsg}`);
+        return NextResponse.redirect(
+          `${origin}/admin/reset-password?error=${errorMsg}`,
+        );
       }
     } catch (err) {
-      console.error("[Auth Callback] Unexpected error during token verification:", err);
+      console.error(
+        "[Auth Callback] Unexpected error during token verification:",
+        err,
+      );
     }
   }
 

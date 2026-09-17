@@ -10,9 +10,7 @@ import {
   ArrowDown,
   ArrowRight,
   Search,
-  Zap,
   ShoppingBag,
-  ChevronDown,
   AlertCircle,
   Video,
   FileSearch,
@@ -163,11 +161,13 @@ export const PricingView: React.FC = () => {
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
-                Explore our full menu of architectural services. Every
-                package has fixed deliverables, a clear price, and secure
-                checkout through Safepay.
+                Explore our full menu of architectural services. Every package
+                has fixed deliverables, a clear price, and secure checkout
+                through Safepay.
               </p>
 
               {/* Action Buttons */}

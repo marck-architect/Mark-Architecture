@@ -5,16 +5,12 @@ import {
   Calendar,
   Clock,
   DollarSign,
-  TrendingUp,
-  AlertCircle,
   CheckCircle2,
   Video,
   ArrowRight,
-  Briefcase,
   FolderGit2,
   ExternalLink,
   ShieldCheck,
-  Send,
 } from "lucide-react";
 import type {
   ConsultationRecord,

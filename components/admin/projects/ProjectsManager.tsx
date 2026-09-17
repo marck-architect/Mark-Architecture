@@ -3,19 +3,16 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import {
-  FolderGit2,
   Plus,
   Edit2,
   Trash2,
   Star,
   CheckCircle2,
   XCircle,
-  ExternalLink,
   X,
   Save,
   Loader2,
   MapPin,
-  Calendar,
 } from "lucide-react";
 import type { AdminProject } from "@/types";
 

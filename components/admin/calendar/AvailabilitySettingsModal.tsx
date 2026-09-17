@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Save, Clock, Calendar, Check, Loader2 } from "lucide-react";
+import { X, Save, Check, Loader2 } from "lucide-react";
 import type { AvailabilitySettings, BlockedDate } from "@/types";
 
 interface AvailabilitySettingsModalProps {

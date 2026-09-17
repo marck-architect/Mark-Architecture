@@ -2,16 +2,12 @@
 
 import React, { useMemo, useState } from "react";
 import {
-  BarChart3,
   TrendingUp,
   DollarSign,
   Calendar,
-  Users,
   CheckCircle2,
-  Clock,
   Award,
   ArrowUpRight,
-  Filter,
 } from "lucide-react";
 import type { ConsultationRecord, OrderRecord } from "@/types";
 

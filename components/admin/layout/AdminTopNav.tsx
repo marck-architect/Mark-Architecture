@@ -3,18 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Menu,
-  Bell,
-  Search,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  ExternalLink,
-  LogOut,
-  User,
-  X,
-} from "lucide-react";
+import { Menu, Bell, Search, ExternalLink, LogOut, X } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import type { AdminTabType, AdminNotification } from "@/types";
 

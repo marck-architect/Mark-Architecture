@@ -55,7 +55,7 @@ export const AdminResetPasswordView: React.FC = () => {
 
         if (window.location.hash.includes("error")) {
           const hashParams = new URLSearchParams(
-            window.location.hash.substring(1)
+            window.location.hash.substring(1),
           );
           const hashError =
             hashParams.get("error_description") || hashParams.get("error");
@@ -79,7 +79,7 @@ export const AdminResetPasswordView: React.FC = () => {
           } else if (error) {
             console.warn(
               "[Reset Password] exchangeCodeForSession returned:",
-              error.message
+              error.message,
             );
           }
         }
@@ -106,7 +106,7 @@ export const AdminResetPasswordView: React.FC = () => {
         // 4. Check for Access Token in Hash fragment (#access_token=...&refresh_token=...)
         if (window.location.hash.includes("access_token")) {
           const hashParams = new URLSearchParams(
-            window.location.hash.substring(1)
+            window.location.hash.substring(1),
           );
           const accessToken = hashParams.get("access_token");
           const refreshToken = hashParams.get("refresh_token");
@@ -200,14 +200,14 @@ export const AdminResetPasswordView: React.FC = () => {
       if (error) {
         setErrorMessage(
           error.message ||
-            "Unable to update password. Your reset link may have expired or is invalid."
+            "Unable to update password. Your reset link may have expired or is invalid.",
         );
         setIsLoading(false);
         return;
       }
 
       setSuccessMessage(
-        "Password successfully updated! Redirecting to Studio Command Center..."
+        "Password successfully updated! Redirecting to Studio Command Center...",
       );
       setIsLoading(false);
 
@@ -220,7 +220,7 @@ export const AdminResetPasswordView: React.FC = () => {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "An unexpected error occurred while saving your new password."
+          : "An unexpected error occurred while saving your new password.",
       );
       setIsLoading(false);
     }
@@ -251,7 +251,8 @@ export const AdminResetPasswordView: React.FC = () => {
             Set New Administrator Password
           </p>
           <p className="text-xs text-stone-500 mt-2">
-            Establish new administrator credentials for the Atelier Command Center.
+            Establish new administrator credentials for the Atelier Command
+            Center.
           </p>
         </div>
 
@@ -360,7 +361,8 @@ export const AdminResetPasswordView: React.FC = () => {
             </div>
 
             <div className="text-[11px] text-stone-400 font-mono">
-              Password requirement: At least 8 characters with numbers or symbols recommended.
+              Password requirement: At least 8 characters with numbers or
+              symbols recommended.
             </div>
 
             {/* Submit Button */}

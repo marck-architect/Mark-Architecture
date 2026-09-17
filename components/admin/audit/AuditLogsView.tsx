@@ -1,17 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  ShieldAlert,
-  Search,
-  Filter,
-  Eye,
-  X,
-  Clock,
-  User,
-  Activity,
-  FileCode,
-} from "lucide-react";
+import { Search, X, FileCode } from "lucide-react";
 import type { AuditLogEntry } from "@/types";
 import { seedAuditLogs } from "@/data/adminSeed";
 

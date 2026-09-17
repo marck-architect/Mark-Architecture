@@ -4,17 +4,13 @@ import React, { useState, useMemo } from "react";
 import {
   CreditCard,
   Search,
-  Filter,
   Download,
   ExternalLink,
   CheckCircle2,
   Clock4,
-  AlertCircle,
   Copy,
   DollarSign,
-  TrendingUp,
   ShieldCheck,
-  RefreshCw,
   X,
 } from "lucide-react";
 import type { ConsultationRecord, OrderRecord } from "@/types";

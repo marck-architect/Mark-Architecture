@@ -2,17 +2,12 @@
 
 import React, { useState, useMemo } from "react";
 import {
-  Mail,
   Search,
   CheckCircle2,
-  AlertCircle,
   Video,
   Copy,
-  ExternalLink,
   RefreshCw,
-  Send,
   Clock,
-  Filter,
 } from "lucide-react";
 import type { CommunicationLog } from "@/types";
 import { seedCommunicationLogs } from "@/data/adminSeed";

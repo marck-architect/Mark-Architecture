@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo } from "react";
 import {
-  FileText,
   HelpCircle,
   Plus,
   Search,
@@ -11,14 +10,11 @@ import {
   Edit2,
   Trash2,
   Save,
-  Building,
   Phone,
   Mail,
   MapPin,
-  Clock,
   Eye,
   EyeOff,
-  Sparkles,
 } from "lucide-react";
 import type { AdminFaq } from "@/types";
 import { seedFaqs } from "@/data/adminSeed";

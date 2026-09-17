@@ -2,15 +2,11 @@
 
 import React, { useState } from "react";
 import {
-  Briefcase,
   Plus,
   Edit2,
   Trash2,
   CheckCircle2,
   XCircle,
-  DollarSign,
-  Tag,
-  Clock,
   X,
   Save,
   Loader2,

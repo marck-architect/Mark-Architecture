@@ -1,17 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import {
-  Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Video,
-  Settings,
-  AlertTriangle,
-  Plus,
-  CheckCircle2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Settings } from "lucide-react";
 import { AvailabilitySettingsModal } from "./AvailabilitySettingsModal";
 import type {
   ConsultationRecord,

@@ -1,19 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Settings,
-  Shield,
-  CreditCard,
-  Video,
-  Copy,
-  CheckCircle2,
-  Lock,
-  Globe,
-  Save,
-  Clock,
-  ExternalLink,
-} from "lucide-react";
+import { CreditCard, Video, CheckCircle2, Globe, Save } from "lucide-react";
 
 interface SettingsManagerProps {
   adminEmail: string;

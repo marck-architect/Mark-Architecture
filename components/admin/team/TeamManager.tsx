@@ -2,19 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import {
-  UserCheck,
-  Plus,
-  Search,
-  CheckCircle2,
-  X,
-  Edit2,
-  Trash2,
-  Award,
-  Mail,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { Plus, Search, X, Edit2, Trash2, Mail } from "lucide-react";
 import type { AdminTeamMember } from "@/types";
 import { seedTeamMembers } from "@/data/adminSeed";
 

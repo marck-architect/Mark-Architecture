@@ -3,13 +3,10 @@
 import React, { useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import {
-  Image as ImageIcon,
   Upload,
   Search,
   Copy,
   Trash2,
-  ExternalLink,
-  CheckCircle2,
   Grid,
   List,
   Eye,
