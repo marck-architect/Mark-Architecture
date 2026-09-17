@@ -7,7 +7,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   Clock,
-  Sparkles,
   ArrowDown,
   ArrowRight,
   Search,
@@ -17,12 +16,13 @@ import {
   AlertCircle,
   Video,
   FileSearch,
-  PenTool,
-  Boxes,
+  PencilRuler,
+  Building2,
   Home,
   Calculator,
-  Crown,
+  Building,
   PhoneCall,
+  LayoutGrid,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { useStore } from "@/hooks/useStore";
@@ -50,17 +50,17 @@ export const PricingView: React.FC = () => {
       case "plan-review":
         return <FileSearch className="w-4 h-4" />;
       case "plan-redesign":
-        return <PenTool className="w-4 h-4" />;
+        return <PencilRuler className="w-4 h-4" />;
       case "elevation-3d":
-        return <Boxes className="w-4 h-4" />;
+        return <Building2 className="w-4 h-4" />;
       case "interior-makeover":
         return <Home className="w-4 h-4" />;
       case "cost-estimate":
         return <Calculator className="w-4 h-4" />;
       case "full-house":
-        return <Crown className="w-4 h-4" />;
+        return <Building className="w-4 h-4" />;
       default:
-        return <Sparkles className="w-4 h-4" />;
+        return <LayoutGrid className="w-4 h-4" />;
     }
   };
 
@@ -150,24 +150,24 @@ export const PricingView: React.FC = () => {
         {/* Hero Content */}
         <div className="relative z-10 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop pt-20 pb-16">
           <ScrollReveal>
-            <div className="max-w-4xl space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-tertiary/10 border border-tertiary/30 text-tertiary text-xs font-bold uppercase tracking-widest">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>MARK Architects Online Services</span>
-              </div>
-
-              <h1 className="font-playfair text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight">
+            <div className="max-w-4xl space-y-5">
+              <h1
+                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight"
+                style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
+              >
                 Transparent <br />
                 <span className="italic font-light text-tertiary">
-                  pricing &amp; packages.
+                  pricing and packages.
                 </span>
               </h1>
 
-              <p className="font-inter text-sm sm:text-base md:text-lg lg:text-xl text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl">
-                Explore our standardized architectural service menu. Fixed
-                deliverables, rapid 24–48h turnarounds, upfront milestone
-                pricing, and 100% secure online checkout powered by Safepay
-                payment gateway.
+              <p
+                className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
+                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+              >
+                Explore our full menu of architectural services. Every
+                package has fixed deliverables, a clear price, and secure
+                checkout through Safepay.
               </p>
 
               {/* Action Buttons */}
@@ -293,10 +293,7 @@ export const PricingView: React.FC = () => {
           </div>
 
           {/* Category Filter Pills */}
-          <div
-            data-lenis-prevent
-            className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none touch-pan-x"
-          >
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setActiveCategoryFilter("all")}
@@ -306,7 +303,7 @@ export const PricingView: React.FC = () => {
                   : "bg-surface-container-low dark:bg-zinc-900 border border-outline-variant/40 hover:border-tertiary text-on-surface dark:text-zinc-300"
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-3.5 h-3.5" />
               <span>All 7 Categories</span>
             </button>
 
@@ -446,7 +443,7 @@ export const PricingView: React.FC = () => {
 
                         {tier.notes && (
                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 italic pt-2 border-t border-outline-variant/15">
-                            📌 {tier.notes}
+                            {tier.notes}
                           </p>
                         )}
                       </div>

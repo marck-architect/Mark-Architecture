@@ -8,6 +8,10 @@ import { MapPin, ShieldCheck, ArrowDown } from "lucide-react";
 
 import { leaders, achievements, studioLocations } from "@/data/about";
 
+const Metric: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <span className="text-tertiary font-semibold">{children}</span>
+);
+
 export const AboutView: React.FC = () => {
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
@@ -26,15 +30,21 @@ export const AboutView: React.FC = () => {
         {/* Center Main Hero Content */}
         <div className="relative z-10 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop pt-16">
           <ScrollReveal>
-            <div className="max-w-4xl space-y-6">
-              <h1 className="font-playfair text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight">
+            <div className="max-w-4xl space-y-5">
+              <h1
+                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight"
+                style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
+              >
                 Designing spaces with <br />
                 <span className="italic font-light text-tertiary">
                   mathematical precision and soul.
                 </span>
               </h1>
 
-              <p className="font-inter text-sm sm:text-base md:text-lg lg:text-xl text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl">
+              <p
+                className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
+                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+              >
                 MARK Architects is a collaborative practice of licensed
                 architects, structural engineers, and spatial strategists. We
                 specialize in bespoke residential estates, commercial hubs, and
@@ -61,88 +71,129 @@ export const AboutView: React.FC = () => {
         </div>
       </header>
 
-      {/* Metrics Bar */}
+      {/* Metrics, woven into a single editorial statement rather than a stat-card grid */}
       <section
         id="metrics"
-        className="border-b border-outline-variant/20 bg-surface-container-low dark:bg-zinc-900/60 py-12 scroll-mt-20"
+        className="border-b border-outline-variant/20 bg-surface-container-low dark:bg-zinc-900/60 py-16 sm:py-20 scroll-mt-20"
       >
-        <div className="px-4 md:px-margin-desktop max-w-container-max mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 text-center md:text-left">
-            {achievements.map((item, idx) => (
-              <ScrollReveal key={item.label} delay={0.08 * idx}>
-                <div className="space-y-1">
-                  <span className="font-montserrat text-2xl sm:text-4xl md:text-5xl font-extrabold text-tertiary">
-                    {item.metric}
-                  </span>
-                  <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-medium uppercase tracking-wider">
-                    {item.label}
-                  </p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
+        <div className="px-4 md:px-margin-desktop max-w-4xl mx-auto">
+          <ScrollReveal>
+            <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block mb-6">
+              In Numbers
+            </span>
+            <p
+              className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.35]"
+              style={{ fontSize: "clamp(1.5rem, 1.05rem + 2vw, 2.5rem)" }}
+            >
+              In <Metric>{achievements[0].metric}</Metric> years of practice,
+              we have designed <Metric>{achievements[1].metric}</Metric>{" "}
+              residential and commercial projects spanning{" "}
+              <Metric>{achievements[2].metric}</Metric> square feet, with a{" "}
+              <Metric>{achievements[3].metric}</Metric> record of statutory
+              approval and code compliance.
+            </p>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* Firm Leadership & Credentials */}
       <section
         id="leadership"
-        className="py-24 px-4 md:px-margin-desktop max-w-container-max mx-auto border-b border-outline-variant/20 scroll-mt-20"
+        className="py-24 border-b border-outline-variant/20 scroll-mt-20"
       >
-        <ScrollReveal>
-          <div className="space-y-3 mb-16 text-center max-w-2xl mx-auto">
-            <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
-              PRACTICE LEADERSHIP
-            </span>
-            <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-              Principal Architect &amp; Founder.
-            </h2>
-            <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light">
-              Every project is personally spearheaded by Muhammad Arsalan,
-              ensuring structural stability, functional elegance, and strict
-              compliance with local municipal codes.
-            </p>
-          </div>
-        </ScrollReveal>
+        <div className="px-4 md:px-margin-desktop max-w-container-max mx-auto">
+          <ScrollReveal>
+            <div className="space-y-3 mb-16 max-w-2xl">
+              <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
+                PRACTICE LEADERSHIP
+              </span>
+              <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
+                Principal Architect &amp; Founder.
+              </h2>
+              <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light">
+                Every project is personally spearheaded by Muhammad Arsalan,
+                ensuring structural stability, functional elegance, and strict
+                compliance with local municipal codes.
+              </p>
+            </div>
+          </ScrollReveal>
+        </div>
 
-        <div className="max-w-4xl mx-auto">
-          {leaders.map((leader) => (
-            <ScrollReveal key={leader.name}>
-              <div className="bg-surface-container-low dark:bg-zinc-900 border border-outline-variant/30 rounded-3xl p-6 sm:p-10 md:p-12 flex flex-col md:flex-row gap-8 md:gap-12 items-center shadow-lg hover:shadow-2xl transition-all">
-                <div className="relative w-full max-w-[280px] sm:max-w-[320px] md:w-80 aspect-[3/4] rounded-2xl overflow-hidden shrink-0 bg-zinc-950 border border-outline-variant/40 shadow-xl">
+        {/* Full-bleed profile band: qualifications on the left, portrait
+            filling the entire right half edge to edge, spanning the whole
+            page width rather than sitting inside a small contained card. */}
+        {leaders.map((leader) => (
+          <ScrollReveal key={leader.name}>
+            <div className="w-full grid grid-cols-1 lg:grid-cols-[2fr_3fr] lg:min-h-[480px] items-stretch bg-surface-container-low dark:bg-zinc-900 border-y border-outline-variant/20">
+              {/* Left: portrait — the source photo's studio backdrop was
+                  actually cut out of the asset itself, not faked with a CSS
+                  mask on top of it. The text column is the taller of the two
+                  (its content length varies), so the image sits in its own
+                  aspect-ratio box — sized to its real proportions, not
+                  stretched to the row's full height — and that box is
+                  vertically centered in the row. Centering (rather than
+                  bottom-anchoring) is what gives it even cream breathing
+                  room above and below instead of his hands landing flush
+                  against the panel's bottom edge, which read as a bad crop.
+                  He's looking to his right, so the photo sits on the left
+                  with the text on the right, gaze leading into it. */}
+              <div className="relative min-h-[320px] lg:min-h-0 flex items-center py-8 lg:py-12">
+                <div className="relative w-full max-w-[420px] aspect-[433/577]">
+                  {/* Soft contact shadow under his feet, painted before the
+                      image so the cutout reads as standing rather than a
+                      flat pasted sticker. */}
+                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-40 h-5 rounded-full bg-black/15 blur-md pointer-events-none" />
                   <Image
                     fill
                     src={leader.image}
-                    alt={leader.name}
-                    sizes="(max-width: 768px) 320px, 320px"
-                    className="object-cover object-top"
+                    alt={`${leader.name}, ${leader.role} at MARK Architects`}
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    className="object-contain"
                     priority
                   />
                 </div>
+              </div>
 
-                <div className="space-y-4 flex-grow">
+              {/* Right: qualifications — given more width and larger type
+                  than the portrait so the credentials read as the lead
+                  element. Uses the same px-4/md:px-margin-desktop gutter as
+                  the rest of the page so its text lines up with the heading
+                  above instead of floating at a custom offset. */}
+              <div className="flex flex-col justify-center px-4 md:px-margin-desktop py-14 lg:py-0">
+                <div className="max-w-xl space-y-5 w-full">
                   <div>
-                    <span className="text-[10px] font-inter font-bold text-tertiary uppercase tracking-wider block">
-                      {leader.experience}
-                    </span>
-                    <h3 className="font-playfair text-2xl sm:text-4xl font-bold text-on-surface dark:text-zinc-100 mt-1">
+                    <div className="h-px w-12 bg-tertiary/50 mb-4" />
+                    <h3 className="font-playfair text-4xl sm:text-5xl font-bold text-on-surface dark:text-zinc-100">
                       {leader.name}
                     </h3>
-                    <p className="text-xs sm:text-sm text-tertiary font-inter font-semibold mt-1">
+                    <p className="text-sm sm:text-base text-tertiary font-inter font-semibold mt-1.5">
                       {leader.role}
                     </p>
                   </div>
 
-                  <div className="inline-flex items-center gap-2 bg-tertiary/10 text-tertiary text-xs font-inter font-semibold px-3.5 py-2 rounded-xl border border-tertiary/20">
-                    <ShieldCheck className="w-4 h-4 shrink-0" />
-                    <span>{leader.credentials}</span>
+                  <div className="flex flex-wrap gap-2">
+                    {leader.credentials.split(" • ").map((cred) => (
+                      <span
+                        key={cred}
+                        className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-900 text-on-surface dark:text-zinc-200 text-xs sm:text-sm font-inter font-semibold px-3.5 py-2 rounded-lg border border-outline-variant/40 shadow-xs"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        {cred}
+                      </span>
+                    ))}
                   </div>
 
-                  <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
+                  <p className="font-inter text-base text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
                     {leader.bio}
                   </p>
 
-                  <div className="pt-2 border-t border-outline-variant/20 flex flex-wrap gap-4 text-xs text-on-surface-variant dark:text-zinc-400">
+                  <div className="pt-3 border-t border-outline-variant/20 flex flex-wrap gap-5 text-sm text-on-surface-variant dark:text-zinc-400">
+                    <div>
+                      <span className="font-bold text-on-surface dark:text-zinc-200">
+                        Experience:
+                      </span>{" "}
+                      {leader.experience.split(" ").slice(0, 2).join(" ")}
+                    </div>
                     <div>
                       <span className="font-bold text-on-surface dark:text-zinc-200">
                         Focus:
@@ -158,16 +209,16 @@ export const AboutView: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </ScrollReveal>
-          ))}
-        </div>
+            </div>
+          </ScrollReveal>
+        ))}
       </section>
 
       {/* Global & Regional Studios */}
       <section className="bg-surface-container-low dark:bg-zinc-900/40 py-24 px-4 md:px-margin-desktop">
         <div className="max-w-container-max mx-auto space-y-16">
           <ScrollReveal>
-            <div className="text-center max-w-2xl mx-auto space-y-4">
+            <div className="max-w-2xl space-y-4">
               <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
                 LOCATIONS
               </span>

@@ -35,15 +35,21 @@ export const PortfolioView: React.FC = () => {
         {/* Center Main Hero Content */}
         <div className="relative z-10 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop pt-16">
           <ScrollReveal>
-            <div className="max-w-4xl space-y-6">
-              <h1 className="font-playfair text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight">
+            <div className="max-w-4xl space-y-5">
+              <h1
+                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight"
+                style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
+              >
                 Curating spaces where <br />
                 <span className="italic font-light text-tertiary">
                   form meets precision.
                 </span>
               </h1>
 
-              <p className="font-inter text-sm sm:text-base md:text-lg lg:text-xl text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl">
+              <p
+                className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
+                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+              >
                 Our realized portfolio spans iconic luxury residences, corporate
                 hubs, and spatial redrafts across Peshawar, Islamabad, and
                 Karachi.

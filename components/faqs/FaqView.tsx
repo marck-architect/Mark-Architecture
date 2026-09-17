@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
+  SearchX,
   X,
   ChevronDown,
   PhoneCall,
@@ -25,10 +26,12 @@ export const FaqView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] =
     useState<FaqCategory["key"]>("all");
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({
-    "how-much-does-an-architect-charge-in-pakistan": true,
-    "does-mark-architects-provide-pda-and-cda-approved-drawings": true,
-  });
+  // Single-open accordion: only one answer expanded at a time, so a
+  // non-technical visitor is never scanning several long answer blocks at
+  // once — opening a new question closes whichever was open before.
+  const [openId, setOpenId] = useState<string | null>(
+    "how-much-does-an-architect-charge-in-pakistan",
+  );
 
   // Handle URL hash anchor on mount (deep linking for citations & AEO search engines)
   useEffect(() => {
@@ -37,7 +40,7 @@ export const FaqView: React.FC = () => {
       const exists = faqsData.find((f) => f.id === hashId);
       if (exists) {
         requestAnimationFrame(() => {
-          setOpenItems((prev) => ({ ...prev, [hashId]: true }));
+          setOpenId(hashId);
           const element = document.getElementById(hashId);
           if (element) {
             element.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -48,10 +51,7 @@ export const FaqView: React.FC = () => {
   }, []);
 
   const toggleItem = (id: string) => {
-    setOpenItems((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setOpenId((prev) => (prev === id ? null : id));
   };
 
   const handleCopyLink = (id: string, e: React.MouseEvent) => {
@@ -101,18 +101,23 @@ export const FaqView: React.FC = () => {
         <div className="relative z-10 max-w-container-max mx-auto px-4 md:px-margin-desktop">
           <ScrollReveal>
             <div className="max-w-3xl space-y-5 sm:space-y-6">
-              <h1 className="font-playfair text-3xl sm:text-5xl md:text-6xl text-on-surface dark:text-zinc-100 font-normal leading-[1.12]">
-                Architectural Clarity. <br />
+              <h1
+                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.12]"
+                style={{ fontSize: "clamp(2.25rem, 1.75rem + 2.5vw, 3.75rem)" }}
+              >
+                Got Questions? <br />
                 <span className="italic font-light text-tertiary">
-                  Direct Answers for Every Query.
+                  We Have Clear Answers.
                 </span>
               </h1>
 
-              <p className="font-inter text-sm sm:text-base md:text-lg text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                Clear, factual answers optimized for AI engines and discerning
-                clients. Explore our authoritative guidelines on design fees,
-                PDA &amp; CDA municipal approvals, and turnkey engineering
-                packages.
+              <p
+                className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed"
+                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+              >
+                Straight answers to the questions we hear most, covering
+                design fees, PDA and CDA approvals, and how our turnkey
+                packages work.
               </p>
             </div>
           </ScrollReveal>
@@ -168,7 +173,7 @@ export const FaqView: React.FC = () => {
       {/* Main FAQ Content Section */}
       <main className="max-w-container-max mx-auto px-4 md:px-margin-desktop py-12 md:py-16">
         {/* Category Navigation Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide mb-10">
+        <div className="flex flex-wrap gap-2 mb-10">
           {faqCategories.map((cat) => {
             const isActive = activeCategory === cat.key;
             const count =
@@ -227,6 +232,9 @@ export const FaqView: React.FC = () => {
         {/* FAQ Accordion List */}
         {filteredFaqs.length === 0 ? (
           <div className="text-center py-20 bg-surface-container-low dark:bg-zinc-900/40 rounded-3xl border border-outline-variant/30 space-y-4">
+            <div className="w-12 h-12 rounded-full bg-tertiary/10 text-tertiary flex items-center justify-center mx-auto">
+              <SearchX className="w-5 h-5" />
+            </div>
             <p className="font-playfair text-2xl font-bold text-secondary dark:text-zinc-200">
               No matching questions found.
             </p>
@@ -248,14 +256,14 @@ export const FaqView: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {filteredFaqs.map((faq, index) => {
-              const isOpen = Boolean(openItems[faq.id]);
+              const isOpen = openId === faq.id;
 
               return (
+                <ScrollReveal key={faq.id} delay={Math.min(index * 0.04, 0.4)}>
                 <article
-                  key={faq.id}
                   id={faq.id}
                   className={cn(
-                    "rounded-3xl border transition-all duration-300 scroll-mt-28 overflow-hidden",
+                    "rounded-3xl border transition-colors duration-300 scroll-mt-28 overflow-hidden",
                     isOpen
                       ? "bg-surface-container-low dark:bg-zinc-900 border-tertiary/40 shadow-sm"
                       : "bg-surface dark:bg-zinc-900/50 border-outline-variant/30 hover:border-outline-variant/70",
@@ -320,49 +328,63 @@ export const FaqView: React.FC = () => {
                     </div>
                   </button>
 
-                  {/* Accordion Answer Body */}
-                  {isOpen && (
+                  {/* Accordion Answer Body — CSS grid 0fr/1fr collapse: a
+                      pure-CSS, GPU-cheap height animation (no JS height
+                      measurement, no layout thrash) that keeps the full
+                      answer permanently in the DOM rather than mounting it
+                      only when opened, which also means AEO crawlers can
+                      always read the complete answer text. */}
+                  <div
+                    style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+                    className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
+                  >
                     <div
                       id={`faq-answer-${faq.id}`}
-                      className="px-6 md:px-7 pb-7 pt-2 space-y-4 border-t border-outline-variant/15"
+                      className={cn(
+                        "overflow-hidden transition-opacity duration-300 motion-reduce:transition-none",
+                        isOpen ? "opacity-100" : "opacity-0",
+                      )}
                     >
-                      {/* AEO Direct Snippet Callout (BLUF) */}
-                      <div className="p-4 md:p-5 rounded-2xl bg-tertiary/10 border-l-4 border-tertiary space-y-1">
-                        <span className="text-[10px] font-inter font-bold uppercase tracking-widest text-tertiary block">
-                          Direct Answer Summary
-                        </span>
-                        <p className="font-inter text-sm md:text-base font-semibold text-on-surface dark:text-zinc-100 leading-relaxed">
-                          {faq.shortAnswer}
-                        </p>
-                      </div>
-
-                      {/* Extended Nuanced Answer */}
-                      <div className="space-y-2 pt-1 font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
-                        {faq.fullAnswer.map((para, pIdx) => (
-                          <p key={pIdx} className="flex items-start gap-2">
-                            <span className="text-tertiary mt-1">•</span>
-                            <span>{para}</span>
-                          </p>
-                        ))}
-                      </div>
-
-                      {/* Keywords & Entity Grounding */}
-                      <div className="pt-3 flex flex-wrap items-center gap-1.5 border-t border-outline-variant/15">
-                        <span className="text-[10px] font-inter font-bold text-zinc-400 mr-1 uppercase tracking-wider">
-                          Related:
-                        </span>
-                        {faq.keywords.map((kw) => (
-                          <span
-                            key={kw}
-                            className="text-[10px] font-inter px-2 py-0.5 rounded-md bg-surface-container dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
-                          >
-                            {kw}
+                      <div className="px-6 md:px-7 pb-7 pt-2 space-y-4 border-t border-outline-variant/15">
+                        {/* AEO Direct Snippet Callout (BLUF) */}
+                        <div className="p-4 md:p-5 rounded-2xl bg-tertiary/10 border-l-4 border-tertiary space-y-1">
+                          <span className="text-[10px] font-inter font-bold uppercase tracking-widest text-tertiary block">
+                            Direct Answer Summary
                           </span>
-                        ))}
+                          <p className="font-inter text-sm md:text-base font-semibold text-on-surface dark:text-zinc-100 leading-relaxed">
+                            {faq.shortAnswer}
+                          </p>
+                        </div>
+
+                        {/* Extended Nuanced Answer */}
+                        <div className="space-y-2 pt-1 font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
+                          {faq.fullAnswer.map((para, pIdx) => (
+                            <p key={pIdx} className="flex items-start gap-2">
+                              <span className="text-tertiary mt-1">•</span>
+                              <span>{para}</span>
+                            </p>
+                          ))}
+                        </div>
+
+                        {/* Keywords & Entity Grounding */}
+                        <div className="pt-3 flex flex-wrap items-center gap-1.5 border-t border-outline-variant/15">
+                          <span className="text-[10px] font-inter font-bold text-zinc-400 mr-1 uppercase tracking-wider">
+                            Related:
+                          </span>
+                          {faq.keywords.map((kw) => (
+                            <span
+                              key={kw}
+                              className="text-[10px] font-inter px-2 py-0.5 rounded-md bg-surface-container dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
+                            >
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </article>
+                </ScrollReveal>
               );
             })}
           </div>
