@@ -109,7 +109,7 @@ export const FaqView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.75rem + 2.5vw, 3.75rem)" }}
               >
                 Got Questions? <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   We Have Clear Answers.
                 </span>
               </h1>

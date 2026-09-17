@@ -284,7 +284,7 @@ export const HomeView: React.FC = () => {
                 <span className="block font-playfair text-7xl leading-none text-[#e8c889]/40">
                   “
                 </span>
-                <blockquote className="max-w-2xl font-playfair text-xl sm:text-2xl md:text-4xl font-light italic leading-relaxed text-[#f7f4ef]">
+                <blockquote className="max-w-2xl font-playfair text-xl sm:text-2xl md:text-4xl font-light leading-relaxed text-[#f7f4ef]">
                   &ldquo;Working with Muhammad Arsalan and the MARK Architects
                   team in Peshawar was a revelation. They transformed our 1
                   Kanal plot into an open, light-filled sanctuary that naturally

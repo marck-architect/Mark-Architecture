@@ -154,7 +154,7 @@ export const PricingView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Transparent <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   pricing and packages.
                 </span>
               </h1>

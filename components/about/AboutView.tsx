@@ -36,14 +36,16 @@ export const AboutView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Designing spaces with <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   mathematical precision and soul.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
                 MARK Architects is a collaborative practice of licensed
                 architects, structural engineers, and spatial strategists. We
@@ -85,8 +87,8 @@ export const AboutView: React.FC = () => {
               className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.35]"
               style={{ fontSize: "clamp(1.5rem, 1.05rem + 2vw, 2.5rem)" }}
             >
-              In <Metric>{achievements[0].metric}</Metric> years of practice,
-              we have designed <Metric>{achievements[1].metric}</Metric>{" "}
+              In <Metric>{achievements[0].metric}</Metric> years of practice, we
+              have designed <Metric>{achievements[1].metric}</Metric>{" "}
               residential and commercial projects spanning{" "}
               <Metric>{achievements[2].metric}</Metric> square feet, with a{" "}
               <Metric>{achievements[3].metric}</Metric> record of statutory
@@ -125,30 +127,15 @@ export const AboutView: React.FC = () => {
         {leaders.map((leader) => (
           <ScrollReveal key={leader.name}>
             <div className="w-full grid grid-cols-1 lg:grid-cols-[2fr_3fr] lg:min-h-[480px] items-stretch bg-surface-container-low dark:bg-zinc-900 border-y border-outline-variant/20">
-              {/* Left: portrait — the source photo's studio backdrop was
-                  actually cut out of the asset itself, not faked with a CSS
-                  mask on top of it. The text column is the taller of the two
-                  (its content length varies), so the image sits in its own
-                  aspect-ratio box — sized to its real proportions, not
-                  stretched to the row's full height — and that box is
-                  vertically centered in the row. Centering (rather than
-                  bottom-anchoring) is what gives it even cream breathing
-                  room above and below instead of his hands landing flush
-                  against the panel's bottom edge, which read as a bad crop.
-                  He's looking to his right, so the photo sits on the left
-                  with the text on the right, gaze leading into it. */}
-              <div className="relative min-h-[320px] lg:min-h-0 flex items-center py-8 lg:py-12">
-                <div className="relative w-full max-w-[420px] aspect-[433/577]">
-                  {/* Soft contact shadow under his feet, painted before the
-                      image so the cutout reads as standing rather than a
-                      flat pasted sticker. */}
-                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-40 h-5 rounded-full bg-black/15 blur-md pointer-events-none" />
+              {/* Left: portrait in circular frame */}
+              <div className="relative min-h-[320px] lg:min-h-0 flex items-center justify-center py-10 lg:py-12 px-6">
+                <div className="group relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[340px] lg:h-[340px] xl:w-[380px] xl:h-[380px] aspect-square rounded-full overflow-hidden border-4 border-white dark:border-zinc-800 shadow-2xl ring-2 ring-tertiary/25 dark:ring-tertiary/30 hover:ring-tertiary/60 dark:hover:ring-tertiary/60 transition-all duration-500 bg-gradient-to-b from-stone-100 via-stone-200/90 to-stone-300/80 dark:from-zinc-800 dark:via-zinc-850 dark:to-zinc-900">
                   <Image
                     fill
                     src={leader.image}
                     alt={`${leader.name}, ${leader.role} at MARK Architects`}
-                    sizes="(max-width: 1024px) 100vw, 40vw"
-                    className="object-contain"
+                    sizes="(max-width: 640px) 256px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 380px"
+                    className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-108 will-change-transform"
                     priority
                   />
                 </div>

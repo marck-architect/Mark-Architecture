@@ -415,14 +415,16 @@ export const ConsultationView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Make design decisions <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   with absolute confidence.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
                 A direct conversation with our licensed principal architects
                 about your plan, plot, or project. Choose a session, pick a
@@ -472,12 +474,12 @@ export const ConsultationView: React.FC = () => {
                     Talk to an Architect First.
                   </h2>
                   <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-2xl">
-                    This is a real conversation with one of our architects.
-                    Tell them about your plot or your house plan, and they
-                    will answer your questions and help you plan the next
-                    step. Not sure what you need yet? That is completely
-                    fine, start here. Already know exactly what you want?
-                    Browse our full list of services on the right.
+                    This is a real conversation with one of our architects. Tell
+                    them about your plot or your house plan, and they will
+                    answer your questions and help you plan the next step. Not
+                    sure what you need yet? That is completely fine, start here.
+                    Already know exactly what you want? Browse our full list of
+                    services on the right.
                   </p>
                 </div>
               </ScrollReveal>
@@ -635,9 +637,9 @@ export const ConsultationView: React.FC = () => {
                       Tell Us About You and Your Project.
                     </h2>
                     <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-2xl">
-                      Share your contact details and a little about your plot
-                      or project. This helps our architects prepare before
-                      they speak with you.
+                      Share your contact details and a little about your plot or
+                      project. This helps our architects prepare before they
+                      speak with you.
                     </p>
                   </div>
                 </ScrollReveal>
@@ -759,10 +761,10 @@ export const ConsultationView: React.FC = () => {
                       Pick a Time and Upload Your Plan.
                     </h2>
                     <p className="font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                      Choose a date and time that works for you (Pakistan
-                      time). You also need to upload your floor plan or site
-                      photos. This lets the architect understand your project
-                      before your session.
+                      Choose a date and time that works for you (Pakistan time).
+                      You also need to upload your floor plan or site photos.
+                      This lets the architect understand your project before
+                      your session.
                     </p>
                   </div>
 
@@ -1230,8 +1232,8 @@ export const ConsultationView: React.FC = () => {
                 </h3>
                 <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
                   We offer {serviceCatalog.length} design services, like plan
-                  reviews, 3D renders, and full house design. Each one shows
-                  you exactly what you get and what it costs. Pick one below.
+                  reviews, 3D renders, and full house design. Each one shows you
+                  exactly what you get and what it costs. Pick one below.
                 </p>
               </div>
 

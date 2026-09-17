@@ -110,18 +110,20 @@ export const CollectionView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Standardized <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   design packages.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
                 Explore our standardized design packages. Every package has a
-                fixed price, checks out in one click, and includes a full
-                studio review.
+                fixed price, checks out in one click, and includes a full studio
+                review.
               </p>
 
               {/* Action Buttons */}

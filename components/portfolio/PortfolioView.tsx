@@ -41,14 +41,16 @@ export const PortfolioView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Curating spaces where <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   form meets precision.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
                 Our realized portfolio spans iconic luxury residences, corporate
                 hubs, and spatial redrafts across Peshawar, Islamabad, and
