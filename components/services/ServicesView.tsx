@@ -445,16 +445,22 @@ export const ServicesView: React.FC = () => {
         <ScrollReveal>
           <div className="max-w-4xl space-y-4">
             <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
-              Authoritative Architectural Catalog
+              Our Services
             </span>
-            <h1 className="font-playfair text-3xl sm:text-5xl md:text-6xl text-on-surface dark:text-zinc-100 font-normal leading-tight">
-              Bespoke Design, Audits &amp; <br />
-              <span className="italic font-light">Engineering Packages.</span>
+            <h1
+              className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-tight"
+              style={{ fontSize: "clamp(2.25rem, 1.75rem + 2.5vw, 3.75rem)" }}
+            >
+              Everything We Offer, <br />
+              <span className="italic font-light">In One Place.</span>
             </h1>
-            <p className="font-inter text-base md:text-lg text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl">
-              Transparent, tiered architectural services engineered for
-              Pakistani and international residential projects. All packages
-              priced in PKR with secure Safepay checkout.
+            <p
+              className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
+              style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+            >
+              Clear pricing for every service we offer, for projects in
+              Pakistan and abroad. All prices are in PKR, and checkout is
+              secure through Safepay.
             </p>
           </div>
         </ScrollReveal>

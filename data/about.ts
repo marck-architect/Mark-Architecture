@@ -5,9 +5,9 @@ export const leaders: Leader[] = [
     name: "Muhammad Arsalan",
     role: "Principal Architect & Founder",
     credentials: "PCATP Registered • B.Arch • Lead Structural Designer",
-    experience: "14+ Years Experience",
+    experience: "15+ Years Experience",
     bio: "Pioneering mathematical precision in residential and commercial architecture across Pakistan. Specialist in passive solar layouts, municipal submission codes, and structural efficiency.",
-    image: "/images/profile.jpeg",
+    image: "/images/profile-removebg-preview.png",
   },
 ];
 

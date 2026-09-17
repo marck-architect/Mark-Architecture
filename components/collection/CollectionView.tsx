@@ -24,10 +24,33 @@ export const CollectionView: React.FC = () => {
     useState<CheckoutItem | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownLayout, setDropdownLayout] = useState<{
+    direction: "down" | "up";
+    maxHeight: number;
+  }>({ direction: "down", maxHeight: 448 });
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(
     null,
   );
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const toggleDropdown = () => {
+    if (!isDropdownOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      const margin = 16;
+      const fixedHeaderHeight = 72; // matches the site header's h-[4.5rem]
+      const spaceBelow = window.innerHeight - rect.bottom - margin;
+      const spaceAbove = rect.top - fixedHeaderHeight - margin;
+      const preferred = Math.min(window.innerHeight * 0.7, 448);
+      const direction: "down" | "up" =
+        spaceBelow < preferred && spaceAbove > spaceBelow ? "up" : "down";
+      const maxHeight = Math.max(
+        200,
+        Math.min(preferred, direction === "up" ? spaceAbove : spaceBelow),
+      );
+      setDropdownLayout({ direction, maxHeight });
+    }
+    setIsDropdownOpen((prev) => !prev);
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -67,7 +90,7 @@ export const CollectionView: React.FC = () => {
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
       {/* Whole-screen Hero Section (Full Initial Page down to Browse Collection) */}
-      <header className="relative w-full min-h-[100dvh] flex items-center overflow-hidden border-b border-outline-variant/30">
+      <header className="relative w-full min-h-[100dvh] flex items-center overflow-x-hidden border-b border-outline-variant/30">
         {/* Background Architectural Drafting Grid Pattern */}
         <div className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
 
@@ -81,18 +104,24 @@ export const CollectionView: React.FC = () => {
         {/* Center Main Hero Content */}
         <div className="relative z-10 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop pt-16">
           <ScrollReveal>
-            <div className="max-w-4xl space-y-6">
-              <h1 className="font-playfair text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight">
+            <div className="max-w-4xl space-y-5">
+              <h1
+                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight"
+                style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
+              >
                 Standardized <br />
                 <span className="italic font-light text-tertiary">
                   design packages.
                 </span>
               </h1>
 
-              <p className="font-inter text-sm sm:text-base md:text-lg lg:text-xl text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl">
-                Explore standardized fixed-price architectural design packages
-                with direct one-click checkout, verified deliverables, and
-                dedicated studio review.
+              <p
+                className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
+                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+              >
+                Explore our standardized design packages. Every package has a
+                fixed price, checks out in one click, and includes a full
+                studio review.
               </p>
 
               {/* Action Buttons */}
@@ -112,7 +141,7 @@ export const CollectionView: React.FC = () => {
                 >
                   <button
                     type="button"
-                    onClick={() => setIsDropdownOpen((prev) => !prev)}
+                    onClick={toggleDropdown}
                     className="w-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-outline-variant/60 hover:border-tertiary rounded-xl px-5 py-3.5 flex items-center justify-between gap-3 text-left transition-all shadow-xs cursor-pointer group min-h-[48px]"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -142,7 +171,12 @@ export const CollectionView: React.FC = () => {
                     <div
                       data-lenis-prevent
                       onWheel={(e) => e.stopPropagation()}
-                      className="absolute top-full left-0 right-0 sm:right-auto sm:w-96 mt-2 z-50 bg-white dark:bg-zinc-900 border border-outline-variant/40 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 space-y-1 max-h-[340px] overflow-y-auto overscroll-contain touch-pan-y backdrop-blur-xl"
+                      style={{ maxHeight: dropdownLayout.maxHeight }}
+                      className={`absolute left-0 right-0 sm:right-auto sm:w-96 z-50 bg-white dark:bg-zinc-900 border border-outline-variant/40 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 space-y-1 overflow-y-auto overscroll-contain touch-pan-y backdrop-blur-xl ${
+                        dropdownLayout.direction === "up"
+                          ? "bottom-full mb-2"
+                          : "top-full mt-2"
+                      }`}
                     >
                       <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-outline-variant/20 mb-1 flex items-center justify-between">
                         <span>

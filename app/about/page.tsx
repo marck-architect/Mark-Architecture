@@ -1,6 +1,9 @@
 import React from "react";
 import type { Metadata } from "next";
 import { AboutView } from "@/components/about/AboutView";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { generatePersonSchema, siteConfig } from "@/lib/seo/schema";
+import { leaders } from "@/data/about";
 
 export const metadata: Metadata = {
   title: "About Our Practice | MARK Architects Atelier",
@@ -31,5 +34,20 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  return <AboutView />;
+  const principal = leaders[0];
+  const personSchema = generatePersonSchema({
+    name: principal.name,
+    jobTitle: principal.role,
+    description: principal.bio,
+    image: `${siteConfig.url}/images/profile.jpeg`,
+    url: `${siteConfig.url}/about`,
+    credentials: principal.credentials,
+  });
+
+  return (
+    <>
+      <JsonLd data={personSchema} />
+      <AboutView />
+    </>
+  );
 }

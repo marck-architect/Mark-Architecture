@@ -36,6 +36,37 @@ export function generateOrganizationSchema() {
   };
 }
 
+export function generatePersonSchema(person: {
+  name: string;
+  jobTitle: string;
+  description: string;
+  image: string;
+  url?: string;
+  credentials?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: person.name,
+    jobTitle: person.jobTitle,
+    description: person.description,
+    image: person.image,
+    ...(person.url && { url: person.url }),
+    worksFor: {
+      "@type": "ArchitecturalFirm",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    ...(person.credentials && {
+      hasCredential: {
+        "@type": "EducationalOccupationalCredential",
+        credentialCategory: "license",
+        name: person.credentials,
+      },
+    }),
+  };
+}
+
 export function generateFaqSchema(
   faqs: { question: string; shortAnswer: string; fullAnswer?: string[] }[],
 ) {

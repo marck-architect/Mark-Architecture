@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
+import { AnimatePresence, motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Calendar as CalendarIcon,
@@ -65,6 +66,11 @@ export const ConsultationView: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const servicesDropdownRef = useRef<HTMLDivElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  // Packages start collapsed to a compact price preview (not fully hidden —
+  // both prices are visible immediately) and expand to the full cards once
+  // the visitor asks for them, either via the hero CTA or the preview's own
+  // expand button.
+  const [packagesExpanded, setPackagesExpanded] = useState(false);
 
   // Modal & Services Dropdown State
   const [selectedServiceModal, setSelectedServiceModal] =
@@ -72,9 +78,11 @@ export const ConsultationView: React.FC = () => {
   const [isServiceModalOpen, setIsServiceModalOpen] = useState<boolean>(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] =
     useState<boolean>(false);
-  const [activeSidebarService, setActiveSidebarService] = useState<ServiceData>(
-    serviceCatalog[1] || serviceCatalog[0],
-  );
+  // Starts unselected on purpose: showing a full preview (image, price,
+  // description, two buttons) for a service nobody picked yet made this
+  // "lighter, secondary" panel just as heavy as the main booking flow.
+  const [activeSidebarService, setActiveSidebarService] =
+    useState<ServiceData | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
@@ -367,9 +375,12 @@ export const ConsultationView: React.FC = () => {
   };
 
   const handleViewPackages = () => {
-    document
-      .getElementById("view-packages-section")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setPackagesExpanded(true);
+    requestAnimationFrame(() => {
+      document
+        .getElementById("view-packages-section")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const handleSelectTierAndProceed = (
@@ -384,7 +395,7 @@ export const ConsultationView: React.FC = () => {
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
       {/* Whole-screen Hero Section (Full Initial Page down to Consultation Booking) */}
-      <header className="relative w-full min-h-[100dvh] flex items-center overflow-hidden border-b border-outline-variant/30">
+      <header className="relative w-full min-h-[100dvh] flex items-center overflow-x-hidden border-b border-outline-variant/30">
         {/* Background Architectural Drafting Grid Pattern */}
         <div className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
 
@@ -398,15 +409,21 @@ export const ConsultationView: React.FC = () => {
         {/* Center Main Hero Content */}
         <div className="relative z-10 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop pt-16">
           <ScrollReveal>
-            <div className="max-w-4xl space-y-6">
-              <h1 className="font-playfair text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight">
+            <div className="max-w-4xl space-y-5">
+              <h1
+                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight"
+                style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
+              >
                 Make design decisions <br />
                 <span className="italic font-light text-tertiary">
                   with absolute confidence.
                 </span>
               </h1>
 
-              <p className="font-inter text-sm sm:text-base md:text-lg lg:text-xl text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl">
+              <p
+                className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
+                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+              >
                 A direct conversation with our licensed principal architects
                 about your plan, plot, or project. Choose a session, pick a
                 time, and send us your brief.
@@ -449,101 +466,154 @@ export const ConsultationView: React.FC = () => {
               <ScrollReveal>
                 <div className="space-y-3">
                   <span className="font-inter text-xs font-bold text-tertiary uppercase tracking-widest block">
-                    Step 1: View Packages
+                    Step 1
                   </span>
                   <h2 className="font-playfair text-3xl md:text-4xl text-on-surface dark:text-zinc-100 font-normal">
-                    Choose Your Consultation Scope.
+                    Talk to an Architect First.
                   </h2>
                   <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-2xl">
-                    Every session is conducted directly with a licensed
-                    principal architect for layout diagnosis, bylaws review, and
-                    spatial planning. Select a tier below to get started:
+                    This is a real conversation with one of our architects.
+                    Tell them about your plot or your house plan, and they
+                    will answer your questions and help you plan the next
+                    step. Not sure what you need yet? That is completely
+                    fine, start here. Already know exactly what you want?
+                    Browse our full list of services on the right.
                   </p>
                 </div>
               </ScrollReveal>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {callTiers.map((tier, idx) => {
-                  const isSelected = booking.callTier === tier.name;
-                  return (
-                    <div
-                      key={tier.name}
-                      onClick={() => setCallTier(tier.name)}
-                      className={`relative p-6 md:p-8 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between space-y-6 ${
-                        isSelected
-                          ? "border-tertiary bg-tertiary/5 dark:bg-tertiary/10 shadow-lg scale-[1.01]"
-                          : "border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900/50 hover:border-tertiary/60"
-                      }`}
-                    >
-                      {idx === 1 && (
-                        <span className="absolute -top-3 right-6 rounded-full bg-tertiary px-3.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white shadow-sm">
-                          Most Popular
-                        </span>
-                      )}
-
-                      <div className="space-y-4">
-                        <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-2">
+              <AnimatePresence initial={false} mode="wait">
+                {!packagesExpanded ? (
+                  <motion.div
+                    key="packages-collapsed"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {callTiers.map((tier) => (
+                        <button
+                          key={tier.name}
+                          type="button"
+                          onClick={handleViewPackages}
+                          className="text-left p-5 rounded-2xl border border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900/50 hover:border-tertiary/60 transition-all cursor-pointer flex items-center justify-between gap-4"
+                        >
                           <div>
-                            <span className="text-[11px] font-inter font-bold text-tertiary uppercase tracking-widest block">
+                            <span className="text-[10px] font-inter font-bold text-tertiary uppercase tracking-widest block">
                               {tier.duration}
                             </span>
-                            <h3 className="font-playfair text-xl sm:text-2xl font-bold text-on-surface dark:text-white mt-0.5">
+                            <h3 className="font-playfair text-lg font-bold text-on-surface dark:text-white">
                               {tier.name}
                             </h3>
                           </div>
-                          <span className="font-montserrat text-xl sm:text-2xl font-extrabold text-secondary dark:text-zinc-100">
+                          <span className="font-montserrat text-lg font-extrabold text-secondary dark:text-zinc-100 shrink-0">
                             {SafepayService.formatPKR(tier.price)}
                           </span>
-                        </div>
-
-                        <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                          {tier.description}
-                        </p>
-
-                        <div className="space-y-2 pt-2">
-                          {tier.features.map((feat, fIdx) => (
-                            <div
-                              key={fIdx}
-                              className="flex items-center gap-2 text-xs text-on-surface dark:text-zinc-300"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5 text-tertiary shrink-0" />
-                              <span>{feat}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-outline-variant/20 space-y-3">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelectTierAndProceed(tier.name);
-                          }}
-                          className={`w-full rounded-xl py-3 font-inter text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                            isSelected
-                              ? "bg-tertiary text-on-tertiary shadow-md"
-                              : "bg-primary hover:bg-tertiary text-on-primary"
-                          }`}
-                        >
-                          {isSelected
-                            ? "Selected Tier • Proceed to Details"
-                            : "Select This Package"}
                         </button>
-                        <span
-                          className={`block text-center font-inter text-[10px] font-bold uppercase tracking-wider ${
-                            isSelected ? "text-tertiary" : "text-zinc-400"
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleViewPackages}
+                      className="w-full rounded-xl py-3.5 border border-tertiary/40 text-tertiary hover:bg-tertiary hover:text-on-tertiary hover:border-tertiary transition-all font-inter text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>View Full Details &amp; Book</span>
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="packages-expanded"
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+                  >
+                    {callTiers.map((tier, idx) => {
+                      const isSelected = booking.callTier === tier.name;
+                      return (
+                        <div
+                          key={tier.name}
+                          onClick={() => setCallTier(tier.name)}
+                          className={`relative p-6 md:p-8 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between space-y-6 ${
+                            isSelected
+                              ? "border-tertiary bg-tertiary/5 dark:bg-tertiary/10 shadow-lg scale-[1.01]"
+                              : "border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900/50 hover:border-tertiary/60"
                           }`}
                         >
-                          {isSelected
-                            ? "✓ Active Selection"
-                            : "Click to choose"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                          {idx === 1 && (
+                            <span className="absolute -top-3 right-6 rounded-full bg-tertiary px-3.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white shadow-sm">
+                              Most Popular
+                            </span>
+                          )}
+
+                          <div className="space-y-4">
+                            <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-2">
+                              <div>
+                                <span className="text-[11px] font-inter font-bold text-tertiary uppercase tracking-widest block">
+                                  {tier.duration}
+                                </span>
+                                <h3 className="font-playfair text-xl sm:text-2xl font-bold text-on-surface dark:text-white mt-0.5">
+                                  {tier.name}
+                                </h3>
+                              </div>
+                              <span className="font-montserrat text-xl sm:text-2xl font-extrabold text-secondary dark:text-zinc-100">
+                                {SafepayService.formatPKR(tier.price)}
+                              </span>
+                            </div>
+
+                            <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                              {tier.description}
+                            </p>
+
+                            <div className="pt-3 border-t border-outline-variant/15 divide-y divide-outline-variant/15">
+                              {tier.features.map((feat, fIdx) => (
+                                <p
+                                  key={fIdx}
+                                  className="font-inter text-xs text-on-surface dark:text-zinc-300 font-light leading-relaxed py-2 first:pt-0 last:pb-0"
+                                >
+                                  {feat}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="pt-4 border-t border-outline-variant/20 space-y-3">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectTierAndProceed(tier.name);
+                              }}
+                              className={`w-full rounded-xl py-3 font-inter text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-tertiary text-on-tertiary shadow-md"
+                                  : "bg-primary hover:bg-tertiary text-on-primary"
+                              }`}
+                            >
+                              {isSelected
+                                ? "Selected Tier • Proceed to Details"
+                                : "Select This Package"}
+                            </button>
+                            <span
+                              className={`block text-center font-inter text-[10px] font-bold uppercase tracking-wider ${
+                                isSelected ? "text-tertiary" : "text-zinc-400"
+                              }`}
+                            >
+                              {isSelected
+                                ? "Active Selection"
+                                : "Click to choose"}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </section>
 
             {/* Unified Form containing Contact Form (Step 2) & Consultation Scheduling (Step 3) */}
@@ -559,15 +629,15 @@ export const ConsultationView: React.FC = () => {
                 <ScrollReveal>
                   <div className="space-y-3">
                     <span className="font-inter text-xs font-bold text-tertiary uppercase tracking-widest block">
-                      Step 2: Contact Form &amp; Project Info
+                      Step 2
                     </span>
                     <h2 className="font-playfair text-3xl md:text-4xl text-on-surface dark:text-zinc-100 font-normal">
-                      Your Details &amp; Project Questions.
+                      Tell Us About You and Your Project.
                     </h2>
                     <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-2xl">
-                      Provide your contact information and tell us about your
-                      plot or design requirements so our architects can prepare
-                      targeted guidance in advance.
+                      Share your contact details and a little about your plot
+                      or project. This helps our architects prepare before
+                      they speak with you.
                     </p>
                   </div>
                 </ScrollReveal>
@@ -683,15 +753,16 @@ export const ConsultationView: React.FC = () => {
                 <ScrollReveal>
                   <div className="space-y-3">
                     <span className="font-inter text-xs font-bold text-tertiary uppercase tracking-widest block">
-                      Step 3: Consultation Scheduling &amp; Upload
+                      Step 3
                     </span>
                     <h2 className="font-playfair text-3xl md:text-4xl text-on-surface dark:text-zinc-100 font-normal">
-                      Reserve Calendar Slot &amp; Upload Blueprint.
+                      Pick a Time and Upload Your Plan.
                     </h2>
                     <p className="font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                      Select your date and time slot (PKT). Uploading your
-                      architectural floor plan or site photos is required so we
-                      can diagnose your project thoroughly before the session.
+                      Choose a date and time that works for you (Pakistan
+                      time). You also need to upload your floor plan or site
+                      photos. This lets the architect understand your project
+                      before your session.
                     </p>
                   </div>
 
@@ -736,8 +807,8 @@ export const ConsultationView: React.FC = () => {
                           )}
                         </div>
                         <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light mt-0.5">
-                          Dates in the future are open for booking. Booked dates
-                          cannot be selected again.
+                          Pick any date that has not passed. Dates that are
+                          already booked cannot be chosen.
                         </p>
                       </div>
 
@@ -890,16 +961,16 @@ export const ConsultationView: React.FC = () => {
                               </span>
 
                               {isBooked ? (
-                                <span className="flex items-center gap-0.5 text-[7px] sm:text-[8px] font-extrabold uppercase tracking-tighter text-rose-600 dark:text-rose-400 mt-0.5">
+                                <span className="flex items-center gap-0.5 text-[8px] sm:text-[9px] font-extrabold uppercase tracking-tighter text-rose-600 dark:text-rose-400 mt-0.5">
                                   <Lock className="w-1.5 h-1.5 sm:w-2 sm:h-2" />
                                   <span>Booked</span>
                                 </span>
                               ) : isSelected ? (
-                                <span className="text-[7px] sm:text-[8px] font-extrabold uppercase tracking-tighter text-white/90 mt-0.5">
+                                <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-tighter text-white/90 mt-0.5">
                                   Selected
                                 </span>
                               ) : isToday ? (
-                                <span className="text-[7px] sm:text-[8px] font-bold text-tertiary tracking-tighter mt-0.5">
+                                <span className="text-[8px] sm:text-[9px] font-bold text-tertiary tracking-tighter mt-0.5">
                                   Today
                                 </span>
                               ) : !isPast ? (
@@ -946,7 +1017,7 @@ export const ConsultationView: React.FC = () => {
                     <div className="pt-4 border-t border-outline-variant/20 space-y-4">
                       <div className="flex items-center justify-between">
                         <h5 className="font-inter text-xs font-bold text-secondary dark:text-zinc-300 uppercase tracking-widest">
-                          Available Time Slots (PKT)
+                          Available Time Slots (Pakistan Time)
                         </h5>
                         {booking.selectedTime && (
                           <span className="text-xs font-semibold text-tertiary">
@@ -987,11 +1058,9 @@ export const ConsultationView: React.FC = () => {
                   >
                     <div className="flex items-center justify-between">
                       <label className="font-inter text-xs font-bold text-on-surface dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <span>
-                          Mandatory Blueprint / Site Photos Attachment *
-                        </span>
+                        <span>Upload Your Plan or Photos *</span>
                         <span className="text-tertiary text-[11px] font-normal lowercase">
-                          (required before call confirmation)
+                          (required before you can book)
                         </span>
                       </label>
                       <span className="text-[10px] text-zinc-400 font-inter">
@@ -1012,12 +1081,10 @@ export const ConsultationView: React.FC = () => {
                       <div className="border-2 border-dashed border-tertiary/60 bg-tertiary/5 rounded-2xl p-8 text-center">
                         <Loader2 className="w-10 h-10 text-tertiary animate-spin mx-auto mb-3" />
                         <p className="font-inter text-xs font-bold text-on-surface dark:text-zinc-200">
-                          Resizing with Sharp &amp; Uploading to Supabase
-                          Storage...
+                          Uploading Your File...
                         </p>
                         <p className="font-inter text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-light">
-                          Optimizing architectural blueprints and high-res site
-                          photos for instant audit.
+                          This will only take a moment.
                         </p>
                       </div>
                     ) : !booking.attachedFile ? (
@@ -1031,12 +1098,11 @@ export const ConsultationView: React.FC = () => {
                       >
                         <UploadCloud className="w-10 h-10 text-tertiary mx-auto mb-3" />
                         <p className="font-inter text-xs font-bold text-on-surface dark:text-zinc-200">
-                          Click to browse or drop your architectural plan / site
-                          photos here
+                          Click to Choose a File, or Drag It Here
                         </p>
                         <p className="font-inter text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-light">
-                          Upload floor plan blueprints, sketches, or plot site
-                          pictures for our lead architect to inspect.
+                          Your floor plan, a sketch, or photos of the site all
+                          work. Your architect will look at it before you talk.
                         </p>
                       </div>
                     ) : (
@@ -1049,7 +1115,7 @@ export const ConsultationView: React.FC = () => {
                                 {booking.attachedFile.name}
                               </p>
                               <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded-sm border border-emerald-500/20 shrink-0">
-                                Supabase Storage
+                                Uploaded
                               </span>
                             </div>
                             <p className="font-inter text-[10px] text-zinc-500 mt-0.5">
@@ -1057,7 +1123,7 @@ export const ConsultationView: React.FC = () => {
                                 booking.attachedFile.size /
                                 (1024 * 1024)
                               ).toFixed(2)}{" "}
-                              MB • Sharp-optimized &bull; Ready for audit
+                              MB &bull; Ready to send
                             </p>
                           </div>
                         </div>
@@ -1142,7 +1208,11 @@ export const ConsultationView: React.FC = () => {
             </form>
           </div>
 
-          {/* Right Column (4 cols): Services Dropdown & Catalog */}
+          {/* Right Column (4 cols): Services Dropdown & Catalog.
+              Follows normal source order (after the Step 1/2/3 form) on
+              every breakpoint, so the primary booking flow stays the first
+              thing a mobile visitor sees, with the "skip the call"
+              alternative offered right after it. */}
           <aside className="lg:col-span-4 lg:sticky lg:top-28 space-y-6">
             {/* Services Dropdown Card */}
             <div className="bg-surface-container-low dark:bg-zinc-900/80 p-6 rounded-3xl border border-outline-variant/30 dark:border-zinc-800 shadow-sm space-y-5">
@@ -1152,15 +1222,16 @@ export const ConsultationView: React.FC = () => {
                     <Sparkles className="w-4 h-4" />
                   </span>
                   <span className="font-inter text-[11px] font-bold text-tertiary uppercase tracking-widest">
-                    Service Catalog ({serviceCatalog.length})
+                    Already Know What You Need?
                   </span>
                 </div>
                 <h3 className="font-playfair text-xl md:text-2xl font-bold text-on-surface dark:text-zinc-100">
-                  Architectural Services
+                  Skip the Call. Book a Service Directly.
                 </h3>
                 <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                  Select any service from the dropdown below to view complete
-                  deliverables, tiers, and pricing:
+                  We offer {serviceCatalog.length} design services, like plan
+                  reviews, 3D renders, and full house design. Each one shows
+                  you exactly what you get and what it costs. Pick one below.
                 </p>
               </div>
 
@@ -1179,9 +1250,8 @@ export const ConsultationView: React.FC = () => {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-tertiary block">
                         Select Service
                       </span>
-                      <span className="font-playfair text-sm font-bold text-on-surface dark:text-zinc-100 truncate block">
-                        {activeSidebarService?.title ||
-                          "Choose an Architecture Service..."}
+                      <span className="font-playfair text-sm font-bold text-on-surface dark:text-zinc-100 block leading-snug">
+                        {activeSidebarService?.title || "Choose a Service"}
                       </span>
                     </div>
                   </div>
@@ -1198,7 +1268,7 @@ export const ConsultationView: React.FC = () => {
                   <div
                     data-lenis-prevent
                     onWheel={(e) => e.stopPropagation()}
-                    className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-zinc-900 border border-outline-variant/40 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 space-y-1 max-h-[380px] overflow-y-auto overscroll-contain touch-pan-y backdrop-blur-xl"
+                    className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-zinc-900 border border-outline-variant/40 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 space-y-1 max-h-[min(70vh,34rem)] overflow-y-auto overscroll-contain touch-pan-y backdrop-blur-xl"
                   >
                     <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-outline-variant/20 mb-1">
                       Available Services ({serviceCatalog.length})
@@ -1252,7 +1322,14 @@ export const ConsultationView: React.FC = () => {
                 )}
               </div>
 
-              {/* Active Service Card Preview */}
+              {/* Active Service Card Preview — only appears once the visitor
+                  has actually picked something from the dropdown above. */}
+              {!activeSidebarService && (
+                <p className="pt-2 border-t border-outline-variant/20 font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                  Pick a service above to see what it includes and what it
+                  costs.
+                </p>
+              )}
               {activeSidebarService && (
                 <div className="pt-2 border-t border-outline-variant/20 space-y-3">
                   <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-zinc-950 border border-outline-variant/20 shadow-xs">
