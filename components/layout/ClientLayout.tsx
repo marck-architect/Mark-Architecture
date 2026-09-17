@@ -18,6 +18,31 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   const isAdminRoute = pathname?.startsWith("/admin");
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+
+    const isRecoveryHash =
+      hash.includes("type=recovery") ||
+      hash.includes("error_code=otp_expired") ||
+      hash.includes("error=access_denied") ||
+      (hash.includes("access_token=") && hash.includes("type=recovery"));
+
+    const isRecoverySearch =
+      search.includes("type=recovery") ||
+      search.includes("error_code=otp_expired") ||
+      search.includes("error=access_denied");
+
+    if (
+      (isRecoveryHash || isRecoverySearch) &&
+      !pathname?.startsWith("/admin/reset-password")
+    ) {
+      window.location.replace(`/admin/reset-password${search}${hash}`);
+    }
+  }, [pathname]);
+
+  useEffect(() => {
     // If admin route, skip Lenis smooth scroll for standard administrative behavior
     if (isAdminRoute) return;
 

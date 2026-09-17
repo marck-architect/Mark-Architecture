@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_APP_URL ||
       "http://localhost:3000";
 
-    const redirectTo = `${origin}/admin/reset-password`;
+    const redirectTo = `${origin}/auth/callback?next=/admin/reset-password`;
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
