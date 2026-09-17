@@ -382,9 +382,20 @@ export interface ConsultationRecord {
     | "refunded"
     | "completed"
     | "rescheduled";
+  consultation_status?:
+    | "pending"
+    | "confirmed"
+    | "completed"
+    | "cancelled"
+    | "rescheduled";
+  meeting_link_sent_at?: string | null;
+  confirmed_by_admin?: boolean;
+  confirmed_at?: string | null;
+  duration_minutes?: number;
   safepay_tracker?: string | null;
   safepay_token?: string | null;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface OrderRecord {
@@ -404,6 +415,201 @@ export interface OrderRecord {
   created_at: string;
 }
 
+// ============================================================================
+// Studio Administration Systems Types
+// ============================================================================
+
+export type AdminTabType =
+  | "dashboard"
+  | "consultations"
+  | "calendar"
+  | "services"
+  | "projects"
+  | "clients"
+  | "payments"
+  | "media"
+  | "testimonials"
+  | "team"
+  | "content"
+  | "communications"
+  | "analytics"
+  | "settings"
+  | "audit";
+
+export interface AvailabilitySettings {
+  id?: string;
+  working_days: number[]; // 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 0=Sun
+  start_time: string; // "09:00"
+  end_time: string; // "18:00"
+  slot_durations: number[]; // [30, 45, 60, 90]
+  buffer_minutes: number; // 15
+  timezone: string; // "Asia/Karachi"
+  max_per_day: number; // 8
+}
+
+export interface BlockedDate {
+  id: string;
+  date: string; // "YYYY-MM-DD"
+  start_time?: string | null;
+  end_time?: string | null;
+  reason: string;
+  is_full_day: boolean;
+  created_at?: string;
+}
+
+export interface AdminProject {
+  id: string;
+  title: string;
+  slug: string;
+  category:
+    | "residential"
+    | "commercial"
+    | "interior"
+    | "landscape"
+    | "renovation";
+  location: string;
+  year: string;
+  client_name?: string | null;
+  area_sqft?: number | string | null;
+  description: string;
+  short_description?: string | null;
+  cover_image: string;
+  gallery_urls: string[];
+  is_featured: boolean;
+  is_published: boolean;
+  display_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AdminClient {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  company?: string | null;
+  notes?: string | null;
+  total_consultations: number;
+  total_orders: number;
+  total_spend_pkr: number;
+  last_activity_date?: string | null;
+  created_at: string;
+}
+
+export interface AdminTestimonial {
+  id: string;
+  client_name: string;
+  company?: string | null;
+  position?: string | null;
+  review: string;
+  rating: number; // 1-5
+  photo_url?: string | null;
+  project_title?: string | null;
+  is_featured: boolean;
+  is_published: boolean;
+  display_order: number;
+  created_at?: string;
+}
+
+export interface AdminTeamMember {
+  id: string;
+  name: string;
+  role: string;
+  credentials: string;
+  bio: string;
+  specialization?: string | null;
+  photo_url: string;
+  email?: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at?: string;
+}
+
+export interface AdminFaq {
+  id: string;
+  question: string;
+  answer: string;
+  category?: string | null;
+  display_order: number;
+  is_published: boolean;
+}
+
+export interface AdminNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: "booking" | "payment" | "action_needed" | "system";
+  link?: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface CommunicationLog {
+  id: string;
+  recipient_email: string;
+  client_name: string;
+  type: "meeting_invite" | "order_confirmation" | "reminder" | "manual";
+  consultation_id?: string | null;
+  meeting_url?: string | null;
+  status: "sent" | "failed" | "manual";
+  sent_at: string;
+  error_message?: string | null;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  admin_email: string;
+  action: string; // e.g. "CONFIRM_PAYMENT", "SEND_MEETING_LINK", "UPDATE_SERVICE"
+  entity: string; // e.g. "consultation", "service", "project"
+  entity_id: string;
+  metadata?: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface AdminService {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  short_description: string;
+  detailed_scope?: string | null;
+  image_url: string;
+  pricing_type: "flat" | "size_based" | "rate_formula";
+  popularity_rank: number;
+  is_active: boolean;
+  tiers?: AdminServiceTier[];
+  created_at?: string;
+}
+
+export interface AdminServiceTier {
+  id: string;
+  service_id: string;
+  tier_name: string;
+  description: string;
+  deliverables: string[];
+  delivery_time?: string;
+  display_order: number;
+  pricing_rules?: AdminPricingRule[];
+}
+
+export interface AdminPricingRule {
+  id: string;
+  tier_id: string;
+  plot_size: "5 Marla" | "10 Marla" | "1 Kanal" | "Any";
+  price_pkr: number;
+}
+
+export interface MediaAsset {
+  id: string;
+  name: string;
+  url: string;
+  size_bytes: number;
+  mime_type: string;
+  dimensions?: { width: number; height: number };
+  alt_text?: string;
+  created_at: string;
+}
+
 export interface AdminHeaderProps {
   adminEmail: string;
 }
@@ -417,6 +623,7 @@ export interface BookingDetailModalProps {
 export interface AdminDashboardViewProps {
   initialConsultations: ConsultationRecord[];
   initialOrders: OrderRecord[];
+  adminEmail?: string;
 }
 
 // ============================================================================

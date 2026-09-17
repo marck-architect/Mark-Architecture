@@ -54,10 +54,17 @@ export default async function AdminDashboardPage() {
     orders = seedOrders;
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const adminEmail =
+    user?.email || process.env.ADMIN_EMAIL || "admin@markarchitects.com";
+
   return (
     <AdminDashboardView
       initialConsultations={consultations}
       initialOrders={orders}
+      adminEmail={adminEmail}
     />
   );
 }
