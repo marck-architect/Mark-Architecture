@@ -15,6 +15,7 @@ import {
   KeyRound,
   ArrowRight,
   ArrowLeft,
+  RefreshCw,
 } from "lucide-react";
 
 export const AdminResetPasswordView: React.FC = () => {
@@ -26,61 +27,147 @@ export const AdminResetPasswordView: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [hasValidSession, setHasValidSession] = useState(false);
+  const [isVerifyingLink, setIsVerifyingLink] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    const checkSession = async () => {
+    const parseAndEstablishSession = async () => {
       try {
-        // 1. Check if user already has an active recovery session
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        if (typeof window === "undefined") return;
 
-        if (session && isMounted) {
-          setHasValidSession(true);
-          setIsCheckingSession(false);
+        const url = new URL(window.location.href);
+
+        // 1. Check for error parameters in search query or hash fragment
+        const searchError =
+          url.searchParams.get("error_description") ||
+          url.searchParams.get("error");
+
+        if (searchError) {
+          if (isMounted) {
+            setErrorMessage(decodeURIComponent(searchError));
+            setIsVerifyingLink(false);
+          }
           return;
         }
 
-        // 2. Listen for auth state change (e.g. PASSWORD_RECOVERY or SIGNED_IN from hash fragment)
+        if (window.location.hash.includes("error")) {
+          const hashParams = new URLSearchParams(
+            window.location.hash.substring(1)
+          );
+          const hashError =
+            hashParams.get("error_description") || hashParams.get("error");
+          if (hashError && isMounted) {
+            setErrorMessage(decodeURIComponent(hashError));
+            setIsVerifyingLink(false);
+            return;
+          }
+        }
+
+        // 2. Check for PKCE Authorization Code in query params (?code=...)
+        const code = url.searchParams.get("code");
+        if (code) {
+          const { data, error } =
+            await supabase.auth.exchangeCodeForSession(code);
+          if (!error && data?.session) {
+            if (isMounted) {
+              setIsVerifyingLink(false);
+            }
+            return;
+          } else if (error) {
+            console.warn(
+              "[Reset Password] exchangeCodeForSession returned:",
+              error.message
+            );
+          }
+        }
+
+        // 3. Check for Token Hash in query params (?token_hash=...&type=recovery)
+        const tokenHash = url.searchParams.get("token_hash");
+        if (tokenHash) {
+          const type =
+            (url.searchParams.get("type") as "recovery") || "recovery";
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type,
+          });
+          if (!error && data?.session) {
+            if (isMounted) {
+              setIsVerifyingLink(false);
+            }
+            return;
+          } else if (error) {
+            console.warn("[Reset Password] verifyOtp returned:", error.message);
+          }
+        }
+
+        // 4. Check for Access Token in Hash fragment (#access_token=...&refresh_token=...)
+        if (window.location.hash.includes("access_token")) {
+          const hashParams = new URLSearchParams(
+            window.location.hash.substring(1)
+          );
+          const accessToken = hashParams.get("access_token");
+          const refreshToken = hashParams.get("refresh_token");
+
+          if (accessToken && refreshToken) {
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (!error && data?.session) {
+              if (isMounted) {
+                setIsVerifyingLink(false);
+              }
+              return;
+            }
+          }
+        }
+
+        // 5. Check if session is already active or being restored
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session && isMounted) {
+          setIsVerifyingLink(false);
+          return;
+        }
+
+        // Listen for auth state change from browser client
         const {
           data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+        } = supabase.auth.onAuthStateChange((event, currentSession) => {
           if (
             (event === "PASSWORD_RECOVERY" ||
               event === "SIGNED_IN" ||
               currentSession) &&
             isMounted
           ) {
-            setHasValidSession(true);
-            setIsCheckingSession(false);
+            setIsVerifyingLink(false);
           }
         });
 
-        // Give the browser client a moment to parse the URL hash if present
+        // Small grace period to allow client cookie/token initialization
         setTimeout(() => {
           if (isMounted) {
-            setIsCheckingSession(false);
+            setIsVerifyingLink(false);
           }
-        }, 1500);
+        }, 1200);
 
         return () => {
           subscription.unsubscribe();
         };
-      } catch (err) {
-        console.error("[Reset Password] Error checking recovery session:", err);
+      } catch (err: unknown) {
+        console.error("[Reset Password] Error establishing session:", err);
         if (isMounted) {
-          setIsCheckingSession(false);
+          setIsVerifyingLink(false);
         }
       }
     };
 
-    checkSession();
+    parseAndEstablishSession();
 
     return () => {
       isMounted = false;
@@ -105,6 +192,7 @@ export const AdminResetPasswordView: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Update password in Supabase Auth
       const { error } = await supabase.auth.updateUser({
         password: password,
       });
@@ -112,18 +200,18 @@ export const AdminResetPasswordView: React.FC = () => {
       if (error) {
         setErrorMessage(
           error.message ||
-            "Unable to update password. Your recovery link may have expired.",
+            "Unable to update password. Your reset link may have expired or is invalid."
         );
         setIsLoading(false);
         return;
       }
 
       setSuccessMessage(
-        "Password successfully updated! Redirecting to Studio Command Center...",
+        "Password successfully updated! Redirecting to Studio Command Center..."
       );
       setIsLoading(false);
 
-      // Redirect after brief confirmation
+      // Redirect after confirmation
       setTimeout(() => {
         router.push("/admin");
         router.refresh();
@@ -132,7 +220,7 @@ export const AdminResetPasswordView: React.FC = () => {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "An unexpected error occurred while saving your new password.",
+          : "An unexpected error occurred while saving your new password."
       );
       setIsLoading(false);
     }
@@ -160,172 +248,159 @@ export const AdminResetPasswordView: React.FC = () => {
             MARK Architects
           </h1>
           <p className="text-xs uppercase tracking-[0.25em] text-[#7E5714] font-semibold mt-1">
-            Set New Password
+            Set New Administrator Password
           </p>
           <p className="text-xs text-stone-500 mt-2">
-            Establish new administrator credentials for the Atelier Command
-            Center.
+            Establish new administrator credentials for the Atelier Command Center.
           </p>
         </div>
 
-        {/* Loading recovery check state */}
-        {isCheckingSession ? (
-          <div className="py-12 text-center space-y-3">
-            <Loader2 className="w-6 h-6 animate-spin text-[#7E5714] mx-auto" />
-            <p className="text-xs text-stone-500 font-mono">
-              Verifying secure recovery token...
-            </p>
+        {/* Verifying Token Banner */}
+        {isVerifyingLink && (
+          <div className="mb-6 p-3.5 bg-amber-50/70 border border-amber-200/70 rounded-xl text-xs text-[#7E5714] flex items-center gap-2.5">
+            <Loader2 className="w-4 h-4 animate-spin shrink-0 text-[#7E5714]" />
+            <span>Verifying secure reset link token...</span>
           </div>
-        ) : !hasValidSession && !successMessage ? (
-          /* Missing or Expired Session Warning */
-          <div className="space-y-6">
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-3">
-              <KeyRound className="w-5 h-5 text-[#7E5714] shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold mb-1">
-                  Recovery Session Expired or Required
-                </p>
-                <p className="text-amber-800/90 leading-relaxed">
-                  To reset your password, please click the link sent to your
-                  administrator email inbox, or request a new reset link from
-                  the login page.
-                </p>
+        )}
+
+        {/* Error Alert */}
+        {errorMessage && (
+          <div className="mb-6 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start gap-2.5 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <span className="block font-medium mb-1">Reset Error</span>
+              <span className="block leading-relaxed">{errorMessage}</span>
+              <div className="mt-2.5">
+                <Link
+                  href="/admin/login"
+                  className="text-xs font-semibold text-rose-900 underline hover:no-underline inline-flex items-center gap-1"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Request a new password reset link
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success Alert */}
+        {successMessage && (
+          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs flex items-start gap-2.5 animate-fadeIn">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-emerald-950 mb-0.5">Success</p>
+              <p>{successMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Password Reset Form */}
+        {!successMessage && (
+          <form onSubmit={handleUpdatePassword} className="space-y-5">
+            {/* New Password */}
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wider">
+                New Secret Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                  className="w-full pl-10 pr-10 py-3 bg-stone-50/70 border border-stone-200 rounded-xl text-stone-900 text-sm placeholder-stone-400 focus:outline-none focus:border-[#7E5714] focus:bg-white focus:ring-1 focus:ring-[#7E5714]/20 shadow-2xs transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
 
-            <Link
-              href="/admin/login"
-              className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded-xl transition-colors flex items-center justify-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Return to Administrator Sign In</span>
-            </Link>
-          </div>
-        ) : (
-          /* Active Reset Form */
-          <>
-            {errorMessage && (
-              <div className="mb-6 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start gap-2.5 animate-fadeIn">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs flex items-start gap-2.5 animate-fadeIn">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-emerald-950 mb-0.5">
-                    Success
-                  </p>
-                  <p>{successMessage}</p>
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wider">
+                Confirm New Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
+                  <Lock className="w-4 h-4" />
                 </div>
-              </div>
-            )}
-
-            {!successMessage && (
-              <form onSubmit={handleUpdatePassword} className="space-y-5">
-                {/* New Password */}
-                <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wider">
-                    New Secret Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Minimum 8 characters"
-                      className="w-full pl-10 pr-10 py-3 bg-stone-50/70 border border-stone-200 rounded-xl text-stone-900 text-sm placeholder-stone-400 focus:outline-none focus:border-[#7E5714] focus:bg-white focus:ring-1 focus:ring-[#7E5714]/20 shadow-2xs transition-all"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wider">
-                    Confirm New Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Repeat new password"
-                      className="w-full pl-10 pr-10 py-3 bg-stone-50/70 border border-stone-200 rounded-xl text-stone-900 text-sm placeholder-stone-400 focus:outline-none focus:border-[#7E5714] focus:bg-white focus:ring-1 focus:ring-[#7E5714]/20 shadow-2xs transition-all"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-[11px] text-stone-400 font-mono">
-                  Password requirement: At least 8 characters with numbers or
-                  symbols recommended.
-                </div>
-
-                {/* Submit Button */}
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat new password"
+                  className="w-full pl-10 pr-10 py-3 bg-stone-50/70 border border-stone-200 rounded-xl text-stone-900 text-sm placeholder-stone-400 focus:outline-none focus:border-[#7E5714] focus:bg-white focus:ring-1 focus:ring-[#7E5714]/20 shadow-2xs transition-all"
+                />
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full mt-2 py-3.5 px-5 bg-[#7E5714] hover:bg-[#684710] active:scale-[0.99] text-white font-medium text-sm rounded-xl shadow-md shadow-amber-900/10 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>Updating Password...</span>
-                    </>
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-4 h-4" />
                   ) : (
-                    <>
-                      <span>Save Password & Sign In</span>
-                      <ArrowRight className="w-4 h-4 text-white" />
-                    </>
+                    <Eye className="w-4 h-4" />
                   )}
                 </button>
+              </div>
+            </div>
 
-                <div className="text-center pt-2">
-                  <Link
-                    href="/admin/login"
-                    className="text-xs text-stone-500 hover:text-stone-800 transition-colors inline-flex items-center gap-1 font-medium"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Cancel & Return to Sign In
-                  </Link>
-                </div>
-              </form>
-            )}
-          </>
+            <div className="text-[11px] text-stone-400 font-mono">
+              Password requirement: At least 8 characters with numbers or symbols recommended.
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-2 py-3.5 px-5 bg-[#7E5714] hover:bg-[#684710] active:scale-[0.99] text-white font-medium text-sm rounded-xl shadow-md shadow-amber-900/10 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Updating Password...</span>
+                </>
+              ) : (
+                <>
+                  <span>Save Password & Sign In</span>
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </>
+              )}
+            </button>
+
+            <div className="text-center pt-2">
+              <Link
+                href="/admin/login"
+                className="text-xs text-stone-500 hover:text-stone-800 transition-colors inline-flex items-center gap-1 font-medium"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Cancel & Return to Sign In
+              </Link>
+            </div>
+          </form>
         )}
+
+        {/* Footer info note */}
+        <div className="mt-8 pt-6 border-t border-stone-100 text-center">
+          <p className="text-[11px] text-stone-400 leading-relaxed">
+            Public registration is disabled. User credentials must be
+            provisioned directly in the database.
+          </p>
+        </div>
       </div>
     </div>
   );
