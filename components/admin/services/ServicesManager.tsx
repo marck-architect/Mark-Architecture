@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { AdminService } from "@/types";
+import { ImageUploadField } from "@/components/admin/ui/ImageUploadField";
 
 interface ServicesManagerProps {
   services: AdminService[];
@@ -354,22 +355,17 @@ export const ServicesManager: React.FC<ServicesManagerProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-stone-600 font-medium mb-1">
-                  Featured Cover Image URL
-                </label>
-                <input
-                  type="text"
-                  value={editingService.image_url || ""}
-                  onChange={(e) =>
-                    setEditingService({
-                      ...editingService,
-                      image_url: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900 font-mono"
-                />
-              </div>
+              <ImageUploadField
+                label="Featured Cover Image"
+                folder="services"
+                value={editingService.image_url || ""}
+                onChange={(url) =>
+                  setEditingService({
+                    ...editingService,
+                    image_url: url,
+                  })
+                }
+              />
 
               <div className="flex items-center gap-2 pt-2">
                 <input

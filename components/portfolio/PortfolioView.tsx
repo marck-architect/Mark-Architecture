@@ -8,12 +8,38 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { MapPin, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { projects, filterCategories } from "@/data/portfolio";
+import {
+  projects as fallbackProjects,
+  filterCategories,
+} from "@/data/portfolio";
+import type { AdminProject, Project } from "@/types";
 
-export const PortfolioView: React.FC = () => {
+interface PortfolioViewProps {
+  initialProjects?: (AdminProject | Project)[];
+}
+
+export const PortfolioView: React.FC<PortfolioViewProps> = ({
+  initialProjects,
+}) => {
   const { portfolioFilter, setPortfolioFilter, openLightbox } = useStore();
 
-  const filteredProjects = projects.filter(
+  const projectList: Project[] = (
+    initialProjects && initialProjects.length > 0
+      ? initialProjects
+      : fallbackProjects
+  ).map((p: any) => ({
+    title: p.title,
+    location: p.location || "Pakistan",
+    imageSrc:
+      p.cover_image || p.imageSrc || "/images/Full House Design Package.png",
+    year: p.year || new Date().getFullYear().toString(),
+    description: p.description || "",
+    category: p.category || "residential",
+    price: p.budget_range || p.price,
+    aspectClass: p.aspectClass,
+  }));
+
+  const filteredProjects = projectList.filter(
     (project) =>
       portfolioFilter === "all" || project.category === portfolioFilter,
   );

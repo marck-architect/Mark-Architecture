@@ -39,13 +39,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FaqsPage() {
-  const faqSchema = generateFaqSchema(faqsData);
+import { getPublicFaqs } from "@/lib/server/content";
+
+export const revalidate = 60;
+
+export default async function FaqsPage() {
+  const faqs = await getPublicFaqs();
+  const schemaInput =
+    faqs && faqs.length > 0
+      ? faqs.map((f) => ({
+          question: f.question,
+          shortAnswer: (f as any).shortAnswer || f.answer,
+          fullAnswer: (f as any).fullAnswer || [f.answer],
+        }))
+      : faqsData;
+
+  const faqSchema = generateFaqSchema(schemaInput);
 
   return (
     <>
       <JsonLd data={faqSchema} />
-      <FaqView />
+      <FaqView initialFaqs={faqs} />
     </>
   );
 }

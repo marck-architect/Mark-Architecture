@@ -16,9 +16,19 @@ import {
 import { SafepayService } from "@/lib/safepay";
 import { DirectCheckoutModal } from "@/components/collection/DirectCheckoutModal";
 import type { ArchitecturalPackage, CheckoutItem } from "@/types";
-import { architecturalPackages } from "@/data/collection";
+import { architecturalPackages as fallbackPackages } from "@/data/collection";
 
-export const CollectionView: React.FC = () => {
+interface CollectionViewProps {
+  initialPackages?: ArchitecturalPackage[];
+}
+
+export const CollectionView: React.FC<CollectionViewProps> = ({
+  initialPackages,
+}) => {
+  const packages =
+    initialPackages && initialPackages.length > 0
+      ? initialPackages
+      : fallbackPackages;
   const { addToCart, setCartDrawerOpen } = useStore();
   const [checkoutModalItem, setCheckoutModalItem] =
     useState<CheckoutItem | null>(null);
@@ -154,9 +164,8 @@ export const CollectionView: React.FC = () => {
                         </span>
                         <span className="font-playfair text-xs sm:text-sm font-bold text-on-surface dark:text-zinc-100 truncate block">
                           {selectedPackageId
-                            ? architecturalPackages.find(
-                                (p) => p.id === selectedPackageId,
-                              )?.title || "Browse All Packages"
+                            ? packages.find((p) => p.id === selectedPackageId)
+                                ?.title || "Browse All Packages"
                             : "Jump to Package..."}
                         </span>
                       </div>
@@ -181,15 +190,13 @@ export const CollectionView: React.FC = () => {
                       }`}
                     >
                       <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-outline-variant/20 mb-1 flex items-center justify-between">
-                        <span>
-                          Available Packages ({architecturalPackages.length})
-                        </span>
+                        <span>Available Packages ({packages.length})</span>
                         <span className="text-[9px] text-tertiary font-normal">
                           Scroll &amp; Select
                         </span>
                       </div>
 
-                      {architecturalPackages.map((pkg) => {
+                      {packages.map((pkg) => {
                         const isSelected = selectedPackageId === pkg.id;
                         return (
                           <div
@@ -254,7 +261,7 @@ export const CollectionView: React.FC = () => {
               </h2>
             </div>
             <span className="text-xs font-inter text-zinc-500 font-medium">
-              {architecturalPackages.length} Ready Packages Available
+              {packages.length} Ready Packages Available
             </span>
           </div>
         </div>
@@ -262,7 +269,7 @@ export const CollectionView: React.FC = () => {
         {/* Packages Grid */}
         <section className="px-4 md:px-margin-desktop max-w-container-max mx-auto py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {architecturalPackages.map((pkg, idx) => (
+            {packages.map((pkg, idx) => (
               <ScrollReveal key={pkg.id} delay={0.06 * idx}>
                 <div
                   id={`pkg-${pkg.id}`}

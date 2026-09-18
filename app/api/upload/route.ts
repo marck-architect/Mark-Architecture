@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { processAndUploadFile } from "@/lib/server/storage";
+import { processAndUploadFile, type UploadFolder } from "@/lib/server/storage";
 
 export const runtime = "nodejs";
 
@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const folder =
-      (formData.get("folder") as "consultations" | "orders") || "consultations";
+    const folder = (formData.get("folder") as UploadFolder) || "media";
+    const bucket = formData.get("bucket") as string | undefined;
 
     if (!file) {
       return NextResponse.json(
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
       fileName: file.name,
       mimeType: file.type || "application/octet-stream",
       folder,
+      bucket,
     });
 
     return NextResponse.json({

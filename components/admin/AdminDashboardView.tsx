@@ -9,6 +9,7 @@ import { ConsultationsManager } from "./consultations/ConsultationsManager";
 import { CalendarManager } from "./calendar/CalendarManager";
 import { ServicesManager } from "./services/ServicesManager";
 import { ProjectsManager } from "./projects/ProjectsManager";
+import { CollectionManager } from "./collection/CollectionManager";
 import { ClientsManager } from "./clients/ClientsManager";
 import { PaymentsManager } from "./payments/PaymentsManager";
 import { MediaLibraryManager } from "./media/MediaLibraryManager";
@@ -45,6 +46,7 @@ const VALID_TABS: AdminTabType[] = [
   "calendar",
   "services",
   "projects",
+  "collection",
   "clients",
   "payments",
   "media",
@@ -407,6 +409,8 @@ function AdminDashboardInner({
               onDeleteProject={handleDeleteProject}
             />
           )}
+
+          {activeTab === "collection" && <CollectionManager />}
 
           {activeTab === "clients" && (
             <ClientsManager consultations={consultations} orders={orders} />

@@ -425,6 +425,7 @@ export type AdminTabType =
   | "calendar"
   | "services"
   | "projects"
+  | "collection"
   | "clients"
   | "payments"
   | "media"

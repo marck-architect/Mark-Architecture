@@ -8,6 +8,7 @@ import {
   Clock,
   Briefcase,
   FolderGit2,
+  Layers,
   Users,
   CreditCard,
   Image as ImageIcon,
@@ -73,6 +74,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       items: [
         { id: "services", label: "Services & Tiers", icon: Briefcase },
         { id: "projects", label: "Portfolio Projects", icon: FolderGit2 },
+        { id: "collection", label: "Curated Collection", icon: Layers },
         { id: "clients", label: "Client Directory", icon: Users },
         { id: "payments", label: "Payments & Safepay", icon: CreditCard },
         { id: "media", label: "Media Library", icon: ImageIcon },

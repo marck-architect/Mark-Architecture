@@ -17,9 +17,29 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-import { featuredServices, curatedProjects } from "@/data/home";
+import {
+  featuredServices as fallbackFeaturedServices,
+  curatedProjects as fallbackCuratedProjects,
+} from "@/data/home";
+import type { FeaturedService, CuratedProject } from "@/types";
 
-export const HomeView: React.FC = () => {
+interface HomeViewProps {
+  initialFeaturedServices?: FeaturedService[];
+  initialCuratedProjects?: CuratedProject[];
+}
+
+export const HomeView: React.FC<HomeViewProps> = ({
+  initialFeaturedServices,
+  initialCuratedProjects,
+}) => {
+  const featuredServices =
+    initialFeaturedServices && initialFeaturedServices.length > 0
+      ? initialFeaturedServices
+      : fallbackFeaturedServices;
+  const curatedProjects =
+    initialCuratedProjects && initialCuratedProjects.length > 0
+      ? initialCuratedProjects
+      : fallbackCuratedProjects;
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#f7f4ef]">
       {/* Hero: interactive orbit viewer that crossfades into a scroll-driven

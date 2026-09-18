@@ -45,8 +45,43 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+import { getPublicProjects, getPublicServices } from "@/lib/server/content";
+
+export const revalidate = 60;
+
+export default async function HomePage() {
   const orgSchema = generateOrganizationSchema();
+  const [projectsData, servicesData] = await Promise.all([
+    getPublicProjects(),
+    getPublicServices(),
+  ]);
+
+  const curatedProjects = projectsData.slice(0, 3).map((p) => ({
+    title: p.title,
+    category: (p.category || "RESIDENTIAL").toUpperCase(),
+    location: p.location || "Pakistan",
+    image: p.cover_image || "/images/dha_lahore_villa.png",
+    scale: p.year ? `Completed • ${p.year}` : "Luxury Residence",
+  }));
+
+  const featuredServices = servicesData.slice(0, 4).map((s) => {
+    const firstTier = s.tiers?.[0];
+    const firstPrice = firstTier?.pricing_rules?.[0]?.price_pkr;
+    const priceStr = firstPrice
+      ? `From PKR ${Number(firstPrice).toLocaleString()}`
+      : "Custom Quote";
+    const durationStr = firstTier?.delivery_time || "Prompt Delivery";
+
+    return {
+      title: s.title,
+      badge: s.category || "Studio Service",
+      price: priceStr,
+      duration: durationStr,
+      desc: s.short_description || "",
+      image: s.image_url || "/images/For Call.png",
+      href: "/services",
+    };
+  });
 
   return (
     <>
@@ -63,7 +98,10 @@ export default function HomePage() {
         href="/hero-atlas/villa-sm.webp"
         media="(max-width: 767px)"
       />
-      <HomeView />
+      <HomeView
+        initialFeaturedServices={featuredServices}
+        initialCuratedProjects={curatedProjects}
+      />
     </>
   );
 }

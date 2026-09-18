@@ -15,6 +15,7 @@ import {
   MapPin,
 } from "lucide-react";
 import type { AdminProject } from "@/types";
+import { ImageUploadField } from "@/components/admin/ui/ImageUploadField";
 
 interface ProjectsManagerProps {
   projects: AdminProject[];
@@ -336,23 +337,17 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-stone-600 font-medium mb-1">
-                  Cover Image URL
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editingProject.cover_image || ""}
-                  onChange={(e) =>
-                    setEditingProject({
-                      ...editingProject,
-                      cover_image: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900 font-mono"
-                />
-              </div>
+              <ImageUploadField
+                label="Cover Image"
+                folder="projects"
+                value={editingProject.cover_image || ""}
+                onChange={(url) =>
+                  setEditingProject({
+                    ...editingProject,
+                    cover_image: url,
+                  })
+                }
+              />
 
               <div>
                 <label className="block text-stone-600 font-medium mb-1">

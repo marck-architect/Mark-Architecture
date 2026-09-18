@@ -30,6 +30,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ServicesPage() {
-  return <ServicesView />;
+import { getPublicServices } from "@/lib/server/content";
+
+export const revalidate = 60;
+
+export default async function ServicesPage() {
+  const services = await getPublicServices();
+  return <ServicesView initialServices={services} />;
 }

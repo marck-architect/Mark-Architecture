@@ -33,13 +33,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AboutPage() {
-  const principal = leaders[0];
+import { getPublicTeam } from "@/lib/server/content";
+
+export const revalidate = 60;
+
+export default async function AboutPage() {
+  const {
+    leaders: dynamicLeaders,
+    achievements: dynamicAchievements,
+    studioLocations: dynamicLocations,
+  } = await getPublicTeam();
+
+  const principal = dynamicLeaders[0] || leaders[0];
   const personSchema = generatePersonSchema({
     name: principal.name,
     jobTitle: principal.role,
     description: principal.bio,
-    image: `${siteConfig.url}/images/profile.jpeg`,
+    image: principal.image?.startsWith("http")
+      ? principal.image
+      : `${siteConfig.url}${principal.image || "/images/profile.jpeg"}`,
     url: `${siteConfig.url}/about`,
     credentials: principal.credentials,
   });
@@ -47,7 +59,11 @@ export default function AboutPage() {
   return (
     <>
       <JsonLd data={personSchema} />
-      <AboutView />
+      <AboutView
+        initialLeaders={dynamicLeaders}
+        initialAchievements={dynamicAchievements}
+        initialStudioLocations={dynamicLocations}
+      />
     </>
   );
 }

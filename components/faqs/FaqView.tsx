@@ -18,17 +18,42 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import {
-  faqsData,
+  faqsData as fallbackFaqs,
   faqCategories,
   aeoQuickFacts,
   type FaqCategory,
 } from "@/data/faqs";
+import type { AdminFaq } from "@/types";
 
-export const FaqView: React.FC = () => {
+interface FaqViewProps {
+  initialFaqs?: (AdminFaq | any)[];
+}
+
+export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
   const { showToast } = useStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] =
     useState<FaqCategory["key"]>("all");
+
+  const faqsData = useMemo(() => {
+    const source =
+      initialFaqs && initialFaqs.length > 0 ? initialFaqs : fallbackFaqs;
+    return source.map((f: any, idx: number) => ({
+      id: f.id || `faq-${idx}`,
+      category: f.category || "general",
+      question: f.question,
+      shortAnswer: f.shortAnswer || f.answer || "",
+      fullAnswer:
+        Array.isArray(f.fullAnswer) && f.fullAnswer.length > 0
+          ? f.fullAnswer
+          : [f.answer || ""],
+      keywords: Array.isArray(f.keywords)
+        ? f.keywords
+        : ["architecture", "mark-architects"],
+      relatedLinks: f.relatedLinks || [],
+    }));
+  }, [initialFaqs]);
+
   // Single-open accordion: only one answer expanded at a time, so a
   // non-technical visitor is never scanning several long answer blocks at
   // once — opening a new question closes whichever was open before.
@@ -80,8 +105,8 @@ export const FaqView: React.FC = () => {
       const matchesQuery =
         item.question.toLowerCase().includes(q) ||
         item.shortAnswer.toLowerCase().includes(q) ||
-        item.fullAnswer.some((ans) => ans.toLowerCase().includes(q)) ||
-        item.keywords.some((k) => k.toLowerCase().includes(q));
+        item.fullAnswer.some((ans: string) => ans.toLowerCase().includes(q)) ||
+        item.keywords.some((k: string) => k.toLowerCase().includes(q));
 
       return matchesCategory && matchesQuery;
     });
@@ -330,12 +355,17 @@ export const FaqView: React.FC = () => {
 
                           {/* Extended Nuanced Answer */}
                           <div className="space-y-2 pt-1 font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
-                            {faq.fullAnswer.map((para, pIdx) => (
-                              <p key={pIdx} className="flex items-start gap-2">
-                                <span className="text-tertiary mt-1">•</span>
-                                <span>{para}</span>
-                              </p>
-                            ))}
+                            {faq.fullAnswer.map(
+                              (para: string, pIdx: number) => (
+                                <p
+                                  key={pIdx}
+                                  className="flex items-start gap-2"
+                                >
+                                  <span className="text-tertiary mt-1">•</span>
+                                  <span>{para}</span>
+                                </p>
+                              ),
+                            )}
                           </div>
 
                           {/* Keywords & Entity Grounding */}
@@ -343,7 +373,7 @@ export const FaqView: React.FC = () => {
                             <span className="text-[10px] font-inter font-bold text-zinc-400 mr-1 uppercase tracking-wider">
                               Related:
                             </span>
-                            {faq.keywords.map((kw) => (
+                            {faq.keywords.map((kw: string) => (
                               <span
                                 key={kw}
                                 className="text-[10px] font-inter px-2 py-0.5 rounded-md bg-surface-container dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"

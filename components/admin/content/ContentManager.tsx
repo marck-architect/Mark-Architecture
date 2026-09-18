@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   HelpCircle,
   Plus,
@@ -24,6 +24,31 @@ export const ContentManager: React.FC = () => {
   const [faqs, setFaqs] = useState<AdminFaq[]>(seedFaqs);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+
+  // Load dynamic data from APIs
+  useEffect(() => {
+    // 1. FAQs
+    fetch("/api/admin/faqs")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+          setFaqs(data.data);
+        }
+      })
+      .catch((err) => console.warn("Notice: Fetching FAQs fallback:", err));
+
+    // 2. Studio copy
+    fetch("/api/admin/content?section=about_studio")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data) {
+          setStudioCopy((prev) => ({ ...prev, ...data.data }));
+        }
+      })
+      .catch((err) =>
+        console.warn("Notice: Fetching studio copy fallback:", err),
+      );
+  }, []);
 
   // FAQ Modal state
   const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
@@ -166,10 +191,22 @@ export const ContentManager: React.FC = () => {
     setIsFaqModalOpen(false);
   };
 
-  const handleSaveStudioProfile = (e: React.FormEvent) => {
+  const handleSaveStudioProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStudioSaved(true);
-    setTimeout(() => setStudioSaved(false), 3000);
+    try {
+      await fetch("/api/admin/content", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section_key: "about_studio",
+          content: studioCopy,
+        }),
+      });
+      setStudioSaved(true);
+      setTimeout(() => setStudioSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save studio profile copy:", err);
+    }
   };
 
   return (

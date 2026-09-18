@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Search, X, Edit2, Trash2, Mail } from "lucide-react";
 import type { AdminTeamMember } from "@/types";
 import { seedTeamMembers } from "@/data/adminSeed";
+import { ImageUploadField } from "@/components/admin/ui/ImageUploadField";
 
 export const TeamManager: React.FC = () => {
   const [team, setTeam] = useState<AdminTeamMember[]>(seedTeamMembers);
@@ -23,6 +24,19 @@ export const TeamManager: React.FC = () => {
     email: "",
     is_active: true,
   });
+
+  useEffect(() => {
+    fetch("/api/admin/team")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+          setTeam(data.data);
+        }
+      })
+      .catch((err) =>
+        console.warn("Notice: Fetching team members fallback:", err),
+      );
+  }, []);
 
   const filteredTeam = team.filter((m) => {
     if (!searchTerm) return true;
@@ -352,20 +366,14 @@ export const TeamManager: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-stone-700 font-medium mb-1">
-                  Photo URL
-                </label>
-                <input
-                  type="text"
-                  value={formData.photo_url}
-                  onChange={(e) =>
-                    setFormData({ ...formData, photo_url: e.target.value })
-                  }
-                  placeholder="/images/... or https://..."
-                  className="w-full p-2.5 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] font-mono"
-                />
-              </div>
+              <ImageUploadField
+                label="Portrait Photo"
+                folder="team"
+                shape="circle"
+                value={formData.photo_url}
+                onChange={(url) => setFormData({ ...formData, photo_url: url })}
+                hint="Auto-centered circular portrait optimized for team & leadership profiles."
+              />
 
               <div>
                 <label className="block text-stone-700 font-medium mb-1">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -8,6 +8,7 @@ import { FullHouseCalculator } from "@/components/calculator/FullHouseCalculator
 import { useStore } from "@/hooks/useStore";
 import { SafepayService } from "@/lib/safepay";
 import { Clock, CheckCircle2, ArrowRight, X, Send } from "lucide-react";
+import type { AdminService } from "@/types";
 
 type PlotSize = "5 Marla" | "10 Marla" | "1 Kanal";
 
@@ -32,7 +33,7 @@ interface ServiceData {
   tiers?: Tier[];
 }
 
-const serviceCatalog: ServiceData[] = [
+const fallbackServiceCatalog: ServiceData[] = [
   {
     id: "consultation",
     slug: "online-consultation",
@@ -353,7 +354,48 @@ const serviceCatalog: ServiceData[] = [
   },
 ];
 
-export const ServicesView: React.FC = () => {
+interface ServicesViewProps {
+  initialServices?: (AdminService | any)[];
+}
+
+export const ServicesView: React.FC<ServicesViewProps> = ({
+  initialServices,
+}) => {
+  const serviceCatalog = useMemo<ServiceData[]>(() => {
+    if (!initialServices || initialServices.length === 0) {
+      return fallbackServiceCatalog;
+    }
+
+    return initialServices.map((s: any) => {
+      if (s.shortDesc && s.tiers) return s as ServiceData;
+
+      return {
+        id: s.slug || s.id,
+        slug: s.slug,
+        title: s.title,
+        category: s.category || "Architectural Service",
+        popularityRank: s.popularity_rank || 99,
+        shortDesc: s.short_description || s.shortDesc || "",
+        image:
+          s.image_url || s.image || "/images/Full House Design Package.png",
+        pricingType: s.pricing_model || s.pricingType || "flat",
+        tiers:
+          s.tiers && s.tiers.length > 0
+            ? s.tiers.map((t: any) => ({
+                name: t.name,
+                deliveryTime: t.delivery_days
+                  ? `${t.delivery_days} Days`
+                  : t.deliveryTime || "Prompt",
+                details: t.description || t.details || "",
+                deliverables: t.deliverables || [],
+                pricePKR: Number(t.base_price_pkr ?? t.pricePKR) || undefined,
+                priceByPlot: t.priceByPlot,
+              }))
+            : undefined,
+      };
+    });
+  }, [initialServices]);
+
   const { addToCart, setCartDrawerOpen, showToast } = useStore();
 
   // Selected plot size state for size-based services
@@ -456,11 +498,13 @@ export const ServicesView: React.FC = () => {
             </h1>
             <p
               className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-              style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+              style={{
+                fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+              }}
             >
-              Clear pricing for every service we offer, for projects in
-              Pakistan and abroad. All prices are in PKR, and checkout is
-              secure through Safepay.
+              Clear pricing for every service we offer, for projects in Pakistan
+              and abroad. All prices are in PKR, and checkout is secure through
+              Safepay.
             </p>
           </div>
         </ScrollReveal>

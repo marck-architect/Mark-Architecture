@@ -30,6 +30,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CollectionPage() {
-  return <CollectionView />;
+import { getPublicCollection } from "@/lib/server/content";
+
+export const revalidate = 60;
+
+export default async function CollectionPage() {
+  const packages = await getPublicCollection();
+  return <CollectionView initialPackages={packages} />;
 }

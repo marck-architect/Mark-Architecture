@@ -6,13 +6,40 @@ import Link from "next/link";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { MapPin, ShieldCheck, ArrowDown } from "lucide-react";
 
-import { leaders, achievements, studioLocations } from "@/data/about";
+import {
+  leaders as fallbackLeaders,
+  achievements as fallbackAchievements,
+  studioLocations as fallbackStudioLocations,
+} from "@/data/about";
+import type { Leader, Achievement, StudioLocation } from "@/types";
 
 const Metric: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <span className="text-tertiary font-semibold">{children}</span>
 );
 
-export const AboutView: React.FC = () => {
+interface AboutViewProps {
+  initialLeaders?: Leader[];
+  initialAchievements?: Achievement[];
+  initialStudioLocations?: StudioLocation[];
+}
+
+export const AboutView: React.FC<AboutViewProps> = ({
+  initialLeaders,
+  initialAchievements,
+  initialStudioLocations,
+}) => {
+  const leaders =
+    initialLeaders && initialLeaders.length > 0
+      ? initialLeaders
+      : fallbackLeaders;
+  const achievements =
+    initialAchievements && initialAchievements.length > 0
+      ? initialAchievements
+      : fallbackAchievements;
+  const studioLocations =
+    initialStudioLocations && initialStudioLocations.length > 0
+      ? initialStudioLocations
+      : fallbackStudioLocations;
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
       {/* Whole-screen Hero Section (Full Initial Page down to View Selected Works) */}

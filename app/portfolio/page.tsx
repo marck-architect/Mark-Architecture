@@ -30,6 +30,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PortfolioPage() {
-  return <PortfolioView />;
+import { getPublicProjects } from "@/lib/server/content";
+
+export const revalidate = 60;
+
+export default async function PortfolioPage() {
+  const projects = await getPublicProjects();
+  return <PortfolioView initialProjects={projects} />;
 }
