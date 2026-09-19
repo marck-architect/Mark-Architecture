@@ -32,8 +32,70 @@ interface FaqViewProps {
 export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
   const { showToast } = useStore();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] =
-    useState<FaqCategory["key"]>("all");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+
+  const categoriesList = useMemo(() => {
+    const list: { key: string; label: string; description?: string }[] = [
+      ...faqCategories,
+    ];
+
+    if (initialFaqs && Array.isArray(initialFaqs)) {
+      initialFaqs.forEach((f: any) => {
+        if (!f.category) return;
+        const cat = String(f.category).trim();
+        const exists = list.some(
+          (c) =>
+            c.key.toLowerCase() === cat.toLowerCase() ||
+            c.label.toLowerCase() === cat.toLowerCase(),
+        );
+        if (!exists) {
+          list.push({
+            key: cat.toLowerCase().replace(/\s+/g, "-"),
+            label: cat,
+            description: `Questions and guidelines about ${cat}.`,
+          });
+        }
+      });
+    }
+
+    return list;
+  }, [initialFaqs]);
+
+  const isCategoryMatch = (itemCat: string, targetKey: string) => {
+    if (targetKey === "all") return true;
+    const itemLower = (itemCat || "").toLowerCase().trim();
+    const targetLower = (targetKey || "").toLowerCase().trim();
+    if (itemLower === targetLower) return true;
+    if (itemLower.replace(/\s+/g, "-") === targetLower) return true;
+    if (
+      targetLower === "pricing" &&
+      (itemLower.includes("pricing") || itemLower.includes("payment"))
+    )
+      return true;
+    if (
+      targetLower === "consultation" &&
+      (itemLower.includes("consult") || itemLower.includes("booking"))
+    )
+      return true;
+    if (
+      targetLower === "approvals" &&
+      (itemLower.includes("approval") ||
+        itemLower.includes("pda") ||
+        itemLower.includes("cda"))
+    )
+      return true;
+    if (
+      targetLower === "drawings" &&
+      (itemLower.includes("drawing") || itemLower.includes("deliverable"))
+    )
+      return true;
+    if (
+      targetLower === "passive-solar" &&
+      (itemLower.includes("solar") || itemLower.includes("passive"))
+    )
+      return true;
+    return false;
+  };
 
   const faqsData = useMemo(() => {
     const source =
@@ -94,8 +156,7 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
   // Filtered questions based on search and category
   const filteredFaqs = useMemo(() => {
     return faqsData.filter((item) => {
-      const matchesCategory =
-        activeCategory === "all" || item.category === activeCategory;
+      const matchesCategory = isCategoryMatch(item.category, activeCategory);
 
       if (!searchQuery.trim()) {
         return matchesCategory;
@@ -110,7 +171,7 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
 
       return matchesCategory && matchesQuery;
     });
-  }, [searchQuery, activeCategory]);
+  }, [searchQuery, activeCategory, faqsData]);
 
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
@@ -171,12 +232,13 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
       >
         {/* Category Navigation Pills */}
         <div className="flex flex-wrap gap-2 mb-10">
-          {faqCategories.map((cat) => {
+          {categoriesList.map((cat) => {
             const isActive = activeCategory === cat.key;
             const count =
               cat.key === "all"
                 ? faqsData.length
-                : faqsData.filter((f) => f.category === cat.key).length;
+                : faqsData.filter((f) => isCategoryMatch(f.category, cat.key))
+                    .length;
 
             return (
               <button
@@ -230,16 +292,23 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
         {filteredFaqs.length === 0 ? (
           <div className="text-center py-20 bg-surface-container-low dark:bg-zinc-900/40 rounded-3xl border border-outline-variant/30 space-y-4">
             <div className="w-12 h-12 rounded-full bg-tertiary/10 text-tertiary flex items-center justify-center mx-auto">
-              <SearchX className="w-5 h-5" />
+              {faqsData.length === 0 ? (
+                <HelpCircle className="w-5 h-5" />
+              ) : (
+                <SearchX className="w-5 h-5" />
+              )}
             </div>
             <p className="font-playfair text-2xl font-bold text-secondary dark:text-zinc-200">
-              No matching questions found.
+              {faqsData.length === 0
+                ? "No questions published yet."
+                : "No matching questions found."}
             </p>
             <p className="font-inter text-sm text-zinc-500 max-w-md mx-auto">
-              We couldn&apos;t find an answer matching &ldquo;{searchQuery}
-              &rdquo;. Our principal architects are available for a direct
-              1-on-1 strategy call.
+              {faqsData.length === 0
+                ? "Frequently asked questions and client guidelines will appear here once published from the admin dashboard."
+                : `We couldn't find an answer matching "${searchQuery}". Our principal architects are available for a direct 1-on-1 strategy call.`}
             </p>
+
             <div className="pt-2">
               <Link
                 href="/consultation"

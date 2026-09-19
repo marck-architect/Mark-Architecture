@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
 import { logAdminAction } from "@/lib/server/audit";
-import { seedFaqs } from "@/data/adminSeed";
 
 export const runtime = "nodejs";
 
@@ -16,12 +15,12 @@ export async function GET() {
       .select("*")
       .order("display_order", { ascending: true });
 
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return NextResponse.json({ success: true, data });
     }
-    return NextResponse.json({ success: true, data: seedFaqs });
+    return NextResponse.json({ success: true, data: [] });
   } catch (err: unknown) {
-    return NextResponse.json({ success: true, data: seedFaqs });
+    return NextResponse.json({ success: true, data: [] });
   }
 }
 

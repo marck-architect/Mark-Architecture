@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
-import { seedNotifications } from "@/data/adminSeed";
 
 export const runtime = "nodejs";
 
@@ -19,9 +18,9 @@ export async function GET() {
     if (!error && data && data.length > 0) {
       return NextResponse.json({ success: true, data });
     }
-    return NextResponse.json({ success: true, data: seedNotifications });
+    return NextResponse.json({ success: true, data: [] });
   } catch (err: unknown) {
-    return NextResponse.json({ success: true, data: seedNotifications });
+    return NextResponse.json({ success: true, data: [] });
   }
 }
 

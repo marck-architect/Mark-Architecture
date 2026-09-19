@@ -10,10 +10,9 @@ import {
   Clock,
 } from "lucide-react";
 import type { CommunicationLog } from "@/types";
-import { seedCommunicationLogs } from "@/data/adminSeed";
 
 export const CommunicationsManager: React.FC = () => {
-  const [logs, setLogs] = useState<CommunicationLog[]>(seedCommunicationLogs);
+  const [logs, setLogs] = useState<CommunicationLog[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);

@@ -2,11 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Calendar,
   Clock,
   Briefcase,
+  Banknote,
   FolderGit2,
   Layers,
   Users,
@@ -19,8 +21,6 @@ import {
   BarChart3,
   Settings,
   ShieldAlert,
-  ChevronLeft,
-  ChevronRight,
   X,
   ExternalLink,
 } from "lucide-react";
@@ -29,8 +29,8 @@ import type { AdminTabType } from "@/types";
 interface AdminSidebarProps {
   activeTab: AdminTabType;
   onTabChange: (tab: AdminTabType) => void;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
   mobileOpen: boolean;
   onMobileClose: () => void;
   pendingCount?: number;
@@ -48,7 +48,7 @@ interface NavItem {
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   activeTab,
   onTabChange,
-  isCollapsed,
+  isCollapsed = true,
   onToggleCollapse,
   mobileOpen,
   onMobileClose,
@@ -73,6 +73,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: "Studio Operations",
       items: [
         { id: "services", label: "Services & Tiers", icon: Briefcase },
+        { id: "pricing", label: "Pricing & Formulas", icon: Banknote },
         { id: "projects", label: "Portfolio Projects", icon: FolderGit2 },
         { id: "collection", label: "Curated Collection", icon: Layers },
         { id: "clients", label: "Client Directory", icon: Users },
@@ -99,6 +100,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
   ];
 
+  // Always collapsed by default; expands only when hovered or opened on mobile
+  const [isHovered, setIsHovered] = React.useState(false);
+  const isExpanded = mobileOpen || isHovered;
+
   const handleSelect = (id: AdminTabType) => {
     onTabChange(id);
     onMobileClose();
@@ -114,47 +119,47 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container: always compact icon rail by default, smoothly expands on mouse hover */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#FCF8F8] border-r border-stone-200/90 transition-all duration-300 font-inter ${
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#FCF8F8] border-r border-stone-200/90 transition-all duration-300 ease-in-out font-inter ${
           mobileOpen
             ? "translate-x-0 w-72"
             : "-translate-x-full lg:translate-x-0"
-        } ${isCollapsed ? "lg:w-20" : "lg:w-64"}`}
+        } ${
+          isExpanded
+            ? "lg:w-64 shadow-2xl ring-1 ring-stone-900/15"
+            : "lg:w-20 shadow-xs"
+        }`}
       >
         {/* Brand Header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-stone-200/80 bg-stone-50/50">
+        <div className="h-16 px-4 flex items-center justify-between border-b border-stone-200/80 bg-stone-50/50 transition-all">
           <Link
             href="/admin"
             className="flex items-center gap-2.5 overflow-hidden focus:outline-none"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#1C1B1B] flex items-center justify-center text-[#D4AF37] font-playfair font-bold text-base shrink-0 shadow-xs">
-              M
+            <div className="w-8 h-8 rounded-lg bg-[#1C1B1B] p-1.5 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
+              <Image
+                src="/images/mark-emblem-white.png"
+                alt="MARK Architects Logo"
+                width={28}
+                height={28}
+                className="w-full h-full object-contain"
+                priority
+              />
             </div>
-            {(!isCollapsed || mobileOpen) && (
-              <div className="flex flex-col">
-                <span className="font-playfair text-sm font-semibold tracking-wide text-stone-900 leading-tight">
+            {isExpanded && (
+              <div className="flex flex-col animate-in fade-in duration-200">
+                <span className="font-playfair text-sm font-semibold tracking-wide text-stone-900 leading-tight whitespace-nowrap">
                   MARK Architects
                 </span>
-                <span className="text-[10px] uppercase font-mono tracking-widest text-[#7E5714]">
+                <span className="text-[10px] uppercase font-mono tracking-widest text-[#7E5714] whitespace-nowrap">
                   Studio Atelier
                 </span>
               </div>
             )}
           </Link>
-
-          {/* Desktop Collapse Button */}
-          <button
-            onClick={onToggleCollapse}
-            className="hidden lg:flex p-1.5 rounded-lg text-stone-500 hover:text-stone-900 hover:bg-stone-200/60 transition-colors cursor-pointer"
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </button>
 
           {/* Mobile Close Button */}
           <button
@@ -169,8 +174,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin">
           {navSections.map((section, sIdx) => (
             <div key={sIdx} className="space-y-1">
-              {section.title && (!isCollapsed || mobileOpen) && (
-                <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 font-mono">
+              {section.title && isExpanded && (
+                <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 font-mono animate-in fade-in duration-150">
                   {section.title}
                 </div>
               )}
@@ -183,12 +188,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => handleSelect(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer text-left group ${
+                    className={`w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer text-left group ${
+                      isExpanded
+                        ? "gap-3 px-3 py-2.5 justify-start"
+                        : "justify-center px-2 py-2.5"
+                    } ${
                       isActive
                         ? "bg-[#1C1B1B] text-white shadow-xs font-semibold"
                         : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/50"
                     }`}
-                    title={isCollapsed && !mobileOpen ? item.label : undefined}
+                    title={!isExpanded ? item.label : undefined}
                   >
                     <Icon
                       className={`w-4 h-4 shrink-0 transition-transform ${
@@ -198,21 +207,22 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                       }`}
                     />
 
-                    {(!isCollapsed || mobileOpen) && (
-                      <span className="truncate flex-1">{item.label}</span>
+                    {isExpanded && (
+                      <span className="truncate flex-1 animate-in fade-in duration-150">
+                        {item.label}
+                      </span>
                     )}
 
-                    {(!isCollapsed || mobileOpen) &&
-                      item.badge !== undefined && (
-                        <span
-                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${
-                            item.badgeColor ||
-                            "bg-stone-100 text-stone-700 border-stone-200"
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
+                    {isExpanded && item.badge !== undefined && (
+                      <span
+                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border animate-in fade-in duration-150 ${
+                          item.badgeColor ||
+                          "bg-stone-100 text-stone-700 border-stone-200"
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -225,11 +235,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           <Link
             href="/"
             target="_blank"
-            className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-100 text-stone-700 hover:text-stone-900 text-xs font-medium transition-all shadow-2xs group"
+            className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-100 text-stone-700 hover:text-stone-900 text-xs font-medium transition-all shadow-2xs group ${
+              isExpanded ? "px-3" : "px-2"
+            }`}
+            title="Open Live Public Website"
           >
-            <ExternalLink className="w-3.5 h-3.5 text-[#7E5714] group-hover:scale-110 transition-transform" />
-            {(!isCollapsed || mobileOpen) && (
-              <span>Live Architecture Website</span>
+            <ExternalLink className="w-3.5 h-3.5 text-[#7E5714] group-hover:scale-110 transition-transform shrink-0" />
+            {isExpanded && (
+              <span className="whitespace-nowrap animate-in fade-in duration-150">
+                Live Architecture Website
+              </span>
             )}
           </Link>
         </div>

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
 import { processAndUploadFile, STORAGE_BUCKET } from "@/lib/server/storage";
 import { logAdminAction } from "@/lib/server/audit";
-import { seedMediaAssets } from "@/data/adminSeed";
 
 export const runtime = "nodejs";
 
@@ -37,16 +36,16 @@ export async function GET() {
         });
         return NextResponse.json({
           success: true,
-          data: [...assets, ...seedMediaAssets],
+          data: assets,
         });
       }
     } catch {
-      // Fall through to seed media
+      // Fall through to empty list
     }
 
-    return NextResponse.json({ success: true, data: seedMediaAssets });
+    return NextResponse.json({ success: true, data: [] });
   } catch (err: unknown) {
-    return NextResponse.json({ success: true, data: seedMediaAssets });
+    return NextResponse.json({ success: true, data: [] });
   }
 }
 

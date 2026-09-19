@@ -198,6 +198,18 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               </motion.div>
             ))}
           </AnimatePresence>
+
+          {filteredProjects.length === 0 && (
+            <div className="col-span-full py-24 text-center border border-dashed border-outline-variant/30 rounded-3xl p-8 bg-surface-container-low/40 dark:bg-zinc-900/30">
+              <p className="font-playfair text-2xl text-on-surface dark:text-zinc-200">
+                No architectural projects published yet
+              </p>
+              <p className="font-inter text-sm text-zinc-500 mt-2 max-w-md mx-auto">
+                Completed and ongoing masterpieces will appear here once
+                published from the admin dashboard.
+              </p>
+            </div>
+          )}
         </div>
       </section>
     </div>

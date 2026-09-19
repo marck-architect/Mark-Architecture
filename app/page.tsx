@@ -45,15 +45,20 @@ export const metadata: Metadata = {
   },
 };
 
-import { getPublicProjects, getPublicServices } from "@/lib/server/content";
+import {
+  getPublicProjects,
+  getPublicServices,
+  getPublicTestimonials,
+} from "@/lib/server/content";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
   const orgSchema = generateOrganizationSchema();
-  const [projectsData, servicesData] = await Promise.all([
+  const [projectsData, servicesData, testimonialsData] = await Promise.all([
     getPublicProjects(),
     getPublicServices(),
+    getPublicTestimonials(),
   ]);
 
   const curatedProjects = projectsData.slice(0, 3).map((p) => ({
@@ -101,6 +106,7 @@ export default async function HomePage() {
       <HomeView
         initialFeaturedServices={featuredServices}
         initialCuratedProjects={curatedProjects}
+        initialTestimonials={testimonialsData}
       />
     </>
   );

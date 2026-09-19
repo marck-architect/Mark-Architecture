@@ -54,11 +54,12 @@ export default async function FaqsPage() {
         }))
       : faqsData;
 
-  const faqSchema = generateFaqSchema(schemaInput);
+  const faqSchema =
+    schemaInput.length > 0 ? generateFaqSchema(schemaInput) : null;
 
   return (
     <>
-      <JsonLd data={faqSchema} />
+      {faqSchema && <JsonLd data={faqSchema} />}
       <FaqView initialFaqs={faqs} />
     </>
   );

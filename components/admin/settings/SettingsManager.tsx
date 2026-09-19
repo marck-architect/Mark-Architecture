@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { CreditCard, Video, CheckCircle2, Globe, Save } from "lucide-react";
+import {
+  CreditCard,
+  Video,
+  CheckCircle2,
+  Globe,
+  Save,
+  Database,
+  UploadCloud,
+  RefreshCw,
+  AlertCircle,
+  FolderSync,
+} from "lucide-react";
 
 interface SettingsManagerProps {
   adminEmail: string;
@@ -12,6 +23,25 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
 }) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [saveToast, setSaveToast] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedResult, setSeedResult] = useState<any>(null);
+  const [seedError, setSeedError] = useState<string | null>(null);
+
+  const handleRunSeed = async () => {
+    setIsSeeding(true);
+    setSeedError(null);
+    setSeedResult(null);
+    try {
+      const res = await fetch("/api/admin/seed", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to seed database.");
+      setSeedResult(data);
+    } catch (err: any) {
+      setSeedError(err.message || "Failed to seed database and storage.");
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   const [settings, setSettings] = useState({
     studioName: "MARK Architects",
@@ -293,6 +323,145 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
           </button>
         </div>
       </form>
+
+      {/* Supabase CMS Database & Storage Asset Sync Tool */}
+      <div className="bg-[#1C1B1B] text-stone-100 border border-stone-800 p-6 sm:p-8 rounded-2xl shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800 pb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#7E5714]/20 border border-[#7E5714]/40 flex items-center justify-center text-[#D4AF37]">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-playfair text-lg font-semibold text-white">
+                Supabase Database &amp; Storage Asset Seeder
+              </h3>
+              <p className="text-xs text-stone-400 mt-0.5">
+                Upload all local project renders, blueprints &amp; team photos
+                to Supabase Storage and populate database tables.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            disabled={isSeeding}
+            onClick={handleRunSeed}
+            className={`px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+              isSeeding
+                ? "bg-stone-800 text-stone-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-[#7E5714] to-[#D4AF37] hover:from-[#684710] hover:to-[#b8972f] text-stone-950 font-bold shadow-md active:scale-95"
+            }`}
+          >
+            {isSeeding ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Seeding Database &amp; Storage...</span>
+              </>
+            ) : (
+              <>
+                <UploadCloud className="w-4 h-4" />
+                <span>Seed Database &amp; Upload Images</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div className="bg-stone-900/80 border border-stone-800/80 p-4 rounded-xl space-y-1">
+            <span className="text-[10px] font-mono text-stone-400 uppercase tracking-wider block">
+              1. Storage Assets
+            </span>
+            <p className="text-stone-200 font-medium">
+              Transfers all drawings &amp; elevations to the &lsquo;media&rsquo;
+              public bucket.
+            </p>
+          </div>
+
+          <div className="bg-stone-900/80 border border-stone-800/80 p-4 rounded-xl space-y-1">
+            <span className="text-[10px] font-mono text-stone-400 uppercase tracking-wider block">
+              2. Content CMS Tables
+            </span>
+            <p className="text-stone-200 font-medium">
+              Populates Projects, Services, Collection, Team, FAQs &amp;
+              Testimonials.
+            </p>
+          </div>
+
+          <div className="bg-stone-900/80 border border-stone-800/80 p-4 rounded-xl space-y-1">
+            <span className="text-[10px] font-mono text-stone-400 uppercase tracking-wider block">
+              3. Dynamic UI Binding
+            </span>
+            <p className="text-stone-200 font-medium">
+              Revalidates Next.js pages with CDN URLs editable from this
+              dashboard.
+            </p>
+          </div>
+        </div>
+
+        {/* Error Alert */}
+        {seedError && (
+          <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-200 text-xs flex items-start gap-3 animate-in fade-in">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-semibold text-rose-300">Seeding Notice</p>
+              <p className="text-stone-300 leading-relaxed">{seedError}</p>
+              <p className="text-[11px] text-stone-400 pt-1">
+                Tip: If database tables or storage policies are not yet
+                configured in Supabase, run the migration in{" "}
+                <code className="text-amber-300 font-mono">
+                  supabase/schema_full_cms.sql
+                </code>{" "}
+                via the Supabase SQL Editor.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Success Report */}
+        {seedResult && (
+          <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-200 text-xs space-y-3 animate-in fade-in">
+            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{seedResult.message}</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div className="bg-stone-900/60 p-2.5 rounded-lg border border-stone-800 text-center">
+                <span className="text-stone-400 text-[10px] uppercase font-mono block">
+                  Images Uploaded
+                </span>
+                <span className="text-base font-bold text-white font-mono">
+                  {seedResult.uploadedImagesCount}
+                </span>
+              </div>
+              <div className="bg-stone-900/60 p-2.5 rounded-lg border border-stone-800 text-center">
+                <span className="text-stone-400 text-[10px] uppercase font-mono block">
+                  Projects Seeded
+                </span>
+                <span className="text-base font-bold text-white font-mono">
+                  {seedResult.seeded?.projects}
+                </span>
+              </div>
+              <div className="bg-stone-900/60 p-2.5 rounded-lg border border-stone-800 text-center">
+                <span className="text-stone-400 text-[10px] uppercase font-mono block">
+                  Services Seeded
+                </span>
+                <span className="text-base font-bold text-white font-mono">
+                  {seedResult.seeded?.services}
+                </span>
+              </div>
+              <div className="bg-stone-900/60 p-2.5 rounded-lg border border-stone-800 text-center">
+                <span className="text-stone-400 text-[10px] uppercase font-mono block">
+                  Collection Seeded
+                </span>
+                <span className="text-base font-bold text-white font-mono">
+                  {seedResult.seeded?.collection}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

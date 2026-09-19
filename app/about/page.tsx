@@ -35,7 +35,8 @@ export const metadata: Metadata = {
 
 import { getPublicTeam } from "@/lib/server/content";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function AboutPage() {
   const {
@@ -45,20 +46,23 @@ export default async function AboutPage() {
   } = await getPublicTeam();
 
   const principal = dynamicLeaders[0] || leaders[0];
-  const personSchema = generatePersonSchema({
-    name: principal.name,
-    jobTitle: principal.role,
-    description: principal.bio,
-    image: principal.image?.startsWith("http")
-      ? principal.image
-      : `${siteConfig.url}${principal.image || "/images/profile.jpeg"}`,
-    url: `${siteConfig.url}/about`,
-    credentials: principal.credentials,
-  });
+  const personSchema = principal
+    ? generatePersonSchema({
+        name: principal.name,
+        jobTitle: principal.role,
+        description: principal.bio,
+        image: principal.image?.startsWith("http")
+          ? principal.image
+          : `${siteConfig.url}${principal.image || "/images/profile-removebg-preview.png"}`,
+        url: `${siteConfig.url}/about`,
+        credentials: principal.credentials,
+      })
+    : null;
 
   return (
     <>
-      <JsonLd data={personSchema} />
+      {personSchema && <JsonLd data={personSchema} />}
+
       <AboutView
         initialLeaders={dynamicLeaders}
         initialAchievements={dynamicAchievements}

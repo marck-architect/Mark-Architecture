@@ -1,24 +1,27 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Image from "next/image";
 import {
   Upload,
-  Search,
-  Copy,
+  Image as ImageIcon,
+  File,
   Trash2,
+  Copy,
+  Check,
+  Search,
+  ExternalLink,
   Grid,
   List,
-  Eye,
   X,
-  FileText,
   AlertCircle,
+  Eye,
+  FileText,
 } from "lucide-react";
 import type { MediaAsset } from "@/types";
-import { seedMediaAssets } from "@/data/adminSeed";
 
 export const MediaLibraryManager: React.FC = () => {
-  const [assets, setAssets] = useState<MediaAsset[]>(seedMediaAssets);
+  const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedAsset, setSelectedAsset] = useState<MediaAsset | null>(null);
@@ -26,6 +29,17 @@ export const MediaLibraryManager: React.FC = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/media")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data && Array.isArray(data.data)) {
+          setAssets(data.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Filtered Assets
   const filteredAssets = useMemo(() => {

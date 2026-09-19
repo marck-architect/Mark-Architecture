@@ -4,11 +4,10 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Search, X, Edit2, Trash2, Mail } from "lucide-react";
 import type { AdminTeamMember } from "@/types";
-import { seedTeamMembers } from "@/data/adminSeed";
 import { ImageUploadField } from "@/components/admin/ui/ImageUploadField";
 
 export const TeamManager: React.FC = () => {
-  const [team, setTeam] = useState<AdminTeamMember[]>(seedTeamMembers);
+  const [team, setTeam] = useState<AdminTeamMember[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<AdminTeamMember | null>(
@@ -25,17 +24,28 @@ export const TeamManager: React.FC = () => {
     is_active: true,
   });
 
-  useEffect(() => {
-    fetch("/api/admin/team")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const fetchTeam = async () => {
+    try {
+      const res = await fetch("/api/admin/team");
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.data && Array.isArray(data.data)) {
           setTeam(data.data);
         }
-      })
-      .catch((err) =>
-        console.warn("Notice: Fetching team members fallback:", err),
-      );
+      }
+    } catch (err) {
+      console.warn("Notice: Fetching team members fallback:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeam();
   }, []);
 
   const filteredTeam = team.filter((m) => {
@@ -57,7 +67,7 @@ export const TeamManager: React.FC = () => {
       credentials: "",
       bio: "",
       specialization: "",
-      photo_url: "/images/Full House Design Package.png",
+      photo_url: "/images/profile.jpeg",
       email: "",
       is_active: true,
     });
@@ -69,10 +79,10 @@ export const TeamManager: React.FC = () => {
     setFormData({
       name: m.name,
       role: m.role,
-      credentials: m.credentials,
-      bio: m.bio,
+      credentials: m.credentials || "",
+      bio: m.bio || "",
       specialization: m.specialization || "",
-      photo_url: m.photo_url,
+      photo_url: m.photo_url || "/images/profile.jpeg",
       email: m.email || "",
       is_active: m.is_active,
     });
@@ -89,6 +99,10 @@ export const TeamManager: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: !current }),
       });
+      setFeedback({
+        type: "success",
+        message: `Member status updated to ${!current ? "Active" : "Hidden"}.`,
+      });
     } catch {
       // Ignored
     }
@@ -99,6 +113,10 @@ export const TeamManager: React.FC = () => {
     setTeam((prev) => prev.filter((m) => m.id !== id));
     try {
       await fetch(`/api/admin/team/${id}`, { method: "DELETE" });
+      setFeedback({
+        type: "success",
+        message: "Team member removed from studio directory.",
+      });
     } catch {
       // Ignored
     }
@@ -108,43 +126,71 @@ export const TeamManager: React.FC = () => {
     e.preventDefault();
     if (!formData.name || !formData.role) return;
 
-    if (editingMember) {
-      const updated: AdminTeamMember = {
-        ...editingMember,
-        ...formData,
-      };
-      setTeam((prev) =>
-        prev.map((m) => (m.id === editingMember.id ? updated : m)),
-      );
-      try {
-        await fetch(`/api/admin/team/${editingMember.id}`, {
+    setIsSaving(true);
+    setFeedback(null);
+
+    try {
+      if (editingMember) {
+        const res = await fetch(`/api/admin/team/${editingMember.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         });
-      } catch {
-        // Ignored
-      }
-    } else {
-      const created: AdminTeamMember = {
-        id: `tm_${Date.now()}`,
-        ...formData,
-        display_order: team.length + 1,
-        created_at: new Date().toISOString(),
-      };
-      setTeam([...team, created]);
-      try {
-        await fetch("/api/admin/team", {
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to update team member.");
+        }
+
+        const data = await res.json();
+        const savedMember: AdminTeamMember = data.data || {
+          ...editingMember,
+          ...formData,
+        };
+
+        setTeam((prev) =>
+          prev.map((m) => (m.id === editingMember.id ? savedMember : m)),
+        );
+
+        setFeedback({
+          type: "success",
+          message: `Updated profile for ${formData.name}. Changes are live on the About page.`,
+        });
+      } else {
+        const res = await fetch("/api/admin/team", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         });
-      } catch {
-        // Ignored
-      }
-    }
 
-    setIsModalOpen(false);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to create team member.");
+        }
+
+        const data = await res.json();
+        const newMember: AdminTeamMember = data.data || {
+          id: `tm_${Date.now()}`,
+          ...formData,
+          display_order: team.length + 1,
+          created_at: new Date().toISOString(),
+        };
+
+        setTeam((prev) => [...prev, newMember]);
+        setFeedback({
+          type: "success",
+          message: `Added ${formData.name} to the team. Changes are live on the About page.`,
+        });
+      }
+
+      setIsModalOpen(false);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "Save failed.";
+      setFeedback({ type: "error", message: errMsg });
+      alert(errMsg);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -173,6 +219,24 @@ export const TeamManager: React.FC = () => {
         </button>
       </div>
 
+      {feedback && (
+        <div
+          className={`p-4 rounded-sm border flex items-center justify-between text-sm ${
+            feedback.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-rose-50 border-rose-200 text-rose-800"
+          }`}
+        >
+          <span>{feedback.message}</span>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-xs uppercase font-mono tracking-wider font-semibold opacity-70 hover:opacity-100"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Search Bar */}
       <div className="bg-white border border-stone-200 p-4 rounded-sm shadow-sm flex items-center justify-between">
         <div className="relative w-full sm:w-80">
@@ -199,14 +263,12 @@ export const TeamManager: React.FC = () => {
           >
             <div>
               {/* Photo Banner */}
-              <div className="relative aspect-[4/3] bg-stone-100 overflow-hidden">
+              <div className="relative aspect-[3/4] max-h-80 bg-stone-100 overflow-hidden">
                 <Image
-                  src={
-                    member.photo_url || "/images/Full House Design Package.png"
-                  }
+                  src={member.photo_url || "/images/profile.jpeg"}
                   alt={member.name}
                   fill
-                  className="object-cover group-hover:scale-102 transition-transform duration-300"
+                  className="object-cover object-top group-hover:scale-102 transition-transform duration-300"
                   unoptimized
                 />
                 <div className="absolute top-3 right-3 flex items-center gap-2">
@@ -367,12 +429,14 @@ export const TeamManager: React.FC = () => {
               </div>
 
               <ImageUploadField
-                label="Portrait Photo"
+                label="Portrait Photo (Full View & Crop Available)"
                 folder="team"
-                shape="circle"
+                shape="rectangle"
+                aspectRatio="aspect-[3/4]"
+                objectFit="contain"
                 value={formData.photo_url}
                 onChange={(url) => setFormData({ ...formData, photo_url: url })}
-                hint="Auto-centered circular portrait optimized for team & leadership profiles."
+                hint="Upload portrait. Click 'Show Full Image' above to see uncropped full view."
               />
 
               <div>
@@ -424,16 +488,22 @@ export const TeamManager: React.FC = () => {
               <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-stone-200 text-stone-600 hover:bg-stone-50 rounded-sm transition-colors"
+                  className="px-4 py-2 border border-stone-200 text-stone-600 hover:bg-stone-50 rounded-sm transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#7E5714] hover:bg-[#684710] text-white font-medium rounded-sm transition-colors"
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-[#7E5714] hover:bg-[#684710] text-white font-medium rounded-sm transition-colors disabled:opacity-50 inline-flex items-center gap-2"
                 >
-                  {editingMember ? "Save Changes" : "Add Member"}
+                  {isSaving
+                    ? "Saving..."
+                    : editingMember
+                      ? "Save Changes"
+                      : "Add Member"}
                 </button>
               </div>
             </form>

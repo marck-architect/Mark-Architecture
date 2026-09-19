@@ -167,6 +167,11 @@ export async function processAndUploadFile({
 
   if (uploadError) {
     console.error("Supabase storage error:", uploadError);
+    if (uploadError.message?.toLowerCase().includes("bucket not found")) {
+      throw new Error(
+        `Supabase Storage bucket '${targetBucket}' was not found. Please create a public bucket named '${targetBucket}' in your Supabase Dashboard (Storage -> New Bucket -> Toggle Public) or run the SQL in 'supabase/create_buckets_only.sql'.`,
+      );
+    }
     throw new Error(
       `Failed to upload to Supabase storage: ${uploadError.message}`,
     );

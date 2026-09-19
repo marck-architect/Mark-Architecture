@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import Image from "next/image";
-import { Upload, X, Loader2, Image as ImageIcon, Link2 } from "lucide-react";
+import { Upload, X, Loader2, Link2, Maximize2, Minimize2 } from "lucide-react";
 import type { UploadFolder } from "@/lib/server/storage";
 
 interface ImageUploadFieldProps {
@@ -11,7 +11,8 @@ interface ImageUploadFieldProps {
   folder?: UploadFolder;
   label?: string;
   shape?: "rectangle" | "circle" | "square";
-  aspectRatio?: string; // e.g. "aspect-video", "aspect-square"
+  aspectRatio?: string; // e.g. "aspect-video", "aspect-square", "aspect-[3/4]"
+  objectFit?: "cover" | "contain";
   hint?: string;
 }
 
@@ -22,12 +23,14 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   label = "Cover Image",
   shape = "rectangle",
   aspectRatio = "aspect-video",
+  objectFit: initialObjectFit = "cover",
   hint = "PNG, JPG, WebP up to 25MB (Auto-optimized to high-resolution WebP)",
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showManualUrl, setShowManualUrl] = useState(false);
   const [manualUrl, setManualUrl] = useState(value);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [fitMode, setFitMode] = useState<"cover" | "contain">(initialObjectFit);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,14 +80,42 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
         <label className="block text-xs font-semibold text-stone-700 dark:text-zinc-300 uppercase tracking-wider">
           {label}
         </label>
-        <button
-          type="button"
-          onClick={() => setShowManualUrl(!showManualUrl)}
-          className="text-[11px] text-[#7E5714] dark:text-amber-500 hover:underline inline-flex items-center gap-1 cursor-pointer"
-        >
-          <Link2 className="w-3 h-3" />
-          <span>{showManualUrl ? "Upload File" : "Paste URL"}</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {value && (
+            <button
+              type="button"
+              onClick={() =>
+                setFitMode(fitMode === "cover" ? "contain" : "cover")
+              }
+              className="text-[11px] text-stone-500 hover:text-stone-800 dark:text-zinc-400 dark:hover:text-zinc-200 inline-flex items-center gap-1 cursor-pointer font-medium"
+              title={
+                fitMode === "cover"
+                  ? "Switch to Full View (no cropping)"
+                  : "Switch to Crop to Fill"
+              }
+            >
+              {fitMode === "cover" ? (
+                <>
+                  <Minimize2 className="w-3 h-3" />
+                  <span>Show Full Image</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-3 h-3" />
+                  <span>Fill Frame</span>
+                </>
+              )}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowManualUrl(!showManualUrl)}
+            className="text-[11px] text-[#7E5714] dark:text-amber-500 hover:underline inline-flex items-center gap-1 cursor-pointer"
+          >
+            <Link2 className="w-3 h-3" />
+            <span>{showManualUrl ? "Upload File" : "Paste URL"}</span>
+          </button>
+        </div>
       </div>
 
       {showManualUrl ? (
@@ -107,11 +138,11 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       ) : (
         <div className="space-y-2">
           {value ? (
-            <div className="relative group overflow-hidden border border-stone-200 dark:border-zinc-700 bg-stone-100 dark:bg-zinc-800 rounded-xl">
+            <div className="relative group overflow-hidden border border-stone-200 dark:border-zinc-700 bg-stone-100/90 dark:bg-zinc-800/90 rounded-xl shadow-xs">
               <div
                 className={`relative w-full ${
                   shape === "circle"
-                    ? "w-36 h-36 mx-auto rounded-full overflow-hidden aspect-square"
+                    ? "w-40 h-40 mx-auto rounded-full overflow-hidden aspect-square border-2 border-stone-200"
                     : shape === "square"
                       ? "aspect-square max-w-xs mx-auto"
                       : aspectRatio
@@ -121,9 +152,20 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
                   src={value}
                   alt={label}
                   fill
-                  className="object-cover"
+                  className={`${
+                    fitMode === "contain"
+                      ? "object-contain p-1"
+                      : "object-cover object-top"
+                  }`}
                   unoptimized={value.startsWith("http")}
                 />
+              </div>
+
+              {/* Fit Mode Badge */}
+              <div className="absolute top-2 left-2 pointer-events-none">
+                <span className="px-2 py-0.5 bg-stone-900/75 text-white text-[10px] rounded font-mono uppercase tracking-wider backdrop-blur-xs">
+                  {fitMode === "contain" ? "Full View" : "Cover View"}
+                </span>
               </div>
 
               {/* Overlay actions */}
@@ -136,6 +178,20 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
                 >
                   <Upload className="w-3.5 h-3.5" />
                   <span>Replace</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFitMode(fitMode === "cover" ? "contain" : "cover")
+                  }
+                  className="p-2 bg-stone-900/90 hover:bg-black text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer"
+                >
+                  {fitMode === "cover" ? (
+                    <Minimize2 className="w-3.5 h-3.5" />
+                  ) : (
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  )}
+                  <span>{fitMode === "cover" ? "Full Fit" : "Fill"}</span>
                 </button>
                 <button
                   type="button"

@@ -8,6 +8,7 @@ import { DashboardOverview } from "./dashboard/DashboardOverview";
 import { ConsultationsManager } from "./consultations/ConsultationsManager";
 import { CalendarManager } from "./calendar/CalendarManager";
 import { ServicesManager } from "./services/ServicesManager";
+import { PricingManager } from "./pricing/PricingManager";
 import { ProjectsManager } from "./projects/ProjectsManager";
 import { CollectionManager } from "./collection/CollectionManager";
 import { ClientsManager } from "./clients/ClientsManager";
@@ -32,19 +33,14 @@ import type {
   BlockedDate,
   AdminDashboardViewProps,
 } from "@/types";
-import {
-  seedNotifications,
-  seedProjects,
-  seedServices,
-  seedAvailabilitySettings,
-  seedBlockedDates,
-} from "@/data/adminSeed";
+import { seedAvailabilitySettings } from "@/data/adminSeed";
 
 const VALID_TABS: AdminTabType[] = [
   "dashboard",
   "consultations",
   "calendar",
   "services",
+  "pricing",
   "projects",
   "collection",
   "clients",
@@ -67,34 +63,33 @@ function AdminDashboardInner({
   const searchParams = useSearchParams();
 
   // Core Consultation & Order Data
-  const [consultations, setConsultations] =
-    useState<ConsultationRecord[]>(initialConsultations);
-  const [orders] = useState<OrderRecord[]>(initialOrders);
+  const [consultations, setConsultations] = useState<ConsultationRecord[]>(
+    initialConsultations || [],
+  );
+  const [orders] = useState<OrderRecord[]>(initialOrders || []);
 
   // Studio Services & Portfolio Data
-  const [services, setServices] = useState<AdminService[]>(seedServices);
-  const [projects, setProjects] = useState<AdminProject[]>(seedProjects);
+  const [services, setServices] = useState<AdminService[]>([]);
+  const [projects, setProjects] = useState<AdminProject[]>([]);
 
   // Calendar & Availability Data
   const [availabilitySettings, setAvailabilitySettings] =
     useState<AvailabilitySettings>(seedAvailabilitySettings);
-  const [blockedDates, setBlockedDates] =
-    useState<BlockedDate[]>(seedBlockedDates);
+  const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
 
   // Layout & Navigation State
   const initialTab = (searchParams.get("tab") as AdminTabType) || "dashboard";
   const [activeTab, setActiveTab] = useState<AdminTabType>(
     VALID_TABS.includes(initialTab) ? initialTab : "dashboard",
   );
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Global Search in Topbar
   const [globalSearch, setGlobalSearch] = useState("");
 
   // Notifications State
-  const [notifications, setNotifications] =
-    useState<AdminNotification[]>(seedNotifications);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
 
   // Inspection Modal
   const [selectedBooking, setSelectedBooking] =
@@ -345,12 +340,8 @@ function AdminDashboardInner({
         unreadNotifsCount={unreadNotifsCount}
       />
 
-      {/* Main Content Area - offset by sidebar width on desktop so it never overlaps */}
-      <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          isSidebarCollapsed ? "lg:pl-20" : "lg:pl-64"
-        }`}
-      >
+      {/* Main Content Area - offset by compact sidebar width so page layout never jumps */}
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 lg:pl-20">
         {/* Modern Topbar */}
         <AdminTopNav
           adminEmail={adminEmail}
@@ -401,6 +392,8 @@ function AdminDashboardInner({
               onDeleteService={handleDeleteService}
             />
           )}
+
+          {activeTab === "pricing" && <PricingManager />}
 
           {activeTab === "projects" && (
             <ProjectsManager

@@ -1,4 +1,6 @@
 import "server-only";
+import fs from "fs";
+import path from "path";
 import { createClient } from "@supabase/supabase-js";
 import { projects as fallbackProjects } from "@/data/portfolio";
 import { architecturalPackages as fallbackCollection } from "@/data/collection";
@@ -8,10 +10,9 @@ import {
   studioLocations as fallbackStudioLocations,
 } from "@/data/about";
 import { faqsData as fallbackFaqs } from "@/data/faqs";
-import {
-  seedServices as fallbackServices,
-  seedTestimonials,
-} from "@/data/adminSeed";
+const fallbackServices: AdminService[] = [];
+const fallbackTestimonials: AdminTestimonial[] = [];
+
 import type {
   AdminProject,
   AdminService,
@@ -157,14 +158,40 @@ export async function getPublicTeam(): Promise<{
   achievements: Achievement[];
   studioLocations: StudioLocation[];
 }> {
-  let leaders = fallbackLeaders;
+  let leaders: Leader[] = [];
   let achievements = fallbackAchievements;
   let studioLocations = fallbackStudioLocations;
+
+  // 1. Fast local read from data/team.json
+  try {
+    const localTeamFile = path.join(process.cwd(), "data", "team.json");
+    if (fs.existsSync(localTeamFile)) {
+      const parsed = JSON.parse(fs.readFileSync(localTeamFile, "utf8"));
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        leaders = parsed
+          .filter((m: any) => m.is_active !== false)
+          .map((m: any) => ({
+            name: m.name,
+            role: m.role,
+            credentials: m.credentials || "",
+            bio: m.bio || "",
+            experience:
+              m.experience || m.specialization || "15+ Years Practice",
+            image:
+              m.photo_url ||
+              m.image_url ||
+              "/images/profile-removebg-preview.png",
+          }));
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Reading local team file:", err);
+  }
 
   try {
     const supabase = getPublicSupabaseClient();
     if (supabase) {
-      // 1. Fetch team members
+      // 2a. Fetch from team_members table
       const { data: teamData, error: teamError } = await supabase
         .from("team_members")
         .select("*")
@@ -177,12 +204,47 @@ export async function getPublicTeam(): Promise<{
           role: m.role,
           credentials: m.credentials || "",
           bio: m.bio || "",
-          experience: m.experience || "",
-          image: m.image_url || "/images/profile-removebg-preview.png",
+          experience: m.experience || m.specialization || "15+ Years Practice",
+          image:
+            m.photo_url ||
+            m.image_url ||
+            "/images/profile-removebg-preview.png",
         }));
+      } else {
+        // 2b. Fallback to site_content table
+        try {
+          const { data: teamContent } = await supabase
+            .from("site_content")
+            .select("content")
+            .eq("section_key", "team_members")
+            .single();
+
+          if (
+            teamContent?.content?.members &&
+            Array.isArray(teamContent.content.members) &&
+            teamContent.content.members.length > 0
+          ) {
+            leaders = teamContent.content.members
+              .filter((m: any) => m.is_active !== false)
+              .map((m: any) => ({
+                name: m.name,
+                role: m.role,
+                credentials: m.credentials || "",
+                bio: m.bio || "",
+                experience:
+                  m.experience || m.specialization || "15+ Years Practice",
+                image:
+                  m.photo_url ||
+                  m.image_url ||
+                  "/images/profile-removebg-preview.png",
+              }));
+          }
+        } catch {
+          // Ignore
+        }
       }
 
-      // 2. Fetch studio copy & achievements
+      // 3. Fetch studio copy & achievements
       const { data: contentData } = await supabase
         .from("site_content")
         .select("content")
@@ -201,6 +263,10 @@ export async function getPublicTeam(): Promise<{
     }
   } catch (err) {
     console.warn("Notice: Fetching team from database fallback:", err);
+  }
+
+  if (leaders.length === 0 && fallbackLeaders && fallbackLeaders.length > 0) {
+    leaders = fallbackLeaders;
   }
 
   return { leaders, achievements, studioLocations };
@@ -255,22 +321,40 @@ export async function getPublicFaqs(): Promise<AdminFaq[]> {
 export async function getPublicTestimonials(): Promise<AdminTestimonial[]> {
   try {
     const supabase = getPublicSupabaseClient();
-    if (!supabase) return seedTestimonials;
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("testimonials")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
 
-    const { data, error } = await supabase
-      .from("testimonials")
-      .select("*")
-      .eq("is_published", true)
-      .order("display_order", { ascending: true });
-
-    if (!error && data && data.length > 0) {
-      return data as AdminTestimonial[];
+      if (!error && data && data.length > 0) {
+        return data as AdminTestimonial[];
+      }
     }
   } catch (err) {
     console.warn("Notice: Fetching testimonials from database fallback:", err);
   }
 
-  return seedTestimonials;
+  // Local file fallback from data/testimonials.json
+  try {
+    const localTestimonialsFile = path.join(
+      process.cwd(),
+      "data",
+      "testimonials.json",
+    );
+    if (fs.existsSync(localTestimonialsFile)) {
+      const content = fs.readFileSync(localTestimonialsFile, "utf8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.filter((t: any) => t.is_published !== false);
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Reading local testimonials file:", err);
+  }
+
+  return fallbackTestimonials;
 }
 
 /**
@@ -298,6 +382,17 @@ export async function getSiteContent<T>(
       `Notice: Fetching site_content [${sectionKey}] fallback:`,
       err,
     );
+  }
+
+  // Fallback to local persisted file (e.g. data/pricing_settings.json)
+  try {
+    const localFile = path.join(process.cwd(), "data", `${sectionKey}.json`);
+    if (fs.existsSync(localFile)) {
+      const raw = fs.readFileSync(localFile, "utf8");
+      return JSON.parse(raw) as T;
+    }
+  } catch {
+    // Ignore
   }
 
   return fallback;

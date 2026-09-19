@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
@@ -48,8 +48,48 @@ import {
   serviceCatalog,
   getStartingPriceText,
 } from "@/data/services";
+import type { PricingSettingsContent, CallTierOption } from "@/types";
 
-export const ConsultationView: React.FC = () => {
+interface ConsultationViewProps {
+  initialPricing?: PricingSettingsContent;
+}
+
+export const ConsultationView: React.FC<ConsultationViewProps> = ({
+  initialPricing,
+}) => {
+  const dynamicCallTiers: CallTierOption[] = useMemo(() => {
+    if (!initialPricing?.consultationCalls) return callTiers;
+    const {
+      basicCallPrice,
+      premiumCallPrice,
+      basicCallDuration,
+      premiumCallDuration,
+    } = initialPricing.consultationCalls;
+    return [
+      {
+        ...callTiers[0],
+        duration: `${basicCallDuration} Minutes`,
+        price: basicCallPrice,
+        features: [
+          `${basicCallDuration} min Live Video Session`,
+          "Immediate layout flaw diagnosis",
+          "Material & design directional advice",
+        ],
+      },
+      {
+        ...callTiers[1],
+        duration: `${premiumCallDuration} Minutes`,
+        price: premiumCallPrice,
+        features: [
+          `${premiumCallDuration} min Comprehensive Session`,
+          "Deep-dive space & circulation review",
+          "Finishing materials & contractor guidance",
+          "Realistic budget allocation roadmap",
+        ],
+      },
+    ];
+  }, [initialPricing]);
+
   const {
     booking,
     selectDate,
@@ -330,7 +370,8 @@ export const ConsultationView: React.FC = () => {
   };
 
   const selectedTierData =
-    callTiers.find((t) => t.name === booking.callTier) || callTiers[0];
+    dynamicCallTiers.find((t) => t.name === booking.callTier) ||
+    dynamicCallTiers[0];
 
   // Close services dropdown on click outside
   useEffect(() => {
@@ -495,7 +536,7 @@ export const ConsultationView: React.FC = () => {
                     className="space-y-4"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {callTiers.map((tier) => (
+                      {dynamicCallTiers.map((tier) => (
                         <button
                           key={tier.name}
                           type="button"
@@ -534,7 +575,7 @@ export const ConsultationView: React.FC = () => {
                     transition={{ duration: 0.25 }}
                     className="grid grid-cols-1 sm:grid-cols-2 gap-6"
                   >
-                    {callTiers.map((tier, idx) => {
+                    {dynamicCallTiers.map((tier, idx) => {
                       const isSelected = booking.callTier === tier.name;
                       return (
                         <div

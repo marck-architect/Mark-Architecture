@@ -3,10 +3,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Search, X, FileCode } from "lucide-react";
 import type { AuditLogEntry } from "@/types";
-import { seedAuditLogs } from "@/data/adminSeed";
 
 export const AuditLogsView: React.FC = () => {
-  const [logs, setLogs] = useState<AuditLogEntry[]>(seedAuditLogs);
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null);
@@ -16,13 +15,13 @@ export const AuditLogsView: React.FC = () => {
     fetch("/api/admin/audit")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data && data.logs && data.logs.length > 0) {
+        if (data?.data && Array.isArray(data.data)) {
+          setLogs(data.data);
+        } else if (data?.logs && Array.isArray(data.logs)) {
           setLogs(data.logs);
         }
       })
-      .catch(() => {
-        // Fall back to seed logs
-      });
+      .catch(() => {});
   }, []);
 
   // Filter logs

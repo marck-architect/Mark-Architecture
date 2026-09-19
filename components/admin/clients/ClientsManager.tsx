@@ -18,7 +18,6 @@ import {
   Save,
 } from "lucide-react";
 import type { AdminClient, ConsultationRecord, OrderRecord } from "@/types";
-import { seedClients } from "@/data/adminSeed";
 
 interface ClientsManagerProps {
   consultations: ConsultationRecord[];
@@ -29,7 +28,7 @@ export const ClientsManager: React.FC<ClientsManagerProps> = ({
   consultations,
   orders,
 }) => {
-  const [clients, setClients] = useState<AdminClient[]>(seedClients);
+  const [clients, setClients] = useState<AdminClient[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<AdminClient | null>(
     null,
@@ -336,7 +335,9 @@ export const ClientsManager: React.FC<ClientsManagerProps> = ({
               {filteredClients.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-stone-400">
-                    No client records match &quot;{searchTerm}&quot;.
+                    {searchTerm
+                      ? `No client records match "${searchTerm}".`
+                      : "No client records registered yet."}
                   </td>
                 </tr>
               )}

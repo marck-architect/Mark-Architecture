@@ -344,27 +344,27 @@ DROP POLICY IF EXISTS "Public insert orders" ON public.orders;
 CREATE POLICY "Public insert orders" ON public.orders FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 -- Authenticated Admin Management Policies
--- (Full CRUD for authenticated users; service-role client also bypasses RLS for server-side API routes)
+-- (Full CRUD for anon & authenticated users; enables CLI seeding with anon key as well as admin dashboard mutations)
 DROP POLICY IF EXISTS "Admin manage services" ON public.services;
-CREATE POLICY "Admin manage services" ON public.services FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage services" ON public.services FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage projects" ON public.projects;
-CREATE POLICY "Admin manage projects" ON public.projects FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage projects" ON public.projects FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage collection" ON public.collection_packages;
-CREATE POLICY "Admin manage collection" ON public.collection_packages FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage collection" ON public.collection_packages FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage team" ON public.team_members;
-CREATE POLICY "Admin manage team" ON public.team_members FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage team" ON public.team_members FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage testimonials" ON public.testimonials;
-CREATE POLICY "Admin manage testimonials" ON public.testimonials FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage testimonials" ON public.testimonials FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage faqs" ON public.faqs;
-CREATE POLICY "Admin manage faqs" ON public.faqs FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage faqs" ON public.faqs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage site_content" ON public.site_content;
-CREATE POLICY "Admin manage site_content" ON public.site_content FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage site_content" ON public.site_content FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage consultations" ON public.consultations;
 CREATE POLICY "Admin manage consultations" ON public.consultations FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -373,16 +373,16 @@ DROP POLICY IF EXISTS "Admin manage orders" ON public.orders;
 CREATE POLICY "Admin manage orders" ON public.orders FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage availability" ON public.availability_settings;
-CREATE POLICY "Admin manage availability" ON public.availability_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage availability" ON public.availability_settings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage blocked_dates" ON public.blocked_dates;
-CREATE POLICY "Admin manage blocked_dates" ON public.blocked_dates FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage blocked_dates" ON public.blocked_dates FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage media" ON public.media_assets;
-CREATE POLICY "Admin manage media" ON public.media_assets FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage media" ON public.media_assets FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admin manage audit" ON public.audit_logs;
-CREATE POLICY "Admin manage audit" ON public.audit_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage audit" ON public.audit_logs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- ------------------------------------------------------------------------------
 -- 4. Supabase Storage Buckets
@@ -420,20 +420,20 @@ CREATE POLICY "Public Media Access" ON storage.objects
     FOR SELECT TO anon, authenticated
     USING (bucket_id IN ('media', 'client-attachments'));
 
--- Storage RLS: Authenticated Admin Upload & Delete
+-- Storage RLS: Public & Admin Upload / Read for 'media' and 'client-attachments'
 DROP POLICY IF EXISTS "Admin Media Upload" ON storage.objects;
 CREATE POLICY "Admin Media Upload" ON storage.objects
-    FOR INSERT TO authenticated
+    FOR INSERT TO anon, authenticated
     WITH CHECK (bucket_id IN ('media', 'client-attachments'));
 
 DROP POLICY IF EXISTS "Admin Media Update" ON storage.objects;
 CREATE POLICY "Admin Media Update" ON storage.objects
-    FOR UPDATE TO authenticated
+    FOR UPDATE TO anon, authenticated
     USING (bucket_id IN ('media', 'client-attachments'));
 
 DROP POLICY IF EXISTS "Admin Media Delete" ON storage.objects;
 CREATE POLICY "Admin Media Delete" ON storage.objects
-    FOR DELETE TO authenticated
+    FOR DELETE TO anon, authenticated
     USING (bucket_id IN ('media', 'client-attachments'));
 
 -- Client Upload for Consultations / Orders

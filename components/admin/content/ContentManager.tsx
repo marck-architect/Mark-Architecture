@@ -17,11 +17,13 @@ import {
   EyeOff,
 } from "lucide-react";
 import type { AdminFaq } from "@/types";
-import { seedFaqs } from "@/data/adminSeed";
+import { faqCategories } from "@/data/faqs";
+
+const standardFaqCategories = faqCategories.filter((c) => c.key !== "all");
 
 export const ContentManager: React.FC = () => {
   const [subTab, setSubTab] = useState<"faqs" | "studio">("faqs");
-  const [faqs, setFaqs] = useState<AdminFaq[]>(seedFaqs);
+  const [faqs, setFaqs] = useState<AdminFaq[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
@@ -31,7 +33,7 @@ export const ContentManager: React.FC = () => {
     fetch("/api/admin/faqs")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+        if (data?.data && Array.isArray(data.data)) {
           setFaqs(data.data);
         }
       })
@@ -53,10 +55,17 @@ export const ContentManager: React.FC = () => {
   // FAQ Modal state
   const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
   const [editingFaq, setEditingFaq] = useState<AdminFaq | null>(null);
-  const [faqForm, setFaqForm] = useState({
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategoryName, setCustomCategoryName] = useState("");
+  const [faqForm, setFaqForm] = useState<{
+    question: string;
+    answer: string;
+    category: string;
+    is_published: boolean;
+  }>({
     question: "",
     answer: "",
-    category: "Consultations",
+    category: standardFaqCategories[0]?.key || "pricing",
     is_published: true,
   });
 
@@ -76,20 +85,53 @@ export const ContentManager: React.FC = () => {
   });
   const [studioSaved, setStudioSaved] = useState(false);
 
-  // Categories
-  const categories = useMemo(() => {
-    const set = new Set<string>();
+  // All Category Options (Standard Website Categories + Any Custom Existing Categories)
+  const allCategoryOptions = useMemo(() => {
+    const list: { key: string; label: string }[] = standardFaqCategories.map(
+      (c) => ({ key: c.key, label: c.label }),
+    );
+
+    // Also include any custom categories that exist in faqs
     faqs.forEach((f) => {
-      if (f.category) set.add(f.category);
+      if (!f.category) return;
+      const catVal = f.category;
+      const alreadyExists = list.some(
+        (c) =>
+          c.key.toLowerCase() === catVal.toLowerCase() ||
+          c.label.toLowerCase() === catVal.toLowerCase(),
+      );
+      if (!alreadyExists) {
+        list.push({ key: catVal, label: catVal });
+      }
     });
-    return Array.from(set);
+
+    return list;
   }, [faqs]);
+
+  // Helper to get human-friendly label for any category key
+  const getCategoryLabel = (catKey: string) => {
+    const found = allCategoryOptions.find(
+      (c) =>
+        c.key.toLowerCase() === catKey.toLowerCase() ||
+        c.label.toLowerCase() === catKey.toLowerCase(),
+    );
+    return found ? found.label : catKey;
+  };
 
   // Filtered FAQs
   const filteredFaqs = useMemo(() => {
     return faqs.filter((f) => {
-      if (categoryFilter !== "all" && f.category !== categoryFilter)
-        return false;
+      if (categoryFilter !== "all") {
+        const catLower = (f.category || "").toLowerCase();
+        const filterLower = categoryFilter.toLowerCase();
+        const optionObj = allCategoryOptions.find(
+          (c) => c.key.toLowerCase() === filterLower,
+        );
+        const matchesCategory =
+          catLower === filterLower ||
+          (optionObj && optionObj.label.toLowerCase() === catLower);
+        if (!matchesCategory) return false;
+      }
       if (searchTerm) {
         const q = searchTerm.toLowerCase();
         const matches =
@@ -99,15 +141,17 @@ export const ContentManager: React.FC = () => {
       }
       return true;
     });
-  }, [faqs, categoryFilter, searchTerm]);
+  }, [faqs, categoryFilter, searchTerm, allCategoryOptions]);
 
   // FAQ CRUD handlers
   const handleOpenCreateFaq = () => {
     setEditingFaq(null);
+    setIsCustomCategory(false);
+    setCustomCategoryName("");
     setFaqForm({
       question: "",
       answer: "",
-      category: "Consultations",
+      category: standardFaqCategories[0]?.key || "pricing",
       is_published: true,
     });
     setIsFaqModalOpen(true);
@@ -115,12 +159,39 @@ export const ContentManager: React.FC = () => {
 
   const handleOpenEditFaq = (f: AdminFaq) => {
     setEditingFaq(f);
-    setFaqForm({
-      question: f.question,
-      answer: f.answer,
-      category: f.category || "General",
-      is_published: f.is_published,
-    });
+    const existingCat =
+      f.category || standardFaqCategories[0]?.key || "pricing";
+    const isStandard = allCategoryOptions.some(
+      (c) =>
+        c.key.toLowerCase() === existingCat.toLowerCase() ||
+        c.label.toLowerCase() === existingCat.toLowerCase(),
+    );
+
+    if (!isStandard) {
+      setIsCustomCategory(true);
+      setCustomCategoryName(existingCat);
+      setFaqForm({
+        question: f.question,
+        answer: f.answer,
+        category: existingCat,
+        is_published: f.is_published,
+      });
+    } else {
+      setIsCustomCategory(false);
+      setCustomCategoryName("");
+      // Match with standard key if possible
+      const matched = allCategoryOptions.find(
+        (c) =>
+          c.key.toLowerCase() === existingCat.toLowerCase() ||
+          c.label.toLowerCase() === existingCat.toLowerCase(),
+      );
+      setFaqForm({
+        question: f.question,
+        answer: f.answer,
+        category: matched ? matched.key : existingCat,
+        is_published: f.is_published,
+      });
+    }
     setIsFaqModalOpen(true);
   };
 
@@ -153,10 +224,19 @@ export const ContentManager: React.FC = () => {
     e.preventDefault();
     if (!faqForm.question || !faqForm.answer) return;
 
+    const finalCategory = isCustomCategory
+      ? customCategoryName.trim() || faqForm.category || "pricing"
+      : faqForm.category || "pricing";
+
+    const payload = {
+      ...faqForm,
+      category: finalCategory,
+    };
+
     if (editingFaq) {
       const updated: AdminFaq = {
         ...editingFaq,
-        ...faqForm,
+        ...payload,
       };
       setFaqs((prev) =>
         prev.map((f) => (f.id === editingFaq.id ? updated : f)),
@@ -165,7 +245,7 @@ export const ContentManager: React.FC = () => {
         await fetch(`/api/admin/faqs/${editingFaq.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(faqForm),
+          body: JSON.stringify(payload),
         });
       } catch {
         // Ignored
@@ -173,7 +253,7 @@ export const ContentManager: React.FC = () => {
     } else {
       const created: AdminFaq = {
         id: `faq_${Date.now()}`,
-        ...faqForm,
+        ...payload,
         display_order: faqs.length + 1,
       };
       setFaqs([...faqs, created]);
@@ -181,7 +261,7 @@ export const ContentManager: React.FC = () => {
         await fetch("/api/admin/faqs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(faqForm),
+          body: JSON.stringify(payload),
         });
       } catch {
         // Ignored
@@ -198,14 +278,14 @@ export const ContentManager: React.FC = () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          section_key: "about_studio",
-          content: studioCopy,
+          section: "about_studio",
+          data: studioCopy,
         }),
       });
       setStudioSaved(true);
       setTimeout(() => setStudioSaved(false), 3000);
-    } catch (err) {
-      console.error("Failed to save studio profile copy:", err);
+    } catch {
+      // Ignored
     }
   };
 
@@ -273,9 +353,9 @@ export const ContentManager: React.FC = () => {
                 className="px-3 py-2 text-xs bg-stone-50 border border-stone-200 rounded-sm text-stone-700 font-mono"
               >
                 <option value="all">All Categories</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {allCategoryOptions.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
                   </option>
                 ))}
               </select>
@@ -304,8 +384,8 @@ export const ContentManager: React.FC = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-stone-100 text-stone-600 rounded text-[10px] font-mono uppercase">
-                          {faq.category || "General"}
+                        <span className="px-2 py-0.5 bg-amber-50 text-[#7E5714] border border-amber-200/50 rounded text-[10px] font-mono uppercase">
+                          {getCategoryLabel(faq.category || "General")}
                         </span>
                         {!faq.is_published && (
                           <span className="px-2 py-0.5 bg-stone-200 text-stone-500 rounded text-[10px] font-mono uppercase">
@@ -543,19 +623,113 @@ export const ContentManager: React.FC = () => {
 
             <form onSubmit={handleSaveFaq} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block text-stone-700 font-medium mb-1">
-                  Category
+                <label className="block text-stone-700 font-medium mb-1.5">
+                  FAQ Category *
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={faqForm.category}
-                  onChange={(e) =>
-                    setFaqForm({ ...faqForm, category: e.target.value })
-                  }
-                  placeholder="e.g. Consultations, Design Packages, Safepay..."
-                  className="w-full p-2.5 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714]"
-                />
+                <div className="space-y-2">
+                  <select
+                    value={isCustomCategory ? "__custom__" : faqForm.category}
+                    onChange={(e) => {
+                      if (e.target.value === "__custom__") {
+                        setIsCustomCategory(true);
+                        setCustomCategoryName("");
+                      } else {
+                        setIsCustomCategory(false);
+                        setCustomCategoryName("");
+                        setFaqForm({ ...faqForm, category: e.target.value });
+                      }
+                    }}
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] text-xs font-medium text-stone-800"
+                  >
+                    <optgroup label="Website FAQ Categories">
+                      {standardFaqCategories.map((cat) => (
+                        <option key={cat.key} value={cat.key}>
+                          {cat.label} ({cat.key})
+                        </option>
+                      ))}
+                    </optgroup>
+                    {allCategoryOptions.filter(
+                      (c) =>
+                        !standardFaqCategories.some((s) => s.key === c.key),
+                    ).length > 0 && (
+                      <optgroup label="Other Existing Categories">
+                        {allCategoryOptions
+                          .filter(
+                            (c) =>
+                              !standardFaqCategories.some(
+                                (s) => s.key === c.key,
+                              ),
+                          )
+                          .map((c) => (
+                            <option key={c.key} value={c.key}>
+                              {c.label}
+                            </option>
+                          ))}
+                      </optgroup>
+                    )}
+                    <option value="__custom__">
+                      + Create New FAQ Category...
+                    </option>
+                  </select>
+
+                  {/* Custom Category Input if selected */}
+                  {isCustomCategory && (
+                    <div className="pt-1 animate-fadeIn">
+                      <input
+                        type="text"
+                        required
+                        value={customCategoryName}
+                        onChange={(e) => {
+                          setCustomCategoryName(e.target.value);
+                          setFaqForm({ ...faqForm, category: e.target.value });
+                        }}
+                        placeholder="Type new category name (e.g. Renovation, Permits, Structural)..."
+                        className="w-full p-2.5 bg-white border border-[#7E5714] rounded-sm focus:outline-none text-xs text-stone-900 shadow-inner"
+                        autoFocus
+                      />
+                      <p className="text-[11px] text-stone-500 mt-1 font-sans">
+                        This category will be saved and automatically filterable
+                        on the website FAQs page.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Quick Select Category Badges */}
+                  <div className="pt-1">
+                    <span className="text-[10px] text-stone-400 uppercase font-mono tracking-wider block mb-1.5">
+                      Quick Select Website Category:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {standardFaqCategories.map((cat) => {
+                        const isSelected =
+                          !isCustomCategory &&
+                          faqForm.category.toLowerCase() ===
+                            cat.key.toLowerCase();
+                        return (
+                          <button
+                            key={cat.key}
+                            type="button"
+                            onClick={() => {
+                              setIsCustomCategory(false);
+                              setCustomCategoryName("");
+                              setFaqForm({
+                                ...faqForm,
+                                category: cat.key,
+                              });
+                            }}
+                            className={`px-2.5 py-1 rounded-sm text-[11px] font-mono transition-all ${
+                              isSelected
+                                ? "bg-[#7E5714] text-white font-medium shadow-xs"
+                                : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                            }`}
+                          >
+                            {cat.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div>

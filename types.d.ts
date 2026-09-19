@@ -424,6 +424,7 @@ export type AdminTabType =
   | "consultations"
   | "calendar"
   | "services"
+  | "pricing"
   | "projects"
   | "collection"
   | "clients"
@@ -436,6 +437,53 @@ export type AdminTabType =
   | "analytics"
   | "settings"
   | "audit";
+
+export interface PricingTierData {
+  id: string;
+  name: string;
+  pricePKR: number | string;
+  priceFormatted: string;
+  deliveryTime?: string;
+  popular?: boolean;
+  tag?: string;
+  inclusions: string[];
+  notes?: string;
+  actionType: "consultation" | "cart";
+}
+
+export interface PricingCategoryData {
+  id: string;
+  letter: string;
+  title: string;
+  subtitle: string;
+  badge?: string;
+  description: string;
+  clientRequirementNote?: string;
+  tiers: PricingTierData[];
+}
+
+export interface PricingPolicyPoint {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface PricingSettingsContent {
+  calculator: {
+    disciplines: Discipline[];
+    advancePercentage: number;
+    plotPresets?: PlotPreset[];
+  };
+  consultationCalls: {
+    basicCallPrice: number;
+    premiumCallPrice: number;
+    basicCallDuration: number;
+    premiumCallDuration: number;
+  };
+  menuCategories: PricingCategoryData[];
+  policyPoints: PricingPolicyPoint[];
+  updatedAt?: string;
+}
 
 export interface AvailabilitySettings {
   id?: string;

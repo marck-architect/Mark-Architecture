@@ -1,0 +1,15 @@
+[
+  {
+    "id": "team_1",
+    "name": "Muhammad Arsalan",
+    "role": "Principal Studio Architect & Founder",
+    "credentials": "PCATP Registered • AEO Certified • PDA Licensed",
+    "bio": "Directing luxury residential masterplanning, passive solar estates, and structural compliance across Pakistan.",
+    "specialization": "Minimalist Residential Architecture & Sustainable Engineering",
+    "photo_url": "/images/profile.jpeg",
+    "email": "arsalan@markarchitects.com",
+    "display_order": 1,
+    "is_active": true,
+    "created_at": "2026-09-18T16:02:08.401203+00:00"
+  }
+]

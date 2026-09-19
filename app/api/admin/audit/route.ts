@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
-import { seedAuditLogs } from "@/data/adminSeed";
 
 export const runtime = "nodejs";
 
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(100);
 
-    let logs = !error && data && data.length > 0 ? data : seedAuditLogs;
+    let logs = !error && data && data.length > 0 ? data : [];
 
     if (search) {
       logs = logs.filter(
@@ -32,6 +31,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: logs });
   } catch (err: unknown) {
-    return NextResponse.json({ success: true, data: seedAuditLogs });
+    return NextResponse.json({ success: true, data: [] });
   }
 }

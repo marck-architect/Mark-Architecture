@@ -30,11 +30,20 @@ export const metadata: Metadata = {
   },
 };
 
-import { getPublicServices } from "@/lib/server/content";
+import { getPublicServices, getSiteContent } from "@/lib/server/content";
+import { defaultPricingSettings } from "@/data/pricing";
+import type { PricingSettingsContent } from "@/types";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function ServicesPage() {
-  const services = await getPublicServices();
-  return <ServicesView initialServices={services} />;
+  const [services, pricing] = await Promise.all([
+    getPublicServices(),
+    getSiteContent<PricingSettingsContent>(
+      "pricing_settings",
+      defaultPricingSettings,
+    ),
+  ]);
+  return <ServicesView initialServices={services} initialPricing={pricing} />;
 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
 import { logAdminAction } from "@/lib/server/audit";
-import { seedBlockedDates } from "@/data/adminSeed";
 
 export const runtime = "nodejs";
 
@@ -23,9 +22,9 @@ export async function GET() {
       return NextResponse.json({ success: true, data });
     }
 
-    return NextResponse.json({ success: true, data: seedBlockedDates });
+    return NextResponse.json({ success: true, data: [] });
   } catch (err: unknown) {
-    return NextResponse.json({ success: true, data: seedBlockedDates });
+    return NextResponse.json({ success: true, data: [] });
   }
 }
 

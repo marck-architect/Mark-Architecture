@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   MessageSquareQuote,
   Star,
@@ -14,19 +14,39 @@ import {
   Award,
   Eye,
   EyeOff,
+  Loader2,
 } from "lucide-react";
 import type { AdminTestimonial } from "@/types";
-import { seedTestimonials } from "@/data/adminSeed";
 
 export const TestimonialsManager: React.FC = () => {
-  const [testimonials, setTestimonials] =
-    useState<AdminTestimonial[]>(seedTestimonials);
+  const [testimonials, setTestimonials] = useState<AdminTestimonial[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<
     "all" | "published" | "draft"
   >("all");
   const [editingItem, setEditingItem] = useState<AdminTestimonial | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchTestimonials = async () => {
+    try {
+      const res = await fetch("/api/admin/testimonials");
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.data && Array.isArray(data.data)) {
+          setTestimonials(data.data);
+        }
+      }
+    } catch (err) {
+      console.warn("Notice: Fetching testimonials fallback:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
   const [formData, setFormData] = useState({
     client_name: "",
     company: "",
@@ -34,7 +54,6 @@ export const TestimonialsManager: React.FC = () => {
     project_title: "",
     rating: 5,
     review: "",
-    photo_url: "",
     is_featured: false,
     is_published: true,
   });
@@ -66,7 +85,6 @@ export const TestimonialsManager: React.FC = () => {
       project_title: "",
       rating: 5,
       review: "",
-      photo_url: "",
       is_featured: false,
       is_published: true,
     });
@@ -82,7 +100,6 @@ export const TestimonialsManager: React.FC = () => {
       project_title: item.project_title || "",
       rating: item.rating,
       review: item.review,
-      photo_url: item.photo_url || "",
       is_featured: item.is_featured,
       is_published: item.is_published,
     });
@@ -338,9 +355,41 @@ export const TestimonialsManager: React.FC = () => {
         ))}
       </div>
 
-      {filtered.length === 0 && (
-        <div className="p-12 text-center bg-white border border-stone-200 rounded-sm text-stone-400 text-xs font-mono">
-          No testimonials match the search query.
+      {isLoading && (
+        <div className="p-12 text-center bg-white border border-stone-200 rounded-sm text-stone-400 text-xs font-mono flex items-center justify-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin text-[#7E5714]" />
+          <span>Loading client testimonials...</span>
+        </div>
+      )}
+
+      {!isLoading && filtered.length === 0 && (
+        <div className="p-12 text-center bg-white border border-stone-200 rounded-sm space-y-3">
+          <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mx-auto text-stone-400">
+            <MessageSquareQuote className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-serif text-base text-stone-800 font-medium">
+              {testimonials.length === 0
+                ? "No client testimonials added yet"
+                : "No testimonials match the current filter"}
+            </h3>
+            <p className="text-xs text-stone-500 max-w-sm mx-auto mt-1 font-sans">
+              {testimonials.length === 0
+                ? "You can upload and curate verified client reviews and endorsements when you're ready."
+                : "Try adjusting your search keywords or switching the status filter."}
+            </p>
+          </div>
+          {testimonials.length === 0 && (
+            <div className="pt-2">
+              <button
+                onClick={handleOpenCreate}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#7E5714] hover:bg-[#684710] text-white text-xs font-medium tracking-wider uppercase rounded-sm transition-colors shadow-xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Testimonial</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
