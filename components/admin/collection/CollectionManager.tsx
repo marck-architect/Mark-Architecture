@@ -82,7 +82,7 @@ export const CollectionManager: React.FC = () => {
       name: "",
       slug: "",
       subtitle: "",
-      tag: "Standard Package",
+      tag: "Standard Product",
       covered_area_sqft: 4500,
       plot_dimensions: "10 Marla",
       price_pkr: 25000,
@@ -179,15 +179,15 @@ export const CollectionManager: React.FC = () => {
         setFeedback({
           type: "success",
           message: isNew
-            ? "Package created and published successfully!"
-            : "Package updated successfully!",
+            ? "Product created and published successfully!"
+            : "Product updated successfully!",
         });
         setTimeout(() => setFeedback(null), 4000);
       } else {
         const errData = await res.json();
         setFeedback({
           type: "error",
-          message: errData.error || "Failed to save collection package.",
+          message: errData.error || "Failed to save product.",
         });
         setTimeout(() => setFeedback(null), 5000);
         await fetchPackages();
@@ -210,7 +210,7 @@ export const CollectionManager: React.FC = () => {
     setDeleteConfirmId(null);
     setFeedback({
       type: "success",
-      message: "Package deleted successfully.",
+      message: "Product deleted successfully.",
     });
     setTimeout(() => setFeedback(null), 4000);
 
@@ -241,10 +241,10 @@ export const CollectionManager: React.FC = () => {
         <div>
           <h2 className="text-xl font-playfair font-bold text-stone-900 dark:text-zinc-100 flex items-center gap-2">
             <Layers className="w-5 h-5 text-[#7E5714]" />
-            <span>Curated Architectural Collection (/collection)</span>
+            <span>Architectural Products (/collection)</span>
           </h2>
           <p className="text-xs text-stone-500 dark:text-zinc-400 mt-1">
-            Manage standardized design packages, turnkey blueprints,
+            Manage architectural design products, turnkey blueprints,
             specifications, and instant checkout pricing.
           </p>
         </div>
@@ -254,7 +254,7 @@ export const CollectionManager: React.FC = () => {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
-              placeholder="Search packages..."
+              placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-xs bg-stone-50 dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-stone-900 dark:text-zinc-100 focus:outline-none focus:border-[#7E5714]"
@@ -267,7 +267,7 @@ export const CollectionManager: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 bg-[#7E5714] hover:bg-[#684710] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Add Design Package</span>
+            <span>+ Add Product</span>
           </button>
         </div>
       </div>
@@ -298,26 +298,24 @@ export const CollectionManager: React.FC = () => {
         </div>
       )}
 
-      {/* Packages list display */}
+      {/* Products list display */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-2xl">
           <Loader2 className="w-6 h-6 animate-spin text-[#7E5714] mb-2" />
-          <span className="text-xs text-stone-500">
-            Loading collection packages...
-          </span>
+          <span className="text-xs text-stone-500">Loading products...</span>
         </div>
       ) : filteredPackages.length === 0 ? (
         <div className="text-center p-12 bg-white dark:bg-zinc-900 border border-dashed border-stone-200 dark:border-zinc-800 rounded-2xl">
           <Layers className="w-8 h-8 text-stone-300 mx-auto mb-3" />
           <p className="text-sm font-medium text-stone-600 dark:text-zinc-400">
-            No design packages found.
+            No products found.
           </p>
           <button
             type="button"
             onClick={handleOpenCreate}
             className="mt-3 text-xs text-[#7E5714] font-semibold hover:underline cursor-pointer"
           >
-            Create your first design package
+            Create your first product
           </button>
         </div>
       ) : (
@@ -342,7 +340,7 @@ export const CollectionManager: React.FC = () => {
                     }
                   />
                   <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-md">
-                    {pkg.tag || "Standard Package"}
+                    {pkg.tag || "Standard Product"}
                   </span>
                   <span
                     className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 ${
@@ -389,7 +387,7 @@ export const CollectionManager: React.FC = () => {
                     </div>
                     <div className="col-span-2 mt-1">
                       <span className="text-stone-400 block text-[10px] uppercase">
-                        Turnkey Package Price
+                        Product Price
                       </span>
                       <span className="text-sm font-bold text-[#7E5714] dark:text-amber-500 font-mono">
                         PKR {Number(pkg.price_pkr).toLocaleString()}
@@ -405,7 +403,7 @@ export const CollectionManager: React.FC = () => {
                   type="button"
                   onClick={() => handleOpenEdit(pkg)}
                   className="p-1.5 text-stone-500 hover:text-[#7E5714] hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
-                  title="Edit Package"
+                  title="Edit Product"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -413,7 +411,7 @@ export const CollectionManager: React.FC = () => {
                   type="button"
                   onClick={() => setDeleteConfirmId(pkg.id)}
                   className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors cursor-pointer"
-                  title="Delete Package"
+                  title="Delete Product"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -428,12 +426,11 @@ export const CollectionManager: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full p-6 space-y-4">
             <h3 className="font-playfair font-bold text-lg text-stone-900 dark:text-zinc-100">
-              Delete Package?
+              Delete Product?
             </h3>
             <p className="text-xs text-stone-600 dark:text-zinc-400">
-              Are you sure you want to remove this architectural package from
-              the collection catalog? This action will update the public
-              website.
+              Are you sure you want to remove this architectural product from
+              the catalog? This action will update the public website.
             </p>
             <div className="flex justify-end gap-2 pt-2">
               <button
@@ -448,7 +445,7 @@ export const CollectionManager: React.FC = () => {
                 onClick={() => handleDelete(deleteConfirmId)}
                 className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl cursor-pointer"
               >
-                Delete Package
+                Delete Product
               </button>
             </div>
           </div>
@@ -462,8 +459,8 @@ export const CollectionManager: React.FC = () => {
             <div className="flex items-center justify-between pb-4 border-b border-stone-100 dark:border-zinc-800">
               <h3 className="font-playfair font-bold text-xl text-stone-900 dark:text-zinc-100">
                 {editingItem.id
-                  ? "Edit Architectural Package"
-                  : "New Architectural Package"}
+                  ? "Edit Architectural Product"
+                  : "New Architectural Product"}
               </h3>
               <button
                 type="button"
@@ -478,7 +475,7 @@ export const CollectionManager: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Package Title *
+                    Product Title *
                   </label>
                   <input
                     type="text"
@@ -527,14 +524,14 @@ export const CollectionManager: React.FC = () => {
                     onChange={(e) =>
                       setEditingItem({ ...editingItem, tag: e.target.value })
                     }
-                    placeholder="e.g. Standard Package, Signature Villa, Premium"
+                    placeholder="e.g. Standard Product, Signature Villa, Premium"
                     className="w-full px-3.5 py-2.5 text-xs bg-stone-50 dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-stone-900 dark:text-zinc-100 focus:outline-none focus:border-[#7E5714]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Package Price (PKR) *
+                    Product Price (PKR) *
                   </label>
                   <input
                     type="number"
@@ -639,7 +636,7 @@ export const CollectionManager: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Package Inclusions & Deliverables (One per line)
+                  Product Inclusions & Deliverables (One per line)
                 </label>
                 <textarea
                   rows={4}
@@ -652,7 +649,7 @@ export const CollectionManager: React.FC = () => {
 
               {/* Cover Image Upload */}
               <ImageUploadField
-                label="Package 3D Elevation / Render Cover Image"
+                label="Product 3D Elevation / Render Cover Image"
                 folder="collection"
                 value={editingItem.cover_image || ""}
                 onChange={(url) =>
@@ -715,7 +712,7 @@ export const CollectionManager: React.FC = () => {
                   ) : (
                     <Save className="w-4 h-4" />
                   )}
-                  <span>Save Package</span>
+                  <span>Save Product</span>
                 </button>
               </div>
             </form>

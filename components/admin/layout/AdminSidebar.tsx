@@ -67,6 +67,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           badgeColor: "bg-amber-100 text-amber-900 border-amber-200",
         },
         { id: "calendar", label: "Calendar & Hours", icon: Calendar },
+        { id: "payments", label: "Payments & Safepay", icon: CreditCard },
       ],
     },
     {
@@ -75,9 +76,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: "services", label: "Services & Tiers", icon: Briefcase },
         { id: "pricing", label: "Pricing & Formulas", icon: Banknote },
         { id: "projects", label: "Portfolio Projects", icon: FolderGit2 },
-        { id: "collection", label: "Curated Collection", icon: Layers },
+        { id: "collection", label: "Architectural Products", icon: Layers },
         { id: "clients", label: "Client Directory", icon: Users },
-        { id: "payments", label: "Payments & Safepay", icon: CreditCard },
+
         { id: "media", label: "Media Library", icon: ImageIcon },
       ],
     },

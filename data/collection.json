@@ -2,10 +2,11 @@
   {
     "id": "hpr-standard",
     "tag": "Standard Package",
-    "name": "House Plan Review (Standard)",
+    "name": "House Plan Review",
     "slug": "hpr-standard",
     "subtitle": "Detailed blueprint diagnostic audit by licensed architects.",
     "price_pkr": 9000,
+    "updated_at": "2026-09-22T07:39:05.611Z",
     "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-review.png",
     "deliverables": [
       "Comprehensive Diagnostic Report",
@@ -18,6 +19,7 @@
     ],
     "is_published": true,
     "display_order": 1,
+    "specifications": {},
     "plot_dimensions": "Any Plot Size",
     "turnaround_weeks": "24–48 Hours",
     "covered_area_sqft": 4500,

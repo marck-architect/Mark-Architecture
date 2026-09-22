@@ -382,7 +382,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               2. Content CMS Tables
             </span>
             <p className="text-stone-200 font-medium">
-              Populates Projects, Services, Collection, Team, FAQs &amp;
+              Populates Projects, Services, Products, Team, FAQs &amp;
               Testimonials.
             </p>
           </div>
@@ -452,7 +452,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               </div>
               <div className="bg-stone-900/60 p-2.5 rounded-lg border border-stone-800 text-center">
                 <span className="text-stone-400 text-[10px] uppercase font-mono block">
-                  Collection Seeded
+                  Products Seeded
                 </span>
                 <span className="text-base font-bold text-white font-mono">
                   {seedResult.seeded?.collection}

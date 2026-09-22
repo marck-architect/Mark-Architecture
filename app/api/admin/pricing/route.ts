@@ -56,6 +56,8 @@ export async function GET() {
 
     const { supabase } = authResult.admin;
 
+    const local = readLocalPricing();
+
     // 1. Try Supabase cloud database
     try {
       const { data, error } = await supabase
@@ -64,10 +66,50 @@ export async function GET() {
         .eq("section_key", "pricing_settings")
         .single();
 
-      if (!error && data?.content) {
+      if (!error && data?.content && typeof data.content === "object") {
+        const raw = data.content as any;
+        const merged: PricingSettingsContent = {
+          ...defaultPricingSettings,
+          ...raw,
+          calculator: {
+            ...defaultPricingSettings.calculator,
+            ...(raw.calculator || {}),
+            disciplines:
+              Array.isArray(raw.calculator?.disciplines) &&
+              raw.calculator.disciplines.length > 0
+                ? raw.calculator.disciplines
+                : local?.calculator?.disciplines ||
+                  defaultPricingSettings.calculator.disciplines,
+            plotPresets:
+              Array.isArray(raw.calculator?.plotPresets) &&
+              raw.calculator.plotPresets.length > 0
+                ? raw.calculator.plotPresets
+                : local?.calculator?.plotPresets ||
+                  defaultPricingSettings.calculator.plotPresets,
+          },
+          consultationCalls: {
+            ...defaultPricingSettings.consultationCalls,
+            ...(raw.consultationCalls || {}),
+          },
+          menuCategories:
+            Array.isArray(raw.menuCategories) && raw.menuCategories.length > 0
+              ? raw.menuCategories
+              : local?.menuCategories && local.menuCategories.length > 0
+                ? local.menuCategories
+                : defaultPricingSettings.menuCategories,
+          policyPoints:
+            Array.isArray(raw.policyPoints) && raw.policyPoints.length > 0
+              ? raw.policyPoints
+              : local?.policyPoints && local.policyPoints.length > 0
+                ? local.policyPoints
+                : defaultPricingSettings.policyPoints,
+        };
+
+        writeLocalPricing(merged);
+
         return NextResponse.json({
           success: true,
-          data: data.content as PricingSettingsContent,
+          data: merged,
           updated_at: data.updated_at,
           source: "supabase",
         });
@@ -77,16 +119,42 @@ export async function GET() {
     }
 
     // 2. Try Local File
-    const local = readLocalPricing();
     if (local) {
+      const merged: PricingSettingsContent = {
+        ...defaultPricingSettings,
+        ...local,
+        calculator: {
+          ...defaultPricingSettings.calculator,
+          ...(local.calculator || {}),
+          disciplines:
+            Array.isArray(local.calculator?.disciplines) &&
+            local.calculator.disciplines.length > 0
+              ? local.calculator.disciplines
+              : defaultPricingSettings.calculator.disciplines,
+        },
+        consultationCalls: {
+          ...defaultPricingSettings.consultationCalls,
+          ...(local.consultationCalls || {}),
+        },
+        menuCategories:
+          Array.isArray(local.menuCategories) && local.menuCategories.length > 0
+            ? local.menuCategories
+            : defaultPricingSettings.menuCategories,
+        policyPoints:
+          Array.isArray(local.policyPoints) && local.policyPoints.length > 0
+            ? local.policyPoints
+            : defaultPricingSettings.policyPoints,
+      };
+      writeLocalPricing(merged);
       return NextResponse.json({
         success: true,
-        data: local,
+        data: merged,
         source: "local",
       });
     }
 
     // 3. Fallback to default studio values
+    writeLocalPricing(defaultPricingSettings);
     return NextResponse.json({
       success: true,
       data: defaultPricingSettings,
@@ -120,7 +188,31 @@ export async function PUT(request: NextRequest) {
     }
 
     const payload: PricingSettingsContent = {
+      ...defaultPricingSettings,
       ...pricingData,
+      calculator: {
+        ...defaultPricingSettings.calculator,
+        ...(pricingData.calculator || {}),
+        disciplines:
+          Array.isArray(pricingData.calculator?.disciplines) &&
+          pricingData.calculator.disciplines.length > 0
+            ? pricingData.calculator.disciplines
+            : defaultPricingSettings.calculator.disciplines,
+      },
+      consultationCalls: {
+        ...defaultPricingSettings.consultationCalls,
+        ...(pricingData.consultationCalls || {}),
+      },
+      menuCategories:
+        Array.isArray(pricingData.menuCategories) &&
+        pricingData.menuCategories.length > 0
+          ? pricingData.menuCategories
+          : defaultPricingSettings.menuCategories,
+      policyPoints:
+        Array.isArray(pricingData.policyPoints) &&
+        pricingData.policyPoints.length > 0
+          ? pricingData.policyPoints
+          : defaultPricingSettings.policyPoints,
       updatedAt: new Date().toISOString(),
     };
 

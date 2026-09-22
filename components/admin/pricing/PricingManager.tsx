@@ -47,7 +47,7 @@ export const PricingManager: React.FC = () => {
   } | null>(null);
 
   // Live sandbox tester state
-  const [testSqFt, setTestSqFt] = useState<number>(3800);
+  const [testSqFt, setTestSqFt] = useState<number | "">(3800);
   const [selectedDisciplineIds, setSelectedDisciplineIds] = useState<string[]>(
     [],
   );
@@ -60,11 +60,42 @@ export const PricingManager: React.FC = () => {
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
-          setPricingData(json.data);
+          const raw = json.data;
+          const merged: PricingSettingsContent = {
+            ...defaultPricingSettings,
+            ...raw,
+            calculator: {
+              ...defaultPricingSettings.calculator,
+              ...(raw.calculator || {}),
+              disciplines:
+                Array.isArray(raw.calculator?.disciplines) &&
+                raw.calculator.disciplines.length > 0
+                  ? raw.calculator.disciplines
+                  : defaultPricingSettings.calculator.disciplines,
+              plotPresets:
+                Array.isArray(raw.calculator?.plotPresets) &&
+                raw.calculator.plotPresets.length > 0
+                  ? raw.calculator.plotPresets
+                  : defaultPricingSettings.calculator.plotPresets,
+            },
+            consultationCalls: {
+              ...defaultPricingSettings.consultationCalls,
+              ...(raw.consultationCalls || {}),
+            },
+            menuCategories:
+              Array.isArray(raw.menuCategories) && raw.menuCategories.length > 0
+                ? raw.menuCategories
+                : defaultPricingSettings.menuCategories,
+            policyPoints:
+              Array.isArray(raw.policyPoints) && raw.policyPoints.length > 0
+                ? raw.policyPoints
+                : defaultPricingSettings.policyPoints,
+          };
+          setPricingData(merged);
           // Initialize sandbox disciplines
-          if (json.data.calculator?.disciplines) {
+          if (merged.calculator?.disciplines) {
             setSelectedDisciplineIds(
-              json.data.calculator.disciplines.map((d: Discipline) => d.id),
+              merged.calculator.disciplines.map((d: Discipline) => d.id),
             );
           }
         }
@@ -88,11 +119,33 @@ export const PricingManager: React.FC = () => {
   // Save all modifications to Supabase
   const handleSaveAll = async () => {
     setSaving(true);
+    const normalizedData: PricingSettingsContent = {
+      ...pricingData,
+      calculator: {
+        ...pricingData.calculator,
+        advancePercentage:
+          Number(pricingData.calculator?.advancePercentage) || 50,
+        disciplines: (pricingData.calculator?.disciplines || []).map((d) => ({
+          ...d,
+          rate: Number(d.rate) || 0,
+        })),
+      },
+      consultationCalls: {
+        basicCallPrice:
+          Number(pricingData.consultationCalls?.basicCallPrice) || 3000,
+        premiumCallPrice:
+          Number(pricingData.consultationCalls?.premiumCallPrice) || 5000,
+        basicCallDuration:
+          Number(pricingData.consultationCalls?.basicCallDuration) || 30,
+        premiumCallDuration:
+          Number(pricingData.consultationCalls?.premiumCallDuration) || 60,
+      },
+    };
     try {
       const res = await fetch("/api/admin/pricing", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pricing: pricingData }),
+        body: JSON.stringify({ pricing: normalizedData }),
       });
 
       const json = await res.json();
@@ -147,7 +200,7 @@ export const PricingManager: React.FC = () => {
       .reduce((sum, d) => sum + (Number(d.rate) || 0), 0);
   }, [pricingData.calculator, selectedDisciplineIds]);
 
-  const sandboxTotal = Math.round(testSqFt * sandboxRate);
+  const sandboxTotal = Math.round((Number(testSqFt) || 0) * sandboxRate);
   const sandboxAdvance = Math.round(
     sandboxTotal * ((pricingData.calculator?.advancePercentage || 50) / 100),
   );
@@ -160,16 +213,27 @@ export const PricingManager: React.FC = () => {
     value: any,
   ) => {
     setPricingData((prev) => {
-      const nextDisciplines = [...prev.calculator.disciplines];
+      const currentDisciplines = Array.isArray(prev.calculator?.disciplines)
+        ? prev.calculator.disciplines
+        : defaultPricingSettings.calculator.disciplines;
+      const nextDisciplines = [...currentDisciplines];
+      const parsedVal =
+        field === "rate"
+          ? value === ""
+            ? ""
+            : typeof value === "number"
+              ? value
+              : parseFloat(value) || 0
+          : value;
       nextDisciplines[index] = {
         ...nextDisciplines[index],
-        [field]: field === "rate" ? parseFloat(value) || 0 : value,
+        [field]: parsedVal,
       };
       return {
         ...prev,
         calculator: {
-          ...prev.calculator,
-          disciplines: nextDisciplines,
+          ...(prev.calculator || defaultPricingSettings.calculator),
+          disciplines: nextDisciplines as any,
         },
       };
     });
@@ -184,30 +248,43 @@ export const PricingManager: React.FC = () => {
       description:
         "Comprehensive drawings, drafting specifications, and municipal compliance details.",
     };
-    setPricingData((prev) => ({
-      ...prev,
-      calculator: {
-        ...prev.calculator,
-        disciplines: [...prev.calculator.disciplines, newDiscipline],
-      },
-    }));
+    setPricingData((prev) => {
+      const currentDisciplines = Array.isArray(prev.calculator?.disciplines)
+        ? prev.calculator.disciplines
+        : defaultPricingSettings.calculator.disciplines;
+      return {
+        ...prev,
+        calculator: {
+          ...(prev.calculator || defaultPricingSettings.calculator),
+          disciplines: [...currentDisciplines, newDiscipline],
+        },
+      };
+    });
     setSelectedDisciplineIds((prev) => [...prev, newId]);
   };
 
   const handleDeleteDiscipline = (index: number) => {
-    const d = pricingData.calculator.disciplines[index];
-    if (pricingData.calculator.disciplines.length <= 1) {
+    const disciplines = pricingData.calculator?.disciplines || [];
+    const d = disciplines[index];
+    if (disciplines.length <= 1) {
       alert("At least one engineering discipline is required in the formula.");
       return;
     }
-    setPricingData((prev) => ({
-      ...prev,
-      calculator: {
-        ...prev.calculator,
-        disciplines: prev.calculator.disciplines.filter((_, i) => i !== index),
-      },
-    }));
-    setSelectedDisciplineIds((prev) => prev.filter((id) => id !== d.id));
+    setPricingData((prev) => {
+      const currentDisciplines = Array.isArray(prev.calculator?.disciplines)
+        ? prev.calculator.disciplines
+        : defaultPricingSettings.calculator.disciplines;
+      return {
+        ...prev,
+        calculator: {
+          ...(prev.calculator || defaultPricingSettings.calculator),
+          disciplines: currentDisciplines.filter((_, i) => i !== index),
+        },
+      };
+    });
+    if (d?.id) {
+      setSelectedDisciplineIds((prev) => prev.filter((id) => id !== d.id));
+    }
   };
 
   // Consultation modifications
@@ -215,23 +292,36 @@ export const PricingManager: React.FC = () => {
     field: keyof typeof pricingData.consultationCalls,
     value: any,
   ) => {
+    const rawVal =
+      value === "" ? "" : typeof value === "number" ? value : parseFloat(value);
     const numericVal =
-      typeof value === "number" ? value : parseFloat(value) || 0;
+      typeof rawVal === "number" && !isNaN(rawVal)
+        ? rawVal
+        : rawVal === ""
+          ? ""
+          : 0;
+
     setPricingData((prev) => {
       const nextConsultation = {
-        ...prev.consultationCalls,
+        ...(prev.consultationCalls || defaultPricingSettings.consultationCalls),
         [field]: numericVal,
       };
 
       // Two-way sync to Category A ("consultation") in menuCategories
-      const nextCategories = [...prev.menuCategories];
+      const currentCategories =
+        Array.isArray(prev.menuCategories) && prev.menuCategories.length > 0
+          ? prev.menuCategories
+          : defaultPricingSettings.menuCategories;
+      const nextCategories = [...currentCategories];
       const consultCatIdx = nextCategories.findIndex(
         (c) => c.id === "consultation" || c.letter === "A",
       );
 
       if (consultCatIdx !== -1) {
         const consultCat = { ...nextCategories[consultCatIdx] };
-        const nextTiers = [...consultCat.tiers];
+        const nextTiers = Array.isArray(consultCat.tiers)
+          ? [...consultCat.tiers]
+          : [];
 
         if (field === "basicCallPrice" || field === "basicCallDuration") {
           const bIdx = nextTiers.findIndex(
@@ -242,12 +332,16 @@ export const PricingManager: React.FC = () => {
           if (bIdx !== -1) {
             const price =
               field === "basicCallPrice"
-                ? numericVal
-                : nextConsultation.basicCallPrice;
+                ? typeof numericVal === "number"
+                  ? numericVal
+                  : 0
+                : Number(nextConsultation.basicCallPrice) || 0;
             const duration =
               field === "basicCallDuration"
-                ? numericVal
-                : nextConsultation.basicCallDuration;
+                ? typeof numericVal === "number"
+                  ? numericVal
+                  : 30
+                : Number(nextConsultation.basicCallDuration) || 30;
             nextTiers[bIdx] = {
               ...nextTiers[bIdx],
               pricePKR: price,
@@ -266,12 +360,16 @@ export const PricingManager: React.FC = () => {
           if (pIdx !== -1) {
             const price =
               field === "premiumCallPrice"
-                ? numericVal
-                : nextConsultation.premiumCallPrice;
+                ? typeof numericVal === "number"
+                  ? numericVal
+                  : 0
+                : Number(nextConsultation.premiumCallPrice) || 0;
             const duration =
               field === "premiumCallDuration"
-                ? numericVal
-                : nextConsultation.premiumCallDuration;
+                ? typeof numericVal === "number"
+                  ? numericVal
+                  : 60
+                : Number(nextConsultation.premiumCallDuration) || 60;
             nextTiers[pIdx] = {
               ...nextTiers[pIdx],
               pricePKR: price,
@@ -287,7 +385,7 @@ export const PricingManager: React.FC = () => {
 
       return {
         ...prev,
-        consultationCalls: nextConsultation,
+        consultationCalls: nextConsultation as any,
         menuCategories: nextCategories,
       };
     });
@@ -300,8 +398,14 @@ export const PricingManager: React.FC = () => {
     value: any,
   ) => {
     setPricingData((prev) => {
-      const nextCats = [...prev.menuCategories];
-      nextCats[catIdx] = { ...nextCats[catIdx], [field]: value };
+      const currentCategories =
+        Array.isArray(prev.menuCategories) && prev.menuCategories.length > 0
+          ? prev.menuCategories
+          : defaultPricingSettings.menuCategories;
+      const nextCats = [...currentCategories];
+      if (nextCats[catIdx]) {
+        nextCats[catIdx] = { ...nextCats[catIdx], [field]: value };
+      }
       return { ...prev, menuCategories: nextCats };
     });
   };
@@ -313,8 +417,17 @@ export const PricingManager: React.FC = () => {
     value: any,
   ) => {
     setPricingData((prev) => {
-      const nextCats = [...prev.menuCategories];
-      const nextTiers = [...nextCats[catIdx].tiers];
+      const currentCategories =
+        Array.isArray(prev.menuCategories) && prev.menuCategories.length > 0
+          ? prev.menuCategories
+          : defaultPricingSettings.menuCategories;
+      const nextCats = [...currentCategories];
+      if (!nextCats[catIdx]) return prev;
+      const nextTiers = Array.isArray(nextCats[catIdx].tiers)
+        ? [...nextCats[catIdx].tiers]
+        : [];
+      if (!nextTiers[tierIdx]) return prev;
+
       const currentTier = { ...nextTiers[tierIdx], [field]: value };
 
       if (field === "pricePKR") {
@@ -335,7 +448,7 @@ export const PricingManager: React.FC = () => {
       }
 
       nextTiers[tierIdx] = currentTier;
-      nextCats[catIdx].tiers = nextTiers;
+      nextCats[catIdx] = { ...nextCats[catIdx], tiers: nextTiers };
       return { ...prev, menuCategories: nextCats };
     });
   };
@@ -344,13 +457,25 @@ export const PricingManager: React.FC = () => {
     const item = prompt("Enter new deliverable / inclusion for this tier:");
     if (!item?.trim()) return;
     setPricingData((prev) => {
-      const nextCats = [...prev.menuCategories];
-      const nextTiers = [...nextCats[catIdx].tiers];
-      nextTiers[tierIdx].inclusions = [
-        ...nextTiers[tierIdx].inclusions,
-        item.trim(),
-      ];
-      nextCats[catIdx].tiers = nextTiers;
+      const currentCategories =
+        Array.isArray(prev.menuCategories) && prev.menuCategories.length > 0
+          ? prev.menuCategories
+          : defaultPricingSettings.menuCategories;
+      const nextCats = [...currentCategories];
+      if (!nextCats[catIdx]) return prev;
+      const nextTiers = Array.isArray(nextCats[catIdx].tiers)
+        ? [...nextCats[catIdx].tiers]
+        : [];
+      if (!nextTiers[tierIdx]) return prev;
+
+      const currentInclusions = Array.isArray(nextTiers[tierIdx].inclusions)
+        ? nextTiers[tierIdx].inclusions
+        : [];
+      nextTiers[tierIdx] = {
+        ...nextTiers[tierIdx],
+        inclusions: [...currentInclusions, item.trim()],
+      };
+      nextCats[catIdx] = { ...nextCats[catIdx], tiers: nextTiers };
       return { ...prev, menuCategories: nextCats };
     });
   };
@@ -361,12 +486,20 @@ export const PricingManager: React.FC = () => {
     incIdx: number,
   ) => {
     setPricingData((prev) => {
-      const nextCats = [...prev.menuCategories];
+      const currentCategories =
+        Array.isArray(prev.menuCategories) && prev.menuCategories.length > 0
+          ? prev.menuCategories
+          : defaultPricingSettings.menuCategories;
+      const nextCats = [...currentCategories];
+      if (!nextCats[catIdx]?.tiers?.[tierIdx]?.inclusions) return prev;
       const nextTiers = [...nextCats[catIdx].tiers];
-      nextTiers[tierIdx].inclusions = nextTiers[tierIdx].inclusions.filter(
-        (_, i) => i !== incIdx,
-      );
-      nextCats[catIdx].tiers = nextTiers;
+      nextTiers[tierIdx] = {
+        ...nextTiers[tierIdx],
+        inclusions: nextTiers[tierIdx].inclusions.filter(
+          (_, i) => i !== incIdx,
+        ),
+      };
+      nextCats[catIdx] = { ...nextCats[catIdx], tiers: nextTiers };
       return { ...prev, menuCategories: nextCats };
     });
   };
@@ -390,8 +523,19 @@ export const PricingManager: React.FC = () => {
     };
 
     setPricingData((prev) => {
-      const nextCats = [...prev.menuCategories];
-      nextCats[catIdx].tiers = [...nextCats[catIdx].tiers, newTier];
+      const currentCategories =
+        Array.isArray(prev.menuCategories) && prev.menuCategories.length > 0
+          ? prev.menuCategories
+          : defaultPricingSettings.menuCategories;
+      const nextCats = [...currentCategories];
+      if (!nextCats[catIdx]) return prev;
+      const currentTiers = Array.isArray(nextCats[catIdx].tiers)
+        ? nextCats[catIdx].tiers
+        : [];
+      nextCats[catIdx] = {
+        ...nextCats[catIdx],
+        tiers: [...currentTiers, newTier],
+      };
       return { ...prev, menuCategories: nextCats };
     });
   };
@@ -399,10 +543,16 @@ export const PricingManager: React.FC = () => {
   const handleDeleteTier = (catIdx: number, tierIdx: number) => {
     if (!confirm("Are you sure you want to remove this package tier?")) return;
     setPricingData((prev) => {
-      const nextCats = [...prev.menuCategories];
-      nextCats[catIdx].tiers = nextCats[catIdx].tiers.filter(
-        (_, i) => i !== tierIdx,
-      );
+      const currentCategories =
+        Array.isArray(prev.menuCategories) && prev.menuCategories.length > 0
+          ? prev.menuCategories
+          : defaultPricingSettings.menuCategories;
+      const nextCats = [...currentCategories];
+      if (!nextCats[catIdx]?.tiers) return prev;
+      nextCats[catIdx] = {
+        ...nextCats[catIdx],
+        tiers: nextCats[catIdx].tiers.filter((_, i) => i !== tierIdx),
+      };
       return { ...prev, menuCategories: nextCats };
     });
   };
@@ -414,8 +564,14 @@ export const PricingManager: React.FC = () => {
     value: string,
   ) => {
     setPricingData((prev) => {
-      const nextPolicies = [...prev.policyPoints];
-      nextPolicies[index] = { ...nextPolicies[index], [field]: value };
+      const currentPolicies =
+        Array.isArray(prev.policyPoints) && prev.policyPoints.length > 0
+          ? prev.policyPoints
+          : defaultPricingSettings.policyPoints;
+      const nextPolicies = [...currentPolicies];
+      if (nextPolicies[index]) {
+        nextPolicies[index] = { ...nextPolicies[index], [field]: value };
+      }
       return { ...prev, policyPoints: nextPolicies };
     });
   };
@@ -585,16 +741,20 @@ export const PricingManager: React.FC = () => {
                   type="number"
                   min={10}
                   max={100}
-                  value={pricingData.calculator?.advancePercentage || 50}
+                  value={pricingData.calculator?.advancePercentage ?? ""}
                   onChange={(e) =>
                     setPricingData((prev) => ({
                       ...prev,
                       calculator: {
                         ...prev.calculator,
-                        advancePercentage: parseInt(e.target.value) || 50,
+                        advancePercentage:
+                          e.target.value === ""
+                            ? ("" as any)
+                            : parseInt(e.target.value) || 0,
                       },
                     }))
                   }
+                  placeholder="50"
                   className="w-20 px-3 py-1 text-2xl font-bold font-playfair bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100"
                 />
                 <span className="text-xl font-bold text-stone-500">%</span>
@@ -712,10 +872,11 @@ export const PricingManager: React.FC = () => {
                         type="number"
                         step="0.5"
                         min="0"
-                        value={d.rate}
+                        value={d.rate ?? ""}
                         onChange={(e) =>
                           handleDisciplineChange(index, "rate", e.target.value)
                         }
+                        placeholder="0"
                         className="w-20 font-bold font-mono text-right text-stone-900 dark:text-stone-100 bg-transparent focus:outline-hidden"
                       />
                       <span className="text-xs font-mono text-stone-500">
@@ -762,8 +923,13 @@ export const PricingManager: React.FC = () => {
                       type="number"
                       value={testSqFt}
                       onChange={(e) =>
-                        setTestSqFt(Math.max(1, parseInt(e.target.value) || 0))
+                        setTestSqFt(
+                          e.target.value === ""
+                            ? ""
+                            : parseInt(e.target.value) || 0,
+                        )
                       }
+                      placeholder="3800"
                       className="w-40 px-3 py-2 bg-stone-900 border border-stone-700 rounded-xl font-mono text-stone-100 focus:border-amber-500 focus:outline-hidden"
                     />
                     <div className="flex gap-2">
@@ -928,14 +1094,15 @@ export const PricingManager: React.FC = () => {
                       type="number"
                       step="500"
                       value={
-                        pricingData.consultationCalls?.basicCallPrice || 3000
+                        pricingData.consultationCalls?.basicCallPrice ?? ""
                       }
                       onChange={(e) =>
                         handleConsultationChange(
                           "basicCallPrice",
-                          parseFloat(e.target.value) || 0,
+                          e.target.value,
                         )
                       }
+                      placeholder="3000"
                       className="w-full text-2xl font-bold font-playfair bg-surface dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl px-3 py-1.5 text-stone-900 dark:text-stone-100 focus:outline-hidden focus:border-amber-500"
                     />
                   </div>
@@ -949,14 +1116,15 @@ export const PricingManager: React.FC = () => {
                     type="number"
                     step="5"
                     value={
-                      pricingData.consultationCalls?.basicCallDuration || 30
+                      pricingData.consultationCalls?.basicCallDuration ?? ""
                     }
                     onChange={(e) =>
                       handleConsultationChange(
                         "basicCallDuration",
-                        parseInt(e.target.value) || 30,
+                        e.target.value,
                       )
                     }
+                    placeholder="30"
                     className="w-full text-sm font-mono bg-surface dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl px-3 py-2 text-stone-900 dark:text-stone-100 focus:outline-hidden focus:border-amber-500"
                   />
                 </div>
@@ -998,14 +1166,15 @@ export const PricingManager: React.FC = () => {
                       type="number"
                       step="500"
                       value={
-                        pricingData.consultationCalls?.premiumCallPrice || 5000
+                        pricingData.consultationCalls?.premiumCallPrice ?? ""
                       }
                       onChange={(e) =>
                         handleConsultationChange(
                           "premiumCallPrice",
-                          parseFloat(e.target.value) || 0,
+                          e.target.value,
                         )
                       }
+                      placeholder="5000"
                       className="w-full text-2xl font-bold font-playfair bg-surface dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl px-3 py-1.5 text-stone-900 dark:text-stone-100 focus:outline-hidden focus:border-amber-500"
                     />
                   </div>
@@ -1019,14 +1188,15 @@ export const PricingManager: React.FC = () => {
                     type="number"
                     step="5"
                     value={
-                      pricingData.consultationCalls?.premiumCallDuration || 60
+                      pricingData.consultationCalls?.premiumCallDuration ?? ""
                     }
                     onChange={(e) =>
                       handleConsultationChange(
                         "premiumCallDuration",
-                        parseInt(e.target.value) || 60,
+                        e.target.value,
                       )
                     }
+                    placeholder="60"
                     className="w-full text-sm font-mono bg-surface dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl px-3 py-2 text-stone-900 dark:text-stone-100 focus:outline-hidden focus:border-amber-500"
                   />
                 </div>
@@ -1279,7 +1449,8 @@ export const PricingManager: React.FC = () => {
                       <div className="space-y-2 pt-2 border-t border-stone-200 dark:border-stone-800">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold text-stone-500 uppercase">
-                            Deliverables Checklist ({tier.inclusions.length})
+                            Deliverables Checklist (
+                            {tier.inclusions?.length || 0})
                           </span>
                           <button
                             onClick={() =>
@@ -1293,7 +1464,7 @@ export const PricingManager: React.FC = () => {
                         </div>
 
                         <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                          {tier.inclusions.map((inc, incIdx) => (
+                          {tier.inclusions?.map((inc, incIdx) => (
                             <div
                               key={incIdx}
                               className="flex items-center justify-between gap-2 text-xs bg-surface dark:bg-stone-900 p-1.5 rounded-md border border-stone-200 dark:border-stone-800"

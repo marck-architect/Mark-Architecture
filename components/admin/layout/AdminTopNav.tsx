@@ -55,6 +55,8 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
         return "Architectural Services & Tiers";
       case "projects":
         return "Portfolio Projects & Case Studies";
+      case "collection":
+        return "Architectural Products Catalog";
       case "clients":
         return "Client Directory & Historical Records";
       case "payments":
@@ -96,7 +98,9 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
           <div className="flex items-center gap-1.5 text-[11px] text-stone-500 font-medium">
             <span>Admin</span>
             <span>/</span>
-            <span className="capitalize">{activeTab}</span>
+            <span className="capitalize">
+              {activeTab === "collection" ? "Products" : activeTab}
+            </span>
           </div>
           <h1 className="font-playfair text-sm sm:text-base font-bold text-stone-900 truncate">
             {getTabBreadcrumb()}
