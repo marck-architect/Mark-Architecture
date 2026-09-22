@@ -1,1 +1,192 @@
-[]
+[
+  {
+    "id": "proj_1790061869114",
+    "slug": "hayat-villas",
+    "year": "2026",
+    "price": "1 Kanal • 6,200 sq. ft.",
+    "title": "Hayat Villas",
+    "category": "residential",
+    "location": "Hayatabad, Peshawar, Pakistan",
+    "area_sqft": 6200,
+    "created_at": "2026-09-22T07:24:29.114Z",
+    "updated_at": "2026-09-22T07:24:29.114Z",
+    "aspectClass": "aspect-[4/5]",
+    "client_name": null,
+    "cover_image": "/images/Full House Design Package.png",
+    "description": "",
+    "is_featured": false,
+    "gallery_urls": [],
+    "is_published": true,
+    "display_order": 9,
+    "short_description": null
+  },
+  {
+    "id": "proj_1",
+    "slug": "the-hayatabad-minimalist",
+    "year": "2025",
+    "price": "1 Kanal • 6,200 sq. ft.",
+    "title": "The Hayatabad Minimalist",
+    "category": "residential",
+    "location": "Ring Road, Hayatabad, Peshawar, Pakistan",
+    "area_sqft": 6200,
+    "updated_at": "2026-09-22T07:24:00.534Z",
+    "aspectClass": "aspect-[4/5]",
+    "client_name": "Private Client",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/projects/dha_lahore_villa.png",
+    "description": "An ultra-luxury 1-Kanal residence in Hayatabad, Peshawar. Designed with passive solar layout, exposed structural concrete, floor-to-ceiling thermal double-glazing, and private interior courtyard.",
+    "is_featured": true,
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/projects/dha_lahore_villa.png"
+    ],
+    "is_published": true,
+    "display_order": 1,
+    "short_description": "An ultra-luxury 1-Kanal residence in Hayatabad, Peshawar with passive solar layout and private interior courtyard."
+  },
+  {
+    "id": "proj_2",
+    "slug": "margalla-crest-contemporary-mansion",
+    "year": "2026",
+    "price": "2 Kanal • 9,500 sq. ft.",
+    "title": "Margalla Crest Contemporary Mansion",
+    "category": "residential",
+    "location": "DHA Phase 2, Islamabad, Pakistan",
+    "area_sqft": 9500,
+    "aspectClass": "aspect-[4/5]",
+    "client_name": "Ambassadorial Client",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/projects/dha_islamabad_mansion.png",
+    "description": "A modernist 2-Kanal hillside mansion facing the Margalla ridges. Features seismic reinforcement calculations, double-height entrance atrium, travertine stone cladding, and wide cantilevered balconies.",
+    "is_featured": true,
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/projects/dha_islamabad_mansion.png"
+    ],
+    "is_published": true,
+    "display_order": 2,
+    "short_description": "A modernist 2-Kanal hillside mansion facing the Margalla ridges with seismic calculations and travertine cladding."
+  },
+  {
+    "id": "proj_3",
+    "slug": "the-clifton-coastal-residence",
+    "year": "2024",
+    "price": "10 Marla • 3,850 sq. ft.",
+    "title": "The Clifton Coastal Residence",
+    "category": "residential",
+    "location": "Clifton Block 4, Karachi, Pakistan",
+    "area_sqft": 3850,
+    "aspectClass": "aspect-[4/5]",
+    "client_name": "Corporate Executive",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/projects/clifton_karachi_villa.png",
+    "description": "An ultra-premium modern coastal residence in Clifton, Karachi. Features marine-grade corrosion-resistant concrete facades, geometric brise-soleil shading louvers, and a rooftop viewing pavilion over the Arabian Sea.",
+    "is_featured": true,
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/projects/clifton_karachi_villa.png"
+    ],
+    "is_published": true,
+    "display_order": 3,
+    "short_description": "An ultra-premium modern coastal residence in Clifton, Karachi with marine-grade facades and Arabian Sea views."
+  },
+  {
+    "id": "proj_4",
+    "slug": "al-haj-sher-commercial-center",
+    "year": "2025",
+    "price": "Multi-Storey Corporate Hub",
+    "title": "AL Haj Sher Commercial Center",
+    "category": "commercial",
+    "location": "Ring Road, Near Hayatabad, Peshawar",
+    "area_sqft": 18500,
+    "aspectClass": "aspect-[16/10]",
+    "client_name": "Sher Group",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Full-House-Design-Package.png",
+    "description": "A multi-storey corporate hub and mixed-use commercial center. Features full MEP schematics, life safety egress plans, high-efficiency mechanical circulation, and PDA municipal submission drawings.",
+    "is_featured": false,
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Full-House-Design-Package.png"
+    ],
+    "is_published": true,
+    "display_order": 4,
+    "short_description": "Multi-storey corporate hub and mixed-use commercial center with full MEP schematics and PDA submission sets."
+  },
+  {
+    "id": "proj_5",
+    "slug": "modern-facade-redesign-elevation",
+    "year": "2025",
+    "price": "1 Kanal Facade • 3D Elevation",
+    "title": "Modern Facade Redesign & Elevation",
+    "category": "renovation",
+    "location": "Hayatabad Phase 5, Peshawar, Pakistan",
+    "area_sqft": 4500,
+    "aspectClass": "aspect-[16/9]",
+    "client_name": "Private Patron",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Front-Elevation-3D-(Exterior-Render).png",
+    "description": "Contemporary 3D facade transformation for a 1-Kanal residence. Replaced traditional brickwork with sleek composite stone panels, dramatic vertical illumination, and modern aluminum louvers.",
+    "is_featured": false,
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Front-Elevation-3D-(Exterior-Render).png"
+    ],
+    "is_published": true,
+    "display_order": 5,
+    "short_description": "Contemporary 3D facade transformation for a 1-Kanal residence with composite stone panels and dramatic lighting."
+  },
+  {
+    "id": "proj_6",
+    "slug": "executive-penthouse-suite-lounge",
+    "year": "2025",
+    "price": "Master Suite & Lounge",
+    "title": "Executive Penthouse Suite & Lounge",
+    "category": "interior",
+    "location": "Blue Area, Islamabad, Pakistan",
+    "area_sqft": 3200,
+    "aspectClass": "aspect-[16/10]",
+    "client_name": "Private Client",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Interior-Room-Makeover.png",
+    "description": "Luxury interior room makeover featuring bespoke Swat walnut wood millwork, acoustic ceiling geometry, architectural ambient cove lighting, and curated imported marble surfaces.",
+    "is_featured": false,
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Interior-Room-Makeover.png"
+    ],
+    "is_published": true,
+    "display_order": 6,
+    "short_description": "Luxury interior room makeover featuring bespoke Swat walnut wood millwork and architectural cove lighting."
+  },
+  {
+    "id": "proj_7",
+    "slug": "comprehensive-layout-optimization",
+    "year": "2025",
+    "price": "10 Marla • Corrected Blueprint",
+    "title": "Comprehensive Layout Optimization",
+    "category": "renovation",
+    "location": "DHA Phase 6, Karachi, Pakistan",
+    "area_sqft": 4500,
+    "aspectClass": "aspect-[16/10]",
+    "client_name": "Private Client",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-Correction.png",
+    "description": "Complete architectural redrafting for a 10 Marla corner plot with circulation bottlenecks. Restructured the layout to introduce natural light shafts, cross-ventilation, and dedicated family zones.",
+    "is_featured": false,
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-Correction.png"
+    ],
+    "is_published": true,
+    "display_order": 7,
+    "short_description": "Complete architectural redrafting for a 10 Marla corner plot with circulation bottlenecks resolved."
+  },
+  {
+    "id": "proj_8",
+    "slug": "biophilic-courtyard-landscape-garden",
+    "year": "2024",
+    "price": "Estate Garden & Circulation Audit",
+    "title": "Biophilic Courtyard & Landscape Garden",
+    "category": "landscape",
+    "location": "DHA Phase 2, Islamabad, Pakistan",
+    "area_sqft": 2500,
+    "aspectClass": "aspect-[16/10]",
+    "client_name": "Private Patron",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-review.png",
+    "description": "Internal biophilic courtyard integrating indigenous flora, geometric stone water rills, and shaded outdoor seating designed for thermal microclimate regulation in peak summer months.",
+    "is_featured": false,
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-review.png"
+    ],
+    "is_published": true,
+    "display_order": 8,
+    "short_description": "Internal biophilic courtyard integrating indigenous flora and shaded seating for thermal regulation."
+  }
+]

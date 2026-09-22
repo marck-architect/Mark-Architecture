@@ -111,19 +111,7 @@ export async function getPublicProjects(): Promise<AdminProject[]> {
   try {
     const supabase = getPublicSupabaseClient();
     if (supabase) {
-      // 1a. Try dedicated 'projects' table
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("is_published", true)
-        .order("display_order", { ascending: true })
-        .order("created_at", { ascending: false });
-
-      if (!error && data && data.length > 0) {
-        return data as AdminProject[];
-      }
-
-      // 1b. Try 'site_content' table
+      // 1a. Try 'site_content' table first (contains full rich payload including aspectClass & price)
       const { data: contentData } = await supabase
         .from("site_content")
         .select("content")
@@ -138,6 +126,40 @@ export async function getPublicProjects(): Promise<AdminProject[]> {
         return contentData.content.filter(
           (p: AdminProject) => p.is_published !== false,
         );
+      }
+
+      // 1b. Try dedicated 'projects' table
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        // Read local projects to fill in aspectClass & price if needed
+        let localProjects: AdminProject[] = [];
+        try {
+          const localFile = path.join(process.cwd(), "data", "projects.json");
+          if (fs.existsSync(localFile)) {
+            localProjects = JSON.parse(fs.readFileSync(localFile, "utf8"));
+          }
+        } catch {}
+
+        return data.map((p: any) => {
+          const matched = localProjects.find(
+            (l) => l.id === String(p.id) || l.slug === p.slug,
+          );
+          return {
+            ...p,
+            id: String(p.id),
+            price: p.price || matched?.price || null,
+            aspectClass:
+              p.aspectClass || matched?.aspectClass || "aspect-[4/5]",
+            short_description:
+              p.short_description || matched?.short_description || null,
+          } as AdminProject;
+        });
       }
     }
   } catch (err) {
@@ -219,28 +241,7 @@ export async function getPublicCollection(): Promise<ArchitecturalPackage[]> {
   try {
     const supabase = getPublicSupabaseClient();
     if (supabase) {
-      // 1a. Try dedicated 'collection_packages' table
-      const { data, error } = await supabase
-        .from("collection_packages")
-        .select("*")
-        .eq("is_published", true)
-        .order("display_order", { ascending: true });
-
-      if (!error && data && data.length > 0) {
-        return data.map((item) => ({
-          id: item.slug || item.id,
-          title: item.name,
-          tier: item.tag || "Standard Package",
-          pricePKR: Number(item.price_pkr) || 9000,
-          deliveryTime: item.turnaround_weeks || "3-5 Days",
-          image: item.cover_image || "/images/Full House Design Package.png",
-          plotSize: item.plot_dimensions || "Standard",
-          inclusions: item.deliverables || [],
-          description: item.subtitle || "",
-        }));
-      }
-
-      // 1b. Try 'site_content' table
+      // 1a. Try 'site_content' table first (guaranteed to match latest admin edits)
       const { data: contentData } = await supabase
         .from("site_content")
         .select("content")
@@ -269,6 +270,27 @@ export async function getPublicCollection(): Promise<ArchitecturalPackage[]> {
             inclusions: item.deliverables || item.inclusions || [],
             description: item.subtitle || item.description || "",
           }));
+      }
+
+      // 1b. Try dedicated 'collection_packages' table
+      const { data, error } = await supabase
+        .from("collection_packages")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        return data.map((item) => ({
+          id: item.slug || item.id,
+          title: item.name,
+          tier: item.tag || "Standard Package",
+          pricePKR: Number(item.price_pkr) || 9000,
+          deliveryTime: item.turnaround_weeks || "3-5 Days",
+          image: item.cover_image || "/images/Full House Design Package.png",
+          plotSize: item.plot_dimensions || "Standard",
+          inclusions: item.deliverables || [],
+          description: item.subtitle || "",
+        }));
       }
     }
   } catch (err) {

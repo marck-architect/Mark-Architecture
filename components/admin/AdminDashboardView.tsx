@@ -232,15 +232,25 @@ function AdminDashboardInner({
         ),
       );
       try {
-        await fetch(`/api/admin/projects/${projectData.id}`, {
+        const res = await fetch(`/api/admin/projects/${projectData.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(projectData),
         });
-      } catch {}
+        const saved = await res.json();
+        const updated = saved?.data || saved?.project;
+        if (updated) {
+          setProjects((prev) =>
+            prev.map((p) => (p.id === projectData.id ? updated : p)),
+          );
+        }
+      } catch (err) {
+        console.error("Failed to update project:", err);
+      }
     } else {
+      const tempId = `proj_${Date.now()}`;
       const newProj: AdminProject = {
-        id: `proj_${Date.now()}`,
+        id: tempId,
         title: projectData.title || "Untitled Case Study",
         slug: projectData.slug || "untitled-case-study",
         category: projectData.category || "residential",
@@ -266,12 +276,15 @@ function AdminDashboardInner({
           body: JSON.stringify(projectData),
         });
         const saved = await res.json();
-        if (saved?.data?.id) {
+        const created = saved?.data || saved?.project;
+        if (created?.id) {
           setProjects((prev) =>
-            prev.map((p) => (p.id === newProj.id ? saved.data : p)),
+            prev.map((p) => (p.id === tempId ? created : p)),
           );
         }
-      } catch {}
+      } catch (err) {
+        console.error("Failed to create project:", err);
+      }
     }
   };
 
@@ -279,7 +292,9 @@ function AdminDashboardInner({
     setProjects((prev) => prev.filter((p) => p.id !== id));
     try {
       await fetch(`/api/admin/projects/${id}`, { method: "DELETE" });
-    } catch {}
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+    }
   };
 
   // Calendar Availability handlers

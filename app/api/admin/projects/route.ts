@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import fs from "fs";
 import path from "path";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
@@ -50,6 +51,32 @@ export async function GET() {
 
     const { supabase } = authResult.admin;
 
+    // 1. Try Supabase site_content table (section_key = 'projects')
+    try {
+      const { data: contentData, error: contentErr } = await supabase
+        .from("site_content")
+        .select("content")
+        .eq("section_key", "projects")
+        .single();
+
+      if (
+        !contentErr &&
+        contentData?.content &&
+        Array.isArray(contentData.content) &&
+        contentData.content.length > 0
+      ) {
+        writeLocalProjects(contentData.content);
+        return NextResponse.json({
+          success: true,
+          data: contentData.content,
+          projects: contentData.content,
+        });
+      }
+    } catch {
+      // Fallback
+    }
+
+    // 2. Try relational Supabase projects table
     try {
       const { data: projects, error } = await supabase
         .from("projects")
@@ -57,10 +84,52 @@ export async function GET() {
         .order("display_order", { ascending: true });
 
       if (!error && projects && projects.length > 0) {
+        const local = readLocalProjects();
+        const merged: AdminProject[] = projects.map((p: any) => {
+          const matched = local.find(
+            (l) => l.id === String(p.id) || l.slug === p.slug,
+          );
+          return {
+            id: String(p.id),
+            title: p.title,
+            slug: p.slug,
+            category: p.category || "residential",
+            location: p.location || "Pakistan",
+            year: p.year || new Date().getFullYear().toString(),
+            client_name: p.client_name || matched?.client_name || null,
+            area_sqft: p.area_sqft
+              ? Number(p.area_sqft)
+              : matched?.area_sqft || null,
+            price: p.price || matched?.price || null,
+            aspectClass:
+              p.aspectClass || matched?.aspectClass || "aspect-[4/5]",
+            description: p.description || matched?.description || "",
+            short_description:
+              p.short_description || matched?.short_description || null,
+            cover_image:
+              p.cover_image ||
+              matched?.cover_image ||
+              "/images/Full House Design Package.png",
+            gallery_urls:
+              Array.isArray(p.gallery_urls) && p.gallery_urls.length > 0
+                ? p.gallery_urls
+                : matched?.gallery_urls || [
+                    p.cover_image || "/images/Full House Design Package.png",
+                  ],
+            is_featured: p.is_featured ?? matched?.is_featured ?? false,
+            is_published: p.is_published ?? matched?.is_published ?? true,
+            display_order: p.display_order ?? matched?.display_order ?? 1,
+            created_at:
+              p.created_at || matched?.created_at || new Date().toISOString(),
+            updated_at:
+              p.updated_at || matched?.updated_at || new Date().toISOString(),
+          };
+        });
+        writeLocalProjects(merged);
         return NextResponse.json({
           success: true,
-          data: projects,
-          projects,
+          data: merged,
+          projects: merged,
         });
       }
     } catch {
@@ -142,38 +211,73 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    let created = newProject;
+    // 1. Persist to local JSON
+    const current = readLocalProjects();
+    const updatedList = [
+      newProject,
+      ...current.filter(
+        (p) => p.id !== newProject.id && p.slug !== newProject.slug,
+      ),
+    ];
+    writeLocalProjects(updatedList);
 
+    // 2. Sync to Supabase site_content (section_key = 'projects')
     try {
-      const { data, error } = await supabase
-        .from("projects")
-        .insert(newProject)
-        .select()
-        .single();
-
-      if (!error && data) {
-        created = data as AdminProject;
-      }
-    } catch (err) {
-      console.warn("Supabase project insert fallback:", err);
+      await supabase.from("site_content").upsert(
+        {
+          section_key: "projects",
+          content: updatedList,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "section_key" },
+      );
+    } catch (scErr) {
+      console.warn("Notice: Syncing projects to site_content:", scErr);
     }
 
-    // Persist to local JSON
-    const current = readLocalProjects();
-    writeLocalProjects([created, ...current]);
+    // 3. Attempt direct insert/upsert to relational projects table
+    try {
+      const dbPayload = {
+        title: newProject.title,
+        slug: newProject.slug,
+        category: newProject.category,
+        location: newProject.location,
+        year: newProject.year,
+        client_name: newProject.client_name,
+        area_sqft: newProject.area_sqft,
+        description: newProject.description,
+        short_description: newProject.short_description,
+        cover_image: newProject.cover_image,
+        gallery_urls: newProject.gallery_urls,
+        is_featured: newProject.is_featured,
+        is_published: newProject.is_published,
+        display_order: newProject.display_order,
+      };
+      await supabase.from("projects").upsert(dbPayload, { onConflict: "slug" });
+    } catch (err) {
+      console.warn("Notice: Supabase project insert fallback:", err);
+    }
 
-    await logAdminAction({
-      adminEmail: user.email,
-      action: "CREATE_PROJECT",
-      entity: "project",
-      entityId: created.id,
-      metadata: { title },
-    });
+    try {
+      await logAdminAction({
+        adminEmail: user.email,
+        action: "CREATE_PROJECT",
+        entity: "project",
+        entityId: newProject.id,
+        metadata: { title },
+      });
+    } catch {
+      // Ignored
+    }
+
+    // 4. Invalidate public page caches
+    revalidatePath("/portfolio");
+    revalidatePath("/");
 
     return NextResponse.json({
       success: true,
-      data: created,
-      project: created,
+      data: newProject,
+      project: newProject,
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);

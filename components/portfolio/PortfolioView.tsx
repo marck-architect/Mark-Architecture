@@ -46,7 +46,8 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
 
   const filteredProjects = projectList.filter(
     (project) =>
-      portfolioFilter === "all" || project.category === portfolioFilter,
+      portfolioFilter === "all" ||
+      project.category?.toLowerCase() === portfolioFilter.toLowerCase(),
   );
 
   return (
