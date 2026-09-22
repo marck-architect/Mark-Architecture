@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { TextReveal } from "@/components/ui/TextReveal";
 import { HeroCinematic } from "@/components/home/HeroCinematic";
 import { CredentialsRow } from "@/components/home/CredentialsRow";
 import {
@@ -128,7 +129,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   Client Testimonials &amp; Endorsements
                 </span>
                 <h2 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-normal text-white mt-2">
-                  Trusted by Homeowners &amp; Developers
+                  Trusted by Homeowners and Developers
                 </h2>
               </ScrollReveal>
             </div>
@@ -260,21 +261,33 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       )}
 
-      {/* Call to Action Home */}
+      {/* Call to Action Home — each piece enters from its own direction and
+          converges into place, rather than the whole block sliding up as
+          one unit, so the section reads as choreographed on scroll-in. */}
       <section className="bg-[#f7f4ef] px-4 py-20 md:px-margin-desktop md:py-32 text-center">
-        <ScrollReveal>
-          <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8">
+        <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8">
+          <ScrollReveal direction="down">
             <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#8a6125]">
               Start with a conversation
             </span>
-            <h2 className="font-playfair text-3xl sm:text-5xl md:text-6xl font-normal leading-[1.08] text-[#272522]">
-              Ready to make something lasting?
-            </h2>
+          </ScrollReveal>
+
+          <TextReveal
+            as="h2"
+            text="Ready to make something lasting?"
+            delay={0.1}
+            className="font-playfair text-3xl sm:text-5xl md:text-6xl font-normal leading-[1.08] text-[#272522]"
+          />
+
+          <ScrollReveal direction="left" delay={0.3}>
             <p className="mx-auto max-w-xl font-inter text-sm sm:text-base font-light leading-7 text-[#77716a] md:text-lg">
               Schedule your 1-on-1 consultation or upload your blueprint for a
               professional architectural audit.
             </p>
-            <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+          </ScrollReveal>
+
+          <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+            <ScrollReveal direction="right" delay={0.4} className="w-full sm:w-auto">
               <Link
                 href="/consultation"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#292722] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-white shadow-xl transition-all duration-300 hover:bg-[#8a6125] active:scale-95 text-center min-h-[48px]"
@@ -282,15 +295,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <span>Book Consultation (PKR 3,000)</span>
                 <PhoneCall className="w-4 h-4" />
               </Link>
+            </ScrollReveal>
+            <ScrollReveal direction="left" delay={0.5} className="w-full sm:w-auto">
               <Link
                 href="/consultation"
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-[#c9c0b2] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-[#5f5951] transition-all hover:border-[#8a6125] hover:text-[#8a6125] active:scale-95 text-center min-h-[48px]"
               >
                 Explore All Packages
               </Link>
-            </div>
+            </ScrollReveal>
           </div>
-        </ScrollReveal>
+        </div>
       </section>
     </div>
   );

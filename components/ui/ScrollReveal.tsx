@@ -9,6 +9,7 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   delay = 0,
   direction = "up",
   duration = 0.8,
+  className,
 }) => {
   const ref = useRef(null);
   // Trigger reveal when element is 10% inside the viewport
@@ -31,6 +32,7 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   return (
     <motion.div
       ref={ref}
+      className={className}
       variants={getVariants()}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}

@@ -228,7 +228,7 @@ export const PricingView: React.FC<PricingViewProps> = ({ initialPricing }) => {
                 Standardized Terms
               </span>
               <h2 className="font-playfair text-2xl md:text-3xl font-bold text-secondary dark:text-zinc-100 mt-1">
-                Studio Payment &amp; Revision Policy
+                Studio Payment and Revision Policy
               </h2>
             </div>
             <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 font-medium">

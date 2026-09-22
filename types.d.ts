@@ -14,6 +14,7 @@ export interface ScrollRevealProps {
   delay?: number;
   direction?: "up" | "down" | "left" | "right" | "none";
   duration?: number;
+  className?: string;
 }
 
 export interface ClientLayoutProps {

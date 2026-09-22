@@ -263,7 +263,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
                 Standardized Architecture
               </span>
               <h2 className="font-playfair text-2xl md:text-3xl font-bold text-secondary dark:text-zinc-100 mt-1">
-                Design &amp; Review Packages
+                Design and Review Packages
               </h2>
             </div>
             <span className="text-xs font-inter text-zinc-500 font-medium">

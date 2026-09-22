@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { MapPin, ShieldCheck, ArrowDown } from "lucide-react";
 
@@ -144,7 +145,7 @@ export const AboutView: React.FC<AboutViewProps> = ({
                 PRACTICE LEADERSHIP
               </span>
               <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
-                Principal Architect &amp; Founder.
+                Principal Architect and Founder.
               </h2>
               <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light">
                 Every project is personally spearheaded by Muhammad Arsalan,
@@ -170,80 +171,124 @@ export const AboutView: React.FC<AboutViewProps> = ({
           </div>
         ) : (
           leaders.map((leader) => (
-            <ScrollReveal key={leader.name}>
-              <div className="w-full grid grid-cols-1 lg:grid-cols-[2fr_3fr] lg:min-h-[480px] items-stretch bg-surface-container-low dark:bg-zinc-900 border-y border-outline-variant/20">
-                {/* Left: portrait in architectural circular frame */}
-                <div className="relative min-h-[360px] lg:min-h-0 flex items-center justify-center py-10 lg:py-12 px-6">
-                  <div className="group relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] aspect-square rounded-full overflow-hidden border-4 border-white dark:border-zinc-800 shadow-2xl ring-2 ring-tertiary/25 dark:ring-tertiary/30 hover:ring-tertiary/60 dark:hover:ring-tertiary/60 transition-all duration-500 bg-transparent">
+            <div
+              key={leader.name}
+              className="w-full grid grid-cols-1 lg:grid-cols-[2fr_3fr] bg-surface-container-low dark:bg-zinc-900 border-y border-outline-variant/20"
+            >
+              {/* Left: contained circular portrait — left-aligned in its
+                  column, vertically centered against the text. A defined
+                  circular boundary (with the offset gold ring as the
+                  deliberate edge) rather than a full-bleed rectangle means
+                  there's no seam to fight regardless of the source photo's
+                  own backdrop color. */}
+              <div className="flex items-center justify-start px-6 md:px-margin-desktop lg:px-16 py-14 lg:py-16">
+                <div className="relative w-[280px] sm:w-[360px] lg:w-[450px] aspect-square shrink-0">
+                  {/* Offset gold ring, sitting a few px behind/right of the
+                      photo for depth — traces in like a drawn circle
+                      slightly after the photo scales/fades into place. */}
+                  <svg
+                    className="absolute -right-3 -bottom-3 w-full h-full pointer-events-none overflow-visible"
+                    viewBox="0 0 100 100"
+                  >
+                    <motion.circle
+                      cx="50"
+                      cy="50"
+                      r="49.5"
+                      fill="none"
+                      stroke="#8a6125"
+                      strokeWidth="0.6"
+                      pathLength={1}
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      whileInView={{ pathLength: 1, opacity: 1 }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{
+                        pathLength: { duration: 0.7, delay: 0.35, ease: "easeOut" },
+                        opacity: { duration: 0.2, delay: 0.35 },
+                      }}
+                    />
+                  </svg>
+
+                  {/* Photo circle */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85, x: 40 }}
+                    whileInView={{ opacity: 1, scale: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="relative w-full h-full rounded-full overflow-hidden shadow-xl ring-1 ring-black/5"
+                  >
                     <Image
                       fill
-                      src={
-                        leader.image === "/images/profile.jpeg"
-                          ? "/images/profile-removebg-preview.png"
-                          : leader.image ||
-                            "/images/profile-removebg-preview.png"
-                      }
+                      src={leader.image}
                       alt={`${leader.name}, ${leader.role} at MARK Architects`}
-                      sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 360px"
-                      className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105 will-change-transform"
+                      sizes="(max-width: 640px) 280px, (max-width: 1024px) 360px, 450px"
+                      className="object-cover object-top"
                       priority
                     />
-                  </div>
-                </div>
-
-                {/* Right: qualifications */}
-                <div className="flex flex-col justify-center px-4 md:px-margin-desktop py-14 lg:py-0">
-                  <div className="max-w-xl space-y-5 w-full">
-                    <div>
-                      <div className="h-px w-12 bg-tertiary/50 mb-4" />
-                      <h3 className="font-playfair text-4xl sm:text-5xl font-bold text-on-surface dark:text-zinc-100">
-                        {leader.name}
-                      </h3>
-                      <p className="text-sm sm:text-base text-tertiary font-inter font-semibold mt-1.5">
-                        {leader.role}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {leader.credentials.split(" • ").map((cred) => (
-                        <span
-                          key={cred}
-                          className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-900 text-on-surface dark:text-zinc-200 text-xs sm:text-sm font-inter font-semibold px-3.5 py-2 rounded-lg border border-outline-variant/40 shadow-xs"
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                          {cred}
-                        </span>
-                      ))}
-                    </div>
-
-                    <p className="font-inter text-base text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
-                      {leader.bio}
-                    </p>
-
-                    <div className="pt-3 border-t border-outline-variant/20 flex flex-wrap gap-5 text-sm text-on-surface-variant dark:text-zinc-400">
-                      <div>
-                        <span className="font-bold text-on-surface dark:text-zinc-200">
-                          Experience:
-                        </span>{" "}
-                        {leader.experience.split(" ").slice(0, 2).join(" ")}
-                      </div>
-                      <div>
-                        <span className="font-bold text-on-surface dark:text-zinc-200">
-                          Focus:
-                        </span>{" "}
-                        Residential &amp; Commercial Masterplanning
-                      </div>
-                      <div>
-                        <span className="font-bold text-on-surface dark:text-zinc-200">
-                          Council:
-                        </span>{" "}
-                        PCATP Licensed Architect
-                      </div>
-                    </div>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
-            </ScrollReveal>
+
+              {/* Right: qualifications — vertically centered, same left
+                  gutter as the rest of the page. Slides up slightly after
+                  the photo starts, rather than sliding sideways too, so the
+                  two don't compete with identical motion. */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
+                className="flex flex-col justify-center px-4 md:px-margin-desktop py-14 lg:py-20"
+              >
+                <div className="max-w-xl space-y-5 w-full">
+                  <div>
+                    <div className="h-px w-12 bg-tertiary/50 mb-4" />
+                    <h3 className="font-playfair text-4xl sm:text-5xl font-bold text-on-surface dark:text-zinc-100">
+                      {leader.name}
+                    </h3>
+                    <p className="text-sm sm:text-base text-tertiary font-inter font-semibold mt-1.5">
+                      {leader.role}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {leader.credentials.split(" • ").map((cred) => (
+                      <span
+                        key={cred}
+                        className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-900 text-on-surface dark:text-zinc-200 text-xs sm:text-sm font-inter font-semibold px-3.5 py-2 rounded-lg border border-outline-variant/40 shadow-xs"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        {cred}
+                      </span>
+                    ))}
+                  </div>
+
+                  <p className="font-inter text-base text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
+                    {leader.bio}
+                  </p>
+
+                  <div className="pt-3 border-t border-outline-variant/20 flex flex-wrap gap-5 text-sm text-on-surface-variant dark:text-zinc-400">
+                    <div>
+                      <span className="font-bold text-on-surface dark:text-zinc-200">
+                        Experience:
+                      </span>{" "}
+                      {leader.experience.split(" ").slice(0, 2).join(" ")}
+                    </div>
+                    <div>
+                      <span className="font-bold text-on-surface dark:text-zinc-200">
+                        Focus:
+                      </span>{" "}
+                      Residential &amp; Commercial Masterplanning
+                    </div>
+                    <div>
+                      <span className="font-bold text-on-surface dark:text-zinc-200">
+                        Council:
+                      </span>{" "}
+                      PCATP Licensed Architect
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           ))
         )}
       </section>
