@@ -5,14 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { HeroCinematic } from "@/components/home/HeroCinematic";
+import { CredentialsRow } from "@/components/home/CredentialsRow";
 import {
   MapPin,
-  Lightbulb,
-  ShieldCheck,
-  Building,
   ArrowRight,
   Clock,
-  Sparkles,
   PhoneCall,
   CheckCircle2,
 } from "lucide-react";
@@ -205,59 +202,7 @@ export const HomeView: React.FC = () => {
           </ScrollReveal>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ScrollReveal delay={0.1}>
-            <div className="group h-full space-y-5 rounded-2xl border border-[#ded7cc] bg-white/65 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-[#bca477] hover:bg-white">
-              <Lightbulb className="h-9 w-9 text-[#8a6125] transition-transform group-hover:scale-110" />
-              <h3 className="font-playfair text-xl font-bold text-[#272522]">
-                Passive Solar &amp; Climate Control
-              </h3>
-              <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
-                Strategic orientation to capture southern sun in winter and
-                cross-ventilation in peak summer heat.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.2}>
-            <div className="group h-full space-y-5 rounded-2xl border border-[#ded7cc] bg-white/65 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-[#bca477] hover:bg-white">
-              <Building className="h-9 w-9 text-[#8a6125] transition-transform group-hover:scale-110" />
-              <h3 className="font-playfair text-xl font-bold text-[#272522]">
-                PDA, CDA &amp; KDA Bylaw Mastery
-              </h3>
-              <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
-                Full submission drawings ensuring frictionless municipal
-                approvals across Hayatabad, Islamabad, and Karachi.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.3}>
-            <div className="group h-full space-y-5 rounded-2xl border border-[#ded7cc] bg-white/65 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-[#bca477] hover:bg-white">
-              <ShieldCheck className="h-9 w-9 text-[#8a6125] transition-transform group-hover:scale-110" />
-              <h3 className="font-playfair text-xl font-bold text-[#272522]">
-                Seismic &amp; Structural Safety
-              </h3>
-              <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
-                Complete structural engineering framing calculated for Building
-                Code of Pakistan seismic zones.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.4}>
-            <div className="group h-full space-y-5 rounded-2xl border border-[#ded7cc] bg-white/65 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-[#bca477] hover:bg-white">
-              <Sparkles className="h-9 w-9 text-[#8a6125] transition-transform group-hover:scale-110" />
-              <h3 className="font-playfair text-xl font-bold text-[#272522]">
-                50% Advance Milestone Terms
-              </h3>
-              <p className="font-inter text-xs font-light leading-relaxed text-[#77716a]">
-                Transparent stage payments processed securely via Safepay with
-                complete client review checkpoints.
-              </p>
-            </div>
-          </ScrollReveal>
-        </div>
+        <CredentialsRow />
       </section>
 
       {/* Pakistani Client Testimonial */}
