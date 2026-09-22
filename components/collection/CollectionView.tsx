@@ -16,9 +16,19 @@ import {
 import { SafepayService } from "@/lib/safepay";
 import { DirectCheckoutModal } from "@/components/collection/DirectCheckoutModal";
 import type { ArchitecturalPackage, CheckoutItem } from "@/types";
-import { architecturalPackages } from "@/data/collection";
+import { architecturalPackages as fallbackPackages } from "@/data/collection";
 
-export const CollectionView: React.FC = () => {
+interface CollectionViewProps {
+  initialPackages?: ArchitecturalPackage[];
+}
+
+export const CollectionView: React.FC<CollectionViewProps> = ({
+  initialPackages,
+}) => {
+  const packages =
+    initialPackages && initialPackages.length > 0
+      ? initialPackages
+      : fallbackPackages;
   const { addToCart, setCartDrawerOpen } = useStore();
   const [checkoutModalItem, setCheckoutModalItem] =
     useState<CheckoutItem | null>(null);
@@ -110,18 +120,20 @@ export const CollectionView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Standardized <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   design packages.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
                 Explore our standardized design packages. Every package has a
-                fixed price, checks out in one click, and includes a full
-                studio review.
+                fixed price, checks out in one click, and includes a full studio
+                review.
               </p>
 
               {/* Action Buttons */}
@@ -152,9 +164,8 @@ export const CollectionView: React.FC = () => {
                         </span>
                         <span className="font-playfair text-xs sm:text-sm font-bold text-on-surface dark:text-zinc-100 truncate block">
                           {selectedPackageId
-                            ? architecturalPackages.find(
-                                (p) => p.id === selectedPackageId,
-                              )?.title || "Browse All Packages"
+                            ? packages.find((p) => p.id === selectedPackageId)
+                                ?.title || "Browse All Packages"
                             : "Jump to Package..."}
                         </span>
                       </div>
@@ -179,57 +190,61 @@ export const CollectionView: React.FC = () => {
                       }`}
                     >
                       <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-outline-variant/20 mb-1 flex items-center justify-between">
-                        <span>
-                          Available Packages ({architecturalPackages.length})
-                        </span>
+                        <span>Available Packages ({packages.length})</span>
                         <span className="text-[9px] text-tertiary font-normal">
                           Scroll &amp; Select
                         </span>
                       </div>
 
-                      {architecturalPackages.map((pkg) => {
-                        const isSelected = selectedPackageId === pkg.id;
-                        return (
-                          <div
-                            key={pkg.id}
-                            onClick={() => handleSelectPackage(pkg.id)}
-                            className={`flex items-center gap-3 p-2.5 rounded-xl transition-all cursor-pointer group ${
-                              isSelected
-                                ? "bg-tertiary/10 border border-tertiary/30 text-tertiary"
-                                : "hover:bg-surface-container dark:hover:bg-zinc-800/80 text-on-surface dark:text-zinc-200"
-                            }`}
-                          >
-                            <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-zinc-950 shrink-0 border border-outline-variant/20">
-                              <Image
-                                src={pkg.image}
-                                alt={pkg.title}
-                                fill
-                                className="object-cover"
-                                sizes="48px"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-tertiary truncate">
-                                  {pkg.tier}
-                                </span>
-                                <span className="text-[10px] font-bold text-secondary dark:text-zinc-300 shrink-0 font-montserrat">
-                                  {SafepayService.formatPKR(pkg.pricePKR)}
-                                </span>
+                      {packages.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-zinc-500 font-inter">
+                          No packages available yet.
+                        </div>
+                      ) : (
+                        packages.map((pkg) => {
+                          const isSelected = selectedPackageId === pkg.id;
+                          return (
+                            <div
+                              key={pkg.id}
+                              onClick={() => handleSelectPackage(pkg.id)}
+                              className={`flex items-center gap-3 p-2.5 rounded-xl transition-all cursor-pointer group ${
+                                isSelected
+                                  ? "bg-tertiary/10 border border-tertiary/30 text-tertiary"
+                                  : "hover:bg-surface-container dark:hover:bg-zinc-800/80 text-on-surface dark:text-zinc-200"
+                              }`}
+                            >
+                              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-zinc-950 shrink-0 border border-outline-variant/20">
+                                <Image
+                                  src={pkg.image}
+                                  alt={pkg.title}
+                                  fill
+                                  className="object-cover"
+                                  sizes="48px"
+                                />
                               </div>
-                              <p className="font-playfair text-xs font-bold truncate group-hover:text-tertiary transition-colors">
-                                {pkg.title}
-                              </p>
-                              <div className="flex items-center gap-2 mt-0.5 text-[10px] text-zinc-400">
-                                {pkg.plotSize && <span>{pkg.plotSize}</span>}
-                                {pkg.deliveryTime && (
-                                  <span>• {pkg.deliveryTime}</span>
-                                )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-tertiary truncate">
+                                    {pkg.tier}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-secondary dark:text-zinc-300 shrink-0 font-montserrat">
+                                    {SafepayService.formatPKR(pkg.pricePKR)}
+                                  </span>
+                                </div>
+                                <p className="font-playfair text-xs font-bold truncate group-hover:text-tertiary transition-colors">
+                                  {pkg.title}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5 text-[10px] text-zinc-400">
+                                  {pkg.plotSize && <span>{pkg.plotSize}</span>}
+                                  {pkg.deliveryTime && (
+                                    <span>• {pkg.deliveryTime}</span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      )}
                     </div>
                   )}
                 </div>
@@ -252,7 +267,7 @@ export const CollectionView: React.FC = () => {
               </h2>
             </div>
             <span className="text-xs font-inter text-zinc-500 font-medium">
-              {architecturalPackages.length} Ready Packages Available
+              {packages.length} Ready Packages Available
             </span>
           </div>
         </div>
@@ -260,114 +275,126 @@ export const CollectionView: React.FC = () => {
         {/* Packages Grid */}
         <section className="px-4 md:px-margin-desktop max-w-container-max mx-auto py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {architecturalPackages.map((pkg, idx) => (
-              <ScrollReveal key={pkg.id} delay={0.06 * idx}>
-                <div
-                  id={`pkg-${pkg.id}`}
-                  className={`scroll-mt-28 bg-surface-container-low dark:bg-zinc-900 border rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col justify-between h-full group ${
-                    selectedPackageId === pkg.id
-                      ? "border-tertiary ring-2 ring-tertiary/40 shadow-xl"
-                      : "border-outline-variant/30"
-                  }`}
-                >
-                  <div>
-                    {/* Image Header */}
-                    <div className="relative aspect-[16/10] bg-zinc-950 overflow-hidden">
-                      <Image
-                        fill
-                        src={pkg.image}
-                        alt={pkg.title}
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                      <div className="absolute top-4 left-4 flex gap-2">
-                        <span className="bg-black/60 backdrop-blur-md text-tertiary text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-tertiary/30">
-                          {pkg.tier}
-                        </span>
-                        {pkg.plotSize && (
-                          <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold uppercase px-3 py-1 rounded-full">
-                            {pkg.plotSize}
+            {packages.length === 0 ? (
+              <div className="col-span-full py-20 text-center border border-dashed border-outline-variant/30 rounded-3xl p-8 bg-surface-container-low/40 dark:bg-zinc-900/30">
+                <p className="font-playfair text-2xl text-on-surface dark:text-zinc-200">
+                  No standardized packages published yet
+                </p>
+                <p className="font-inter text-sm text-zinc-500 mt-2 max-w-md mx-auto">
+                  Ready architectural packages will appear here once configured
+                  and published from the admin dashboard.
+                </p>
+              </div>
+            ) : (
+              packages.map((pkg, idx) => (
+                <ScrollReveal key={pkg.id} delay={0.06 * idx}>
+                  <div
+                    id={`pkg-${pkg.id}`}
+                    className={`scroll-mt-28 bg-surface-container-low dark:bg-zinc-900 border rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col justify-between h-full group ${
+                      selectedPackageId === pkg.id
+                        ? "border-tertiary ring-2 ring-tertiary/40 shadow-xl"
+                        : "border-outline-variant/30"
+                    }`}
+                  >
+                    <div>
+                      {/* Image Header */}
+                      <div className="relative aspect-[16/10] bg-zinc-950 overflow-hidden">
+                        <Image
+                          fill
+                          src={pkg.image}
+                          alt={pkg.title}
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        <div className="absolute top-4 left-4 flex gap-2">
+                          <span className="bg-black/60 backdrop-blur-md text-tertiary text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-tertiary/30">
+                            {pkg.tier}
                           </span>
-                        )}
+                          {pkg.plotSize && (
+                            <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold uppercase px-3 py-1 rounded-full">
+                              {pkg.plotSize}
+                            </span>
+                          )}
+                        </div>
+                        <div className="absolute bottom-3 right-4 flex items-center gap-1.5 text-white text-xs font-inter font-light">
+                          <Clock className="w-3.5 h-3.5 text-tertiary" />
+                          <span>{pkg.deliveryTime}</span>
+                        </div>
                       </div>
-                      <div className="absolute bottom-3 right-4 flex items-center gap-1.5 text-white text-xs font-inter font-light">
-                        <Clock className="w-3.5 h-3.5 text-tertiary" />
-                        <span>{pkg.deliveryTime}</span>
+
+                      {/* Details */}
+                      <div className="p-6 space-y-4">
+                        <h3 className="font-playfair text-xl font-bold text-on-surface dark:text-zinc-100">
+                          {pkg.title}
+                        </h3>
+                        <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                          {pkg.description}
+                        </p>
+
+                        {/* Inclusions List */}
+                        <div className="space-y-2 pt-2 border-t border-outline-variant/20">
+                          <span className="text-[10px] font-bold text-tertiary uppercase tracking-wider block">
+                            Included Deliverables
+                          </span>
+                          {pkg.inclusions.map((item, iIdx) => (
+                            <div
+                              key={iIdx}
+                              className="flex items-center gap-2 text-xs text-on-surface dark:text-zinc-300"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Details */}
-                    <div className="p-6 space-y-4">
-                      <h3 className="font-playfair text-xl font-bold text-on-surface dark:text-zinc-100">
-                        {pkg.title}
-                      </h3>
-                      <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                        {pkg.description}
-                      </p>
-
-                      {/* Inclusions List */}
-                      <div className="space-y-2 pt-2 border-t border-outline-variant/20">
-                        <span className="text-[10px] font-bold text-tertiary uppercase tracking-wider block">
-                          Included Deliverables
+                    {/* Actions & Price */}
+                    <div className="p-6 pt-0 space-y-4">
+                      <div className="flex justify-between items-center border-t border-outline-variant/20 pt-4">
+                        <span className="text-[11px] font-inter font-bold text-zinc-500 uppercase tracking-wider">
+                          Package Total
                         </span>
-                        {pkg.inclusions.map((item, iIdx) => (
-                          <div
-                            key={iIdx}
-                            className="flex items-center gap-2 text-xs text-on-surface dark:text-zinc-300"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            <span>{item}</span>
-                          </div>
-                        ))}
+                        <span className="font-montserrat text-xl font-extrabold text-secondary dark:text-zinc-100">
+                          {SafepayService.formatPKR(pkg.pricePKR)}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            addToCart({
+                              title: pkg.title,
+                              price: pkg.pricePKR,
+                              image: pkg.image,
+                              currency: "PKR",
+                              tier: pkg.tier,
+                              plotSize: pkg.plotSize,
+                            });
+                            setCartDrawerOpen(true);
+                          }}
+                          className="border border-outline-variant hover:border-tertiary hover:text-tertiary py-3 px-2 rounded-xl font-inter font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                          <span>Add to Cart</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDirectCheckout(pkg)}
+                          className="bg-primary hover:bg-tertiary text-on-primary py-3 px-2 rounded-xl font-inter font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
+                        >
+                          <Zap className="w-3.5 h-3.5 shrink-0" />
+                          <span>Buy Now</span>
+                        </button>
                       </div>
                     </div>
                   </div>
-
-                  {/* Actions & Price */}
-                  <div className="p-6 pt-0 space-y-4">
-                    <div className="flex justify-between items-center border-t border-outline-variant/20 pt-4">
-                      <span className="text-[11px] font-inter font-bold text-zinc-500 uppercase tracking-wider">
-                        Package Total
-                      </span>
-                      <span className="font-montserrat text-xl font-extrabold text-secondary dark:text-zinc-100">
-                        {SafepayService.formatPKR(pkg.pricePKR)}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          addToCart({
-                            title: pkg.title,
-                            price: pkg.pricePKR,
-                            image: pkg.image,
-                            currency: "PKR",
-                            tier: pkg.tier,
-                            plotSize: pkg.plotSize,
-                          });
-                          setCartDrawerOpen(true);
-                        }}
-                        className="border border-outline-variant hover:border-tertiary hover:text-tertiary py-3 px-2 rounded-xl font-inter font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
-                      >
-                        <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-                        <span>Add to Cart</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDirectCheckout(pkg)}
-                        className="bg-primary hover:bg-tertiary text-on-primary py-3 px-2 rounded-xl font-inter font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
-                      >
-                        <Zap className="w-3.5 h-3.5 shrink-0" />
-                        <span>Buy Now</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
+                </ScrollReveal>
+              ))
+            )}
           </div>
         </section>
       </div>

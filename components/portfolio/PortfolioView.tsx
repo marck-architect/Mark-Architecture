@@ -8,14 +8,46 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { MapPin, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { projects, filterCategories } from "@/data/portfolio";
+import {
+  projects as fallbackProjects,
+  filterCategories,
+} from "@/data/portfolio";
+import type { AdminProject, Project } from "@/types";
 
-export const PortfolioView: React.FC = () => {
+interface PortfolioViewProps {
+  initialProjects?: (AdminProject | Project)[];
+}
+
+export const PortfolioView: React.FC<PortfolioViewProps> = ({
+  initialProjects,
+}) => {
   const { portfolioFilter, setPortfolioFilter, openLightbox } = useStore();
 
-  const filteredProjects = projects.filter(
+  const projectList: Project[] = (
+    initialProjects && initialProjects.length > 0
+      ? initialProjects
+      : fallbackProjects
+  ).map((p: any) => ({
+    title: p.title,
+    location: p.location || "Pakistan",
+    imageSrc:
+      p.cover_image || p.imageSrc || "/images/Full House Design Package.png",
+    year: p.year || new Date().getFullYear().toString(),
+    description: p.description || "",
+    category: p.category || "residential",
+    price:
+      p.price ||
+      p.budget_range ||
+      (p.area_sqft
+        ? `${Number(p.area_sqft).toLocaleString()} sq. ft.`
+        : undefined),
+    aspectClass: p.aspectClass,
+  }));
+
+  const filteredProjects = projectList.filter(
     (project) =>
-      portfolioFilter === "all" || project.category === portfolioFilter,
+      portfolioFilter === "all" ||
+      project.category?.toLowerCase() === portfolioFilter.toLowerCase(),
   );
 
   return (
@@ -41,14 +73,16 @@ export const PortfolioView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Curating spaces where <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   form meets precision.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
                 Our realized portfolio spans iconic luxury residences, corporate
                 hubs, and spatial redrafts across Peshawar, Islamabad, and
@@ -170,6 +204,18 @@ export const PortfolioView: React.FC = () => {
               </motion.div>
             ))}
           </AnimatePresence>
+
+          {filteredProjects.length === 0 && (
+            <div className="col-span-full py-24 text-center border border-dashed border-outline-variant/30 rounded-3xl p-8 bg-surface-container-low/40 dark:bg-zinc-900/30">
+              <p className="font-playfair text-2xl text-on-surface dark:text-zinc-200">
+                No architectural projects published yet
+              </p>
+              <p className="font-inter text-sm text-zinc-500 mt-2 max-w-md mx-auto">
+                Completed and ongoing masterpieces will appear here once
+                published from the admin dashboard.
+              </p>
+            </div>
+          )}
         </div>
       </section>
     </div>

@@ -3,27 +3,18 @@
 import React, { useState } from "react";
 import {
   X,
-  Calendar,
-  Clock,
-  User,
-  Mail,
-  Phone,
   Video,
-  FileText,
   ExternalLink,
   CheckCircle2,
   AlertCircle,
-  Clock4,
   Paperclip,
-  CreditCard,
-  MessageSquare,
+  PhoneCall,
   Save,
   Loader2,
+  Send,
+  Copy,
 } from "lucide-react";
-
 import type { ConsultationRecord, BookingDetailModalProps } from "@/types";
-
-export type { ConsultationRecord };
 
 export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
   booking,
@@ -35,21 +26,31 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
   const [paymentStatus, setPaymentStatus] = useState<
     ConsultationRecord["payment_status"]
   >(booking.payment_status || "pending");
+  const [bookingDate, setBookingDate] = useState(booking.booking_date || "");
+  const [bookingTime, setBookingTime] = useState(booking.booking_time || "");
+
   const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isSendingLink, setIsSendingLink] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [copiedTemplate, setCopiedTemplate] = useState(false);
 
-  const cleanPhone = booking.client_phone
-    ? booking.client_phone.replace(/[^0-9+]/g, "")
-    : "";
-  const waLink = `https://wa.me/${cleanPhone.replace("+", "")}?text=Hello%20${encodeURIComponent(
-    booking.client_name,
-  )},%20regarding%20your%20scheduled%20architectural%20consultation%20with%20MARK%20Architects...`;
+  // Validate HTTPS meeting URL
+  const validateMeetingUrl = (url: string) => {
+    if (!url) return false;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
 
+  // Standard Save
   const handleSave = async () => {
     setIsSaving(true);
     setSaveError(null);
-    setSaveSuccess(false);
+    setSaveSuccess(null);
 
     try {
       const res = await fetch(`/api/admin/consultations/${booking.id}`, {
@@ -59,12 +60,14 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
           meeting_url: meetingUrl,
           admin_notes: adminNotes,
           payment_status: paymentStatus,
+          booking_date: bookingDate,
+          booking_time: bookingTime,
         }),
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to update booking");
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update booking.");
       }
 
       const updated = {
@@ -72,328 +75,370 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
         meeting_url: meetingUrl,
         admin_notes: adminNotes,
         payment_status: paymentStatus,
+        booking_date: bookingDate,
+        booking_time: bookingTime,
       };
 
       onUpdate(updated);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      setSaveSuccess("Changes successfully saved to database.");
+      setTimeout(() => setSaveSuccess(null), 3500);
     } catch (err: unknown) {
-      setSaveError(
-        err instanceof Error ? err.message : "Failed to save changes",
-      );
+      setSaveError(err instanceof Error ? err.message : "Save failed.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "paid":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Confirmed & Paid
-          </span>
-        );
-      case "completed":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-800 border border-sky-200">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Session Completed
-          </span>
-        );
-      case "rescheduled":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
-            <Clock4 className="w-3.5 h-3.5" /> Rescheduled
-          </span>
-        );
-      case "failed":
-      case "refunded":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200">
-            <AlertCircle className="w-3.5 h-3.5" /> {status.toUpperCase()}
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-700 border border-stone-200">
-            <Clock className="w-3.5 h-3.5" /> Pending Payment
-          </span>
-        );
+  // One-Click: Confirm Payment & Dispatch Meeting Invitation
+  const handleConfirmAndSendLink = async () => {
+    if (!validateMeetingUrl(meetingUrl)) {
+      setSaveError(
+        "Please enter a valid secure HTTPS meeting URL (e.g. https://meet.google.com/xyz).",
+      );
+      return;
+    }
+
+    setIsSendingLink(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const res = await fetch(
+        `/api/admin/consultations/${booking.id}/send-meeting-link`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            meeting_url: meetingUrl,
+            custom_note: adminNotes,
+            client_email: booking.client_email,
+            client_name: booking.client_name,
+            tier_name: booking.tier_name,
+            booking_date: bookingDate,
+            booking_time: bookingTime,
+          }),
+        },
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to dispatch meeting link.");
+      }
+
+      const updated: ConsultationRecord = {
+        ...booking,
+        meeting_url: meetingUrl,
+        payment_status: "paid",
+        consultation_status: "confirmed",
+        confirmed_by_admin: true,
+        confirmed_at: new Date().toISOString(),
+        meeting_link_sent_at: new Date().toISOString(),
+        admin_notes: adminNotes,
+      };
+
+      setPaymentStatus("paid");
+      onUpdate(updated);
+      setSaveSuccess(
+        "Payment confirmed and meeting invitation successfully dispatched to client!",
+      );
+      setTimeout(() => setSaveSuccess(null), 4000);
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to dispatch invitation.",
+      );
+    } finally {
+      setIsSendingLink(false);
     }
   };
 
+  const handleCopyInvitationText = () => {
+    const text = `Dear ${booking.client_name},\n\nYour architectural consultation session (${booking.tier_name}) with MARK Architects is confirmed for ${bookingDate} at ${bookingTime} PKT.\n\nVideo Meeting Link: ${meetingUrl || "[Pending Meeting URL]"}\n\nPlease have your site surveys and architectural questions ready.\n\nMARK Architects Studio\nHotline: +92 300 1234567`;
+    navigator.clipboard.writeText(text);
+    setCopiedTemplate(true);
+    setTimeout(() => setCopiedTemplate(false), 2500);
+  };
+
+  const cleanPhone = booking.client_phone
+    ? booking.client_phone.replace(/[^0-9+]/g, "")
+    : "";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
-      <div className="relative w-full max-w-2xl bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden text-stone-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-950/60 backdrop-blur-xs animate-fadeIn font-inter">
+      <div className="relative w-full max-w-2xl bg-white border border-stone-200 rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden text-stone-800">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-stone-200 flex items-center justify-between bg-stone-50/80">
+        <div className="px-6 py-4.5 border-b border-stone-200 flex items-center justify-between bg-stone-50/80">
           <div>
             <div className="flex items-center gap-2.5">
-              <h2 className="font-playfair text-xl text-stone-900 font-medium">
-                Consultation Booking Details
+              <h2 className="font-playfair text-xl text-stone-900 font-bold">
+                Consultation Details
               </h2>
-              {getStatusBadge(booking.payment_status)}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                {booking.tier_name}
+              </span>
             </div>
-            <p className="text-xs text-stone-500 mt-1">
-              ID: <span className="font-mono text-stone-700">{booking.id}</span>
+            <p className="text-xs text-stone-500 mt-0.5 font-mono">
+              ID: {booking.id}
             </p>
           </div>
+
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-100 text-stone-500 hover:text-stone-900 shadow-2xs transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-grow">
-          {/* Scheduled Timeslot Banner */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-[#7E5714]">
-                <Calendar className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-xs text-[#7E5714] uppercase tracking-widest font-semibold">
-                  {booking.tier_name}
-                </div>
-                <div className="text-base font-semibold text-stone-900">
-                  {new Date(booking.booking_date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-stone-200 text-stone-800 text-sm font-mono font-medium shadow-2xs">
-              <Clock className="w-4 h-4 text-[#7E5714]" />
-              <span>{booking.booking_time} (PKT / UTC+5)</span>
-            </div>
-
-            <div className="text-right">
-              <span className="text-xs text-stone-500 block">Fee</span>
-              <span className="text-sm font-semibold text-stone-900 font-mono">
-                PKR {Number(booking.price_pkr).toLocaleString("en-PK")}
-              </span>
-            </div>
-          </div>
-
-          {/* Client Information Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Client Name */}
-            <div className="p-3.5 rounded-xl bg-stone-50/80 border border-stone-200/80">
-              <div className="flex items-center gap-2 text-xs text-stone-500 mb-1">
-                <User className="w-3.5 h-3.5 text-[#7E5714]" />
-                <span>Client Name</span>
-              </div>
-              <p className="text-sm font-medium text-stone-900">
-                {booking.client_name}
-              </p>
-            </div>
-
-            {/* Client Email */}
-            <div className="p-3.5 rounded-xl bg-stone-50/80 border border-stone-200/80">
-              <div className="flex items-center gap-2 text-xs text-stone-500 mb-1">
-                <Mail className="w-3.5 h-3.5 text-[#7E5714]" />
-                <span>Email Address</span>
-              </div>
-              <a
-                href={`mailto:${booking.client_email}`}
-                className="text-sm font-medium text-[#7E5714] hover:underline break-all"
-              >
-                {booking.client_email}
-              </a>
-            </div>
-
-            {/* Client Phone & WhatsApp */}
-            <div className="p-3.5 rounded-xl bg-stone-50/80 border border-stone-200/80 sm:col-span-2 flex items-center justify-between flex-wrap gap-2">
-              <div>
-                <div className="flex items-center gap-2 text-xs text-stone-500 mb-1">
-                  <Phone className="w-3.5 h-3.5 text-[#7E5714]" />
-                  <span>Phone Number</span>
-                </div>
-                <p className="text-sm font-medium text-stone-900">
-                  {booking.client_phone}
-                </p>
-              </div>
-              <a
-                href={waLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/80 text-xs font-medium transition-colors cursor-pointer shadow-2xs"
-              >
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>Open WhatsApp Chat</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Client Notes / Spatial Requirements */}
-          {booking.notes && (
-            <div className="p-4 rounded-xl bg-stone-50/80 border border-stone-200/80">
-              <div className="flex items-center gap-2 text-xs text-stone-500 mb-2 font-medium">
-                <FileText className="w-3.5 h-3.5 text-[#7E5714]" />
-                <span>Client Project Requirements / Notes</span>
-              </div>
-              <p className="text-xs sm:text-sm text-stone-700 whitespace-pre-wrap leading-relaxed">
-                {booking.notes}
-              </p>
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Status Banners */}
+          {saveSuccess && (
+            <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs flex items-center gap-2 shadow-2xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="font-medium">{saveSuccess}</span>
             </div>
           )}
 
-          {/* Uploaded Attachments */}
-          <div>
-            <div className="flex items-center gap-2 text-xs text-stone-600 mb-2.5 uppercase tracking-wider font-semibold">
-              <Paperclip className="w-3.5 h-3.5 text-[#7E5714]" />
-              <span>
-                Attached Files ({booking.attachment_urls?.length || 0})
-              </span>
+          {saveError && (
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs flex items-center gap-2 shadow-2xs">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span className="font-medium">{saveError}</span>
+            </div>
+          )}
+
+          {/* 1. Client & Contact Information */}
+          <div className="bg-stone-50/60 border border-stone-200/80 rounded-2xl p-4 space-y-3">
+            <div className="text-[10px] uppercase font-mono tracking-widest text-[#7E5714] font-bold">
+              Client Profile
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div>
+                <span className="text-stone-400 block text-[11px]">
+                  Full Name
+                </span>
+                <span className="font-semibold text-stone-900 text-sm">
+                  {booking.client_name}
+                </span>
+              </div>
+              <div>
+                <span className="text-stone-400 block text-[11px]">
+                  Email Address
+                </span>
+                <a
+                  href={`mailto:${booking.client_email}`}
+                  className="font-medium text-[#7E5714] hover:underline break-all"
+                >
+                  {booking.client_email}
+                </a>
+              </div>
+              <div>
+                <span className="text-stone-400 block text-[11px]">
+                  Phone Hotline
+                </span>
+                <a
+                  href={`tel:${cleanPhone}`}
+                  className="inline-flex items-center gap-1 font-semibold text-stone-800 hover:text-[#7E5714]"
+                >
+                  <PhoneCall className="w-3 h-3 text-[#7E5714]" />
+                  <span>{booking.client_phone}</span>
+                </a>
+              </div>
             </div>
 
-            {booking.attachment_urls && booking.attachment_urls.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {booking.attachment_urls.map((url, index) => (
-                  <a
-                    key={index}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-lg bg-white border border-stone-200 hover:border-[#7E5714] hover:bg-stone-50 text-xs text-stone-800 shadow-2xs transition-all group"
-                  >
-                    <span className="truncate max-w-[200px] font-mono">
-                      {url.split("/").pop() || `Attachment ${index + 1}`}
-                    </span>
-                    <ExternalLink className="w-3.5 h-3.5 text-stone-400 group-hover:text-[#7E5714] shrink-0" />
-                  </a>
-                ))}
+            {booking.notes && (
+              <div className="pt-2 border-t border-stone-200/60">
+                <span className="text-stone-400 block text-[10px] uppercase font-mono">
+                  Project Notes
+                </span>
+                <p className="text-xs text-stone-700 mt-1 leading-relaxed whitespace-pre-wrap">
+                  {booking.notes}
+                </p>
               </div>
-            ) : (
-              <p className="text-xs text-stone-500 italic p-3 rounded-lg bg-stone-50 border border-stone-200">
-                No attachments uploaded by client for this booking.
-              </p>
+            )}
+
+            {booking.attachment_urls && booking.attachment_urls.length > 0 && (
+              <div className="pt-2 border-t border-stone-200/60">
+                <span className="text-stone-400 block text-[10px] uppercase font-mono mb-1.5">
+                  Uploaded Site Drawings &amp; Photos (
+                  {booking.attachment_urls.length})
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {booking.attachment_urls.map((url, idx) => (
+                    <a
+                      key={idx}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-stone-200 text-[#7E5714] text-xs font-medium hover:border-stone-400 shadow-2xs"
+                    >
+                      <Paperclip className="w-3 h-3" />
+                      <span>Attachment {idx + 1}</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Safepay Transaction Reference */}
-          <div className="p-4 rounded-xl bg-stone-50/90 border border-stone-200/80">
-            <div className="flex items-center gap-2 text-xs text-stone-600 mb-3 font-semibold">
-              <CreditCard className="w-3.5 h-3.5 text-[#7E5714]" />
-              <span>Safepay Transaction Meta</span>
+          {/* 2. Safepay Gateway Details */}
+          <div className="p-4 rounded-2xl border border-stone-200 bg-white space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-mono tracking-widest text-[#7E5714] font-bold">
+                Safepay Transaction Status
+              </span>
+              <span className="font-mono text-xs font-bold text-stone-900">
+                PKR {Number(booking.price_pkr || 0).toLocaleString("en-PK")}
+              </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
               <div>
-                <span className="text-stone-500 block mb-0.5">
-                  Tracker Token:
+                <span className="text-stone-400 block text-[11px]">
+                  Tracker Reference
                 </span>
-                <span className="font-mono text-stone-800 break-all font-medium">
-                  {booking.safepay_tracker || "Not Generated / Offline"}
+                <span className="font-mono text-stone-700 select-all">
+                  {booking.safepay_tracker || "Awaiting Safepay Callback"}
                 </span>
               </div>
               <div>
-                <span className="text-stone-500 block mb-0.5">
-                  Payment Reference:
+                <span className="text-stone-400 block text-[11px]">
+                  Payment Status
                 </span>
-                <span className="font-mono text-stone-800 break-all font-medium">
-                  {booking.safepay_token || "Awaiting Verification"}
-                </span>
+                <select
+                  value={paymentStatus}
+                  onChange={(e) =>
+                    setPaymentStatus(
+                      e.target.value as ConsultationRecord["payment_status"],
+                    )
+                  }
+                  className="mt-1 px-2.5 py-1 rounded-lg border border-stone-200 bg-white text-xs font-medium text-stone-800 focus:outline-none focus:border-[#7E5714]"
+                >
+                  <option value="pending">Pending Payment</option>
+                  <option value="paid">Confirmed &amp; Paid</option>
+                  <option value="completed">Session Completed</option>
+                  <option value="rescheduled">Rescheduled</option>
+                  <option value="failed">Failed / Cancelled</option>
+                  <option value="refunded">Refunded</option>
+                </select>
               </div>
             </div>
           </div>
 
-          {/* Admin Editable Fields */}
-          <div className="pt-4 border-t border-stone-200 space-y-4">
-            <h3 className="text-xs uppercase tracking-widest text-[#7E5714] font-semibold">
-              Admin Controls & Meeting Setup
-            </h3>
-
-            {/* Status Selector */}
-            <div>
-              <label className="block text-xs font-medium text-stone-700 mb-1.5">
-                Booking Status
-              </label>
-              <select
-                value={paymentStatus}
-                onChange={(e) =>
-                  setPaymentStatus(
-                    e.target.value as ConsultationRecord["payment_status"],
-                  )
-                }
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-900 text-sm focus:outline-none focus:border-[#7E5714] focus:ring-1 focus:ring-[#7E5714]/20 shadow-2xs transition-colors"
-              >
-                <option value="pending">Pending Payment</option>
-                <option value="paid">Confirmed & Paid</option>
-                <option value="completed">Session Completed</option>
-                <option value="rescheduled">Rescheduled</option>
-                <option value="failed">Failed</option>
-                <option value="refunded">Refunded</option>
-              </select>
+          {/* 3. Primary Admin Action: Meeting Link Dispatch */}
+          <div className="p-5 rounded-2xl border-2 border-[#7E5714]/20 bg-amber-50/30 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Video className="w-4 h-4 text-[#7E5714]" />
+                <h3 className="font-playfair text-sm font-bold text-stone-900">
+                  Google Meet / Zoom URL &amp; Invitation Dispatch
+                </h3>
+              </div>
+              {booking.meeting_link_sent_at && (
+                <span className="text-[10px] text-emerald-800 font-mono font-semibold bg-emerald-100 px-2 py-0.5 rounded-full">
+                  Invited ✓
+                </span>
+              )}
             </div>
 
-            {/* Meeting URL */}
-            <div>
-              <label className="block text-xs font-medium text-stone-700 mb-1.5 flex items-center justify-between">
-                <span>Google Meet / Zoom URL</span>
-                {meetingUrl && (
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-stone-700">
+                Secure Video Conference URL (HTTPS)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={meetingUrl}
+                  onChange={(e) => setMeetingUrl(e.target.value)}
+                  placeholder="https://meet.google.com/abc-defg-hij"
+                  className="flex-1 px-3 py-2 rounded-xl bg-white border border-stone-300 text-xs font-mono text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#7E5714] shadow-2xs"
+                />
+                {validateMeetingUrl(meetingUrl) && (
                   <a
                     href={meetingUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] text-[#7E5714] font-medium hover:underline flex items-center gap-1"
+                    className="px-3 py-2 rounded-xl bg-white border border-stone-200 text-xs text-[#7E5714] hover:bg-stone-50 shadow-2xs flex items-center gap-1 font-semibold shrink-0"
                   >
-                    <span>Test Link</span>
+                    <span>Test</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
-                  <Video className="w-4 h-4" />
-                </div>
-                <input
-                  type="url"
-                  placeholder="https://meet.google.com/xyz-abcd-efg"
-                  value={meetingUrl}
-                  onChange={(e) => setMeetingUrl(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-900 text-sm placeholder-stone-400 focus:outline-none focus:border-[#7E5714] focus:ring-1 focus:ring-[#7E5714]/20 shadow-2xs transition-colors"
-                />
               </div>
             </div>
 
-            {/* Internal Notes */}
+            {/* Quick Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+              <button
+                onClick={handleConfirmAndSendLink}
+                disabled={isSendingLink || !meetingUrl}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#7E5714] hover:bg-[#684710] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {isSendingLink ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Dispatching Invitation...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Accept Payment &amp; Send Meeting Link</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleCopyInvitationText}
+                className="px-3 py-2.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5 text-[#7E5714]" />
+                <span>{copiedTemplate ? "Copied!" : "Copy Template"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4. Reschedule Coordinates & Notes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block text-xs font-medium text-stone-700 mb-1.5">
-                Internal Architect Notes (Private)
+              <label className="block text-stone-600 font-medium mb-1">
+                Appointment Date
               </label>
-              <textarea
-                rows={3}
-                placeholder="Architect notes (e.g. reviewed site survey; prepared 3D massing model)..."
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-                className="w-full px-3.5 py-2 bg-white border border-stone-200 rounded-xl text-stone-900 text-sm placeholder-stone-400 focus:outline-none focus:border-[#7E5714] focus:ring-1 focus:ring-[#7E5714]/20 shadow-2xs transition-colors resize-none"
+              <input
+                type="date"
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900 focus:outline-none focus:border-[#7E5714]"
               />
             </div>
+            <div>
+              <label className="block text-stone-600 font-medium mb-1">
+                Timeslot (PKT)
+              </label>
+              <input
+                type="text"
+                value={bookingTime}
+                onChange={(e) => setBookingTime(e.target.value)}
+                placeholder="14:00"
+                className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900 focus:outline-none focus:border-[#7E5714]"
+              />
+            </div>
+          </div>
 
-            {/* Feedback message */}
-            {saveSuccess && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Booking details successfully updated in database.</span>
-              </div>
-            )}
-            {saveError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-600" />
-                <span>{saveError}</span>
-              </div>
-            )}
+          <div>
+            <label className="block text-stone-600 text-xs font-medium mb-1">
+              Internal Principal Architect Notes
+            </label>
+            <textarea
+              rows={2}
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              placeholder="Internal architectural comments or review checklist..."
+              className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900 text-xs focus:outline-none focus:border-[#7E5714] resize-none"
+            />
           </div>
         </div>
 
-        {/* Modal Footer Actions */}
+        {/* Footer */}
         <div className="px-6 py-4 border-t border-stone-200 bg-stone-50/80 flex items-center justify-between">
           <button
             onClick={onClose}
@@ -405,7 +450,7 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-5 py-2.5 rounded-xl bg-[#7E5714] hover:bg-[#684710] active:scale-[0.98] text-white font-medium text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            className="px-5 py-2 rounded-xl bg-[#1C1B1B] hover:bg-black text-white font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
           >
             {isSaving ? (
               <>

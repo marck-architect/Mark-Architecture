@@ -1,0 +1,441 @@
+{
+  "calculator": {
+    "disciplines": [
+      {
+        "id": "arch",
+        "name": "Architectural Detailed Services",
+        "rate": 40,
+        "description": "Floor plans, elevations, sections, municipal submission drawings, schedules, and 3D visual preview."
+      },
+      {
+        "id": "struct",
+        "name": "Structural Drawings",
+        "rate": 8,
+        "description": "Foundation framing, column/beam schedules, reinforcement slabs, and structural engineering calculation."
+      },
+      {
+        "id": "plumb",
+        "name": "Plumbing Drawings",
+        "rate": 3.5,
+        "description": "Water supply loops, sanitary drainage layout, vent pipes, and storm water harvest routing."
+      },
+      {
+        "id": "elec",
+        "name": "Electrical Layout Design",
+        "rate": 4.5,
+        "description": "Power distribution schematics, lighting fixtures, conduit routing, and low-voltage networks."
+      },
+      {
+        "id": "fire",
+        "name": "Fire & Safety Layout",
+        "rate": 1,
+        "description": "Emergency egress routes, fire detection layout, extinguisher stations, and life safety compliance."
+      }
+    ],
+    "advancePercentage": 50,
+    "plotPresets": [
+      {
+        "desc": "Double-storey ~2,250 sq. ft.",
+        "sqft": 2250,
+        "label": "5 Marla (Standard)"
+      },
+      {
+        "desc": "Double-storey ~3,800 sq. ft.",
+        "sqft": 3800,
+        "label": "10 Marla (Standard)"
+      },
+      {
+        "desc": "Double/Triple-storey ~6,000 sq. ft.",
+        "sqft": 6000,
+        "label": "1 Kanal (Standard)"
+      }
+    ]
+  },
+  "consultationCalls": {
+    "basicCallPrice": 1000,
+    "premiumCallPrice": 5000,
+    "basicCallDuration": 30,
+    "premiumCallDuration": 60
+  },
+  "menuCategories": [
+    {
+      "id": "consultation",
+      "badge": "Direct Advisory",
+      "tiers": [
+        {
+          "id": "consult-basic",
+          "tag": "Quick Guidance",
+          "name": "Basic Call",
+          "notes": "Ideal for quick spatial checks or second opinions on layout drawings.",
+          "pricePKR": 1000,
+          "actionType": "consultation",
+          "inclusions": [
+            "30 minutes Zoom video call",
+            "One-on-one discussion with architect",
+            "Layout guidance & practical solutions",
+            "Direct answers to design dilemmas"
+          ],
+          "deliveryTime": "Scheduled (30 mins)",
+          "priceFormatted": "PKR 1,000"
+        },
+        {
+          "id": "consult-premium",
+          "tag": "Most Comprehensive",
+          "name": "Premium Call",
+          "notes": "Full architectural strategy session before finalizing structural drawings.",
+          "popular": true,
+          "pricePKR": 5000,
+          "actionType": "consultation",
+          "inclusions": [
+            "60 minutes deep-dive Zoom video call",
+            "Proper spatial planning & room flow audit",
+            "Material selection & specification advice",
+            "Realistic construction budget guidance",
+            "Annotated screenshot debrief after call"
+          ],
+          "deliveryTime": "Scheduled (60 mins)",
+          "priceFormatted": "PKR 5,000"
+        }
+      ],
+      "title": "Online Consultation (Video/Call)",
+      "letter": "A",
+      "subtitle": "Direct 1-on-1 Strategy Call with Principal Architect",
+      "description": "Connect directly with a licensed architect via Zoom video session for instant layout diagnosis, structural feasibility, and budget strategy.",
+      "clientRequirementNote": "Client must share layout plan, plot size, or site photos before the call for pre-session diagnosis."
+    },
+    {
+      "id": "plan-review",
+      "badge": "High Demand • Fast 24–48h",
+      "tiers": [
+        {
+          "id": "review-basic",
+          "tag": "Speed Audit",
+          "name": "Basic Plan Review",
+          "pricePKR": 2000,
+          "actionType": "cart",
+          "inclusions": [
+            "Audio voice memo explanation by architect",
+            "Marked plan corrections (PDF / High-res JPG)",
+            "3–5 critical layout issues pinpointed",
+            "Quick redline notes on doors & circulation"
+          ],
+          "deliveryTime": "24 Hours Delivery",
+          "priceFormatted": "PKR 2,000"
+        },
+        {
+          "id": "review-standard",
+          "tag": "Most Popular",
+          "name": "Standard Plan Review",
+          "popular": true,
+          "pricePKR": 4000,
+          "actionType": "cart",
+          "inclusions": [
+            "Comprehensive written diagnostic review report",
+            "Proper suggestions on circulation & corridors",
+            "Natural ventilation & sunlight routing audit",
+            "Room sizing & furniture clearance analysis",
+            "Marked architectural PDF with bullet points"
+          ],
+          "deliveryTime": "24–48 Hours",
+          "priceFormatted": "PKR 4,000"
+        },
+        {
+          "id": "review-premium",
+          "tag": "Includes Rough Sketch",
+          "name": "Premium Plan Review",
+          "pricePKR": 6000,
+          "actionType": "cart",
+          "inclusions": [
+            "Full in-depth layout review & structural report",
+            "Improved rough layout sketch by lead architect",
+            "Optimal furniture layout arrangement suggestion",
+            "2 revision / clarification rounds included",
+            "Audio voice memo summary and Q&A support"
+          ],
+          "deliveryTime": "48 Hours Delivery",
+          "priceFormatted": "PKR 6,000"
+        }
+      ],
+      "title": "House Plan Review",
+      "letter": "B",
+      "subtitle": "Fast Architectural Audit to Spot Flaws Before Construction",
+      "description": "Catch circulation bottlenecks, missing sunlight shafts, structural clashes, and municipal compliance errors before you break ground."
+    },
+    {
+      "id": "plan-redesign",
+      "badge": "Top Seller",
+      "tiers": [
+        {
+          "id": "redesign-basic",
+          "tag": "Single Option",
+          "name": "Basic Layout Correction",
+          "pricePKR": 12000,
+          "actionType": "cart",
+          "inclusions": [
+            "1 professionally corrected layout plan option",
+            "Elimination of awkward dead zones & odd angles",
+            "Clean door & window alignment",
+            "1 revision round included",
+            "Scaled PDF format ready for draftsman"
+          ],
+          "deliveryTime": "2–3 Days",
+          "priceFormatted": "PKR 12,000"
+        },
+        {
+          "id": "redesign-standard",
+          "tag": "Best Value",
+          "name": "Standard Layout Redesign",
+          "popular": true,
+          "pricePKR": 20000,
+          "actionType": "cart",
+          "inclusions": [
+            "2 distinct plan design options to choose from",
+            "Detailed furniture layout & room flow mapping",
+            "Cross-ventilation and natural daylight routing",
+            "2 design revision rounds included",
+            "High-resolution vector drawings (PDF & JPG)"
+          ],
+          "deliveryTime": "3–5 Days",
+          "priceFormatted": "PKR 20,000"
+        },
+        {
+          "id": "redesign-premium",
+          "tag": "Complete Strategy",
+          "name": "Premium Layout Redesign",
+          "pricePKR": 35000,
+          "actionType": "cart",
+          "inclusions": [
+            "2–3 tailored architectural plan variations",
+            "Comprehensive furniture & spatial organization",
+            "Bespoke daylight & ventilation optimization",
+            "3 comprehensive revision rounds included",
+            "Full electrical switch & plumbing point guide"
+          ],
+          "deliveryTime": "5–7 Days",
+          "priceFormatted": "PKR 35,000"
+        }
+      ],
+      "title": "Plan Redesign / Correction",
+      "letter": "C",
+      "subtitle": "Turn Flawed Contractor Drawings into an Elegant Modern Home",
+      "description": "Transform cramped, inefficient, or unapproved architectural drawings into an optimized layout tailored to Pakistani society regulations and modern lifestyles."
+    },
+    {
+      "id": "elevation-3d",
+      "badge": "Exterior 3D",
+      "tiers": [
+        {
+          "id": "elevation-basic",
+          "tag": "Single View",
+          "name": "Basic Elevation",
+          "pricePKR": 12000,
+          "actionType": "cart",
+          "inclusions": [
+            "1 photorealistic 3D front elevation view",
+            "Daytime sunlight lighting render",
+            "Curated exterior material & paint color palette",
+            "1 revision round included",
+            "High-resolution 4K render file"
+          ],
+          "deliveryTime": "2–4 Days",
+          "priceFormatted": "PKR 12,000"
+        },
+        {
+          "id": "elevation-standard",
+          "tag": "Most Requested",
+          "name": "Standard Elevation",
+          "popular": true,
+          "pricePKR": 18000,
+          "actionType": "cart",
+          "inclusions": [
+            "2 comprehensive 3D views (Front View + Corner Angle)",
+            "Realistic material & color finish options (rockwall, porcelain, wood)",
+            "Parapet wall, balcony railing, and main gate details",
+            "2 revision rounds included",
+            "Print-ready high-resolution rendering sheets"
+          ],
+          "deliveryTime": "3–5 Days",
+          "priceFormatted": "PKR 18,000"
+        },
+        {
+          "id": "elevation-premium",
+          "tag": "Day + Night Views",
+          "name": "Premium Elevation",
+          "pricePKR": 28000,
+          "actionType": "cart",
+          "inclusions": [
+            "3 distinct views including cinematic Night View with cove lighting",
+            "Detailed material moodboard & brand recommendations",
+            "Boundary wall, gate, and landscape integration",
+            "3 revision rounds included",
+            "Commercial 4K ultra-sharp presentation renders"
+          ],
+          "deliveryTime": "5–7 Days",
+          "priceFormatted": "PKR 28,000"
+        }
+      ],
+      "title": "Front Elevation 3D (Exterior Render)",
+      "letter": "D",
+      "subtitle": "Photorealistic 3D Facade Concepts & Material Specs",
+      "description": "Visualize your home's exterior with photorealistic 3D elevations featuring modern grooved textures, fluted tiles, warm evening lighting, and louvers."
+    },
+    {
+      "id": "interior-makeover",
+      "badge": "Fast Selling",
+      "tiers": [
+        {
+          "id": "interior-basic",
+          "tag": "Quick Refresh",
+          "name": "Basic Moodboard",
+          "pricePKR": 5000,
+          "actionType": "cart",
+          "inclusions": [
+            "Curated room color palette & paint code guide",
+            "Furniture styles & dimensions shopping recommendations",
+            "Ambient & task lighting moodboard suggestions",
+            "Curated decor accent items reference list"
+          ],
+          "deliveryTime": "2 Days Delivery",
+          "priceFormatted": "PKR 5,000"
+        },
+        {
+          "id": "interior-standard",
+          "tag": "2D Layout + Ceiling",
+          "name": "Standard Interior Concept",
+          "popular": true,
+          "pricePKR": 10000,
+          "actionType": "cart",
+          "inclusions": [
+            "Complete interior moodboard with texture palette",
+            "Scaled 2D furniture layout plan with clearance specs",
+            "False ceiling design with LED profile lighting concept",
+            "Curtain, wall paneling, and rug sizing guide",
+            "1 revision round included"
+          ],
+          "deliveryTime": "3–4 Days",
+          "priceFormatted": "PKR 10,000"
+        },
+        {
+          "id": "interior-premium",
+          "tag": "Full 3D Render",
+          "name": "Premium Interior Design",
+          "pricePKR": 18000,
+          "actionType": "cart",
+          "inclusions": [
+            "Photorealistic 3D interior render of the room",
+            "Detailed moodboard + color & textile palette",
+            "2D furniture placement layout with exact measurements",
+            "Gypsum false ceiling & recessed spotlight plan",
+            "2 revision rounds included"
+          ],
+          "deliveryTime": "5–7 Days",
+          "priceFormatted": "PKR 18,000"
+        }
+      ],
+      "title": "Interior Room Makeover",
+      "letter": "E",
+      "subtitle": "Bespoke Room Styling, Moodboards & 3D Visualizations",
+      "description": "Reimagine your master bedroom, living lounge, dining area, or drawing room with tailored color tones, custom ceiling patterns, and ambient lighting design."
+    },
+    {
+      "id": "cost-estimate",
+      "badge": "Financial Control",
+      "tiers": [
+        {
+          "id": "estimate-basic",
+          "tag": "Grey Structure",
+          "name": "Basic Estimate",
+          "pricePKR": 7000,
+          "actionType": "cart",
+          "inclusions": [
+            "Approximate grey structure construction cost calculation",
+            "Complete covered area statement (ground + first + mumty)",
+            "Estimated cement, steel, bricks, and sand requirements",
+            "Labor rate guidelines for your target city"
+          ],
+          "deliveryTime": "2–3 Days",
+          "priceFormatted": "PKR 7,000"
+        },
+        {
+          "id": "estimate-detailed",
+          "tag": "Grey + Finishing",
+          "name": "Detailed Estimate",
+          "popular": true,
+          "pricePKR": 15000,
+          "actionType": "cart",
+          "inclusions": [
+            "Comprehensive Grey Structure + Finishing estimate",
+            "Breakdown for tiles, sanitary, electrical wiring, and woodwork",
+            "Itemized material quality grade suggestions (A / B+ grade)",
+            "Milestone payment schedule guide for contractor negotiation",
+            "Consultation call to review the cost report"
+          ],
+          "deliveryTime": "4–6 Days",
+          "priceFormatted": "PKR 15,000"
+        }
+      ],
+      "title": "Construction Cost Estimate",
+      "letter": "F",
+      "subtitle": "Grey Structure & Finishing Bill of Quantities (BOQ)",
+      "description": "Avoid cost overruns and builder inflation. Receive an honest, detailed quantity assessment based on prevailing material and labor rates in Pakistan."
+    },
+    {
+      "id": "full-house",
+      "badge": "High Ticket • Turnkey Blueprint",
+      "tiers": [
+        {
+          "id": "fullhouse-standard",
+          "tag": "Complete Blueprints",
+          "name": "Standard Full Design",
+          "notes": "Pricing scales strictly with covered area & plot size (5 Marla: ~PKR 80k–110k, 10 Marla: ~PKR 140k–180k, 1 Kanal: ~PKR 220k–250k+).",
+          "popular": true,
+          "pricePKR": "80,000 – 250,000",
+          "actionType": "cart",
+          "inclusions": [
+            "Complete architectural floor plans (all levels)",
+            "Front & side elevation design concepts",
+            "High-res 3D exterior visualization views",
+            "Cross-sections, staircase details & roof plan",
+            "Door, window & ventilator schedule",
+            "Electrical, plumbing & HVAC schematic routing",
+            "Authority submission drawing sheets",
+            "Direct revisions & coordination with project architect"
+          ],
+          "deliveryTime": "2–4 Weeks",
+          "priceFormatted": "PKR 80,000 – 250,000"
+        }
+      ],
+      "title": "Full House Design Package",
+      "letter": "G",
+      "subtitle": "End-to-End Architectural Blueprint & Submission Drawings",
+      "description": "From bare plot to complete construction-ready blueprint set. Engineered to pass municipal authority approvals (CDA, LDA, DHA, Bahria, RDA, KDA, PDA)."
+    }
+  ],
+  "policyPoints": [
+    {
+      "icon": "ShieldCheck",
+      "title": "50% Advance Required",
+      "description": "All design orders require a 50% upfront commitment to initiate architectural drafting."
+    },
+    {
+      "icon": "Clock",
+      "title": "Work Starts Immediately",
+      "description": "Drafting, diagnostic modeling, and reviews begin promptly once payment confirmation is verified via Safepay."
+    },
+    {
+      "icon": "CheckCircle2",
+      "title": "Transparent Revision Limits",
+      "description": "Each package includes a clearly specified number of design review and revision cycles."
+    },
+    {
+      "icon": "Sparkles",
+      "title": "Extra Revisions Available",
+      "description": "Additional iterations outside scope can be booked separately at nominal standard studio rates."
+    }
+  ],
+  "currency": "PKR",
+  "updatedAt": "2026-09-22T07:53:56.903Z",
+  "turnkeyRateSqFt": 57,
+  "consultationRateBasic": 3000,
+  "consultationRatePremium": 5000
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
@@ -39,17 +39,93 @@ import type {
   PlotSize,
   AttachedFile,
   BriefFormValues,
+  PricingSettingsContent,
+  CallTierOption,
+  AdminService,
 } from "@/types";
 import {
   briefFormSchema,
   consultationMonths as months,
   consultationTimeSlots as timeSlots,
   callTiers,
-  serviceCatalog,
   getStartingPriceText,
 } from "@/data/services";
 
-export const ConsultationView: React.FC = () => {
+interface ConsultationViewProps {
+  initialPricing?: PricingSettingsContent;
+  initialServices?: (AdminService | ServiceData)[];
+}
+
+export const ConsultationView: React.FC<ConsultationViewProps> = ({
+  initialPricing,
+  initialServices,
+}) => {
+  const servicesList: ServiceData[] = useMemo(() => {
+    if (!initialServices || initialServices.length === 0) return [];
+    return initialServices.map((s: any) => {
+      if (s.shortDesc && s.tiers) return s as ServiceData;
+      return {
+        id: s.slug || s.id,
+        slug: s.slug,
+        title: s.title,
+        category: s.category || "Architectural Service",
+        popularityRank: s.popularity_rank || 99,
+        shortDesc: s.short_description || s.shortDesc || "",
+        image:
+          s.image_url || s.image || "/images/Full House Design Package.png",
+        pricingType: s.pricing_type || s.pricingType || "flat",
+        tiers:
+          s.tiers?.map((t: any) => ({
+            name: t.tier_name || t.name,
+            deliveryTime: t.delivery_time || t.deliveryTime || "Prompt",
+            details: t.description || t.details || "",
+            deliverables: t.deliverables || [],
+            pricePKR:
+              t.pricing_rules?.find((r: any) => r.plot_size === "Any")
+                ?.price_pkr || t.pricePKR,
+            priceByPlot: t.pricing_rules?.reduce((acc: any, r: any) => {
+              if (r.plot_size !== "Any") {
+                acc[r.plot_size] = r.price_pkr;
+              }
+              return acc;
+            }, t.priceByPlot || {}),
+          })) || [],
+      };
+    });
+  }, [initialServices]);
+  const dynamicCallTiers: CallTierOption[] = useMemo(() => {
+    if (!initialPricing?.consultationCalls) return callTiers;
+    const {
+      basicCallPrice,
+      premiumCallPrice,
+      basicCallDuration,
+      premiumCallDuration,
+    } = initialPricing.consultationCalls;
+    return [
+      {
+        ...callTiers[0],
+        duration: `${basicCallDuration} Minutes`,
+        price: basicCallPrice,
+        features: [
+          `${basicCallDuration} min Live Video Session`,
+          "Immediate layout flaw diagnosis",
+          "Material & design directional advice",
+        ],
+      },
+      {
+        ...callTiers[1],
+        duration: `${premiumCallDuration} Minutes`,
+        price: premiumCallPrice,
+        features: [
+          `${premiumCallDuration} min Comprehensive Session`,
+          "Deep-dive space & circulation review",
+          "Finishing materials & contractor guidance",
+          "Realistic budget allocation roadmap",
+        ],
+      },
+    ];
+  }, [initialPricing]);
+
   const {
     booking,
     selectDate,
@@ -330,7 +406,8 @@ export const ConsultationView: React.FC = () => {
   };
 
   const selectedTierData =
-    callTiers.find((t) => t.name === booking.callTier) || callTiers[0];
+    dynamicCallTiers.find((t) => t.name === booking.callTier) ||
+    dynamicCallTiers[0];
 
   // Close services dropdown on click outside
   useEffect(() => {
@@ -415,14 +492,16 @@ export const ConsultationView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Make design decisions <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   with absolute confidence.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
                 A direct conversation with our licensed principal architects
                 about your plan, plot, or project. Choose a session, pick a
@@ -472,12 +551,12 @@ export const ConsultationView: React.FC = () => {
                     Talk to an Architect First.
                   </h2>
                   <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-2xl">
-                    This is a real conversation with one of our architects.
-                    Tell them about your plot or your house plan, and they
-                    will answer your questions and help you plan the next
-                    step. Not sure what you need yet? That is completely
-                    fine, start here. Already know exactly what you want?
-                    Browse our full list of services on the right.
+                    This is a real conversation with one of our architects. Tell
+                    them about your plot or your house plan, and they will
+                    answer your questions and help you plan the next step. Not
+                    sure what you need yet? That is completely fine, start here.
+                    Already know exactly what you want? Browse our full list of
+                    services on the right.
                   </p>
                 </div>
               </ScrollReveal>
@@ -493,7 +572,7 @@ export const ConsultationView: React.FC = () => {
                     className="space-y-4"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {callTiers.map((tier) => (
+                      {dynamicCallTiers.map((tier) => (
                         <button
                           key={tier.name}
                           type="button"
@@ -532,7 +611,7 @@ export const ConsultationView: React.FC = () => {
                     transition={{ duration: 0.25 }}
                     className="grid grid-cols-1 sm:grid-cols-2 gap-6"
                   >
-                    {callTiers.map((tier, idx) => {
+                    {dynamicCallTiers.map((tier, idx) => {
                       const isSelected = booking.callTier === tier.name;
                       return (
                         <div
@@ -635,9 +714,9 @@ export const ConsultationView: React.FC = () => {
                       Tell Us About You and Your Project.
                     </h2>
                     <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-2xl">
-                      Share your contact details and a little about your plot
-                      or project. This helps our architects prepare before
-                      they speak with you.
+                      Share your contact details and a little about your plot or
+                      project. This helps our architects prepare before they
+                      speak with you.
                     </p>
                   </div>
                 </ScrollReveal>
@@ -759,10 +838,10 @@ export const ConsultationView: React.FC = () => {
                       Pick a Time and Upload Your Plan.
                     </h2>
                     <p className="font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                      Choose a date and time that works for you (Pakistan
-                      time). You also need to upload your floor plan or site
-                      photos. This lets the architect understand your project
-                      before your session.
+                      Choose a date and time that works for you (Pakistan time).
+                      You also need to upload your floor plan or site photos.
+                      This lets the architect understand your project before
+                      your session.
                     </p>
                   </div>
 
@@ -1229,9 +1308,9 @@ export const ConsultationView: React.FC = () => {
                   Skip the Call. Book a Service Directly.
                 </h3>
                 <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                  We offer {serviceCatalog.length} design services, like plan
-                  reviews, 3D renders, and full house design. Each one shows
-                  you exactly what you get and what it costs. Pick one below.
+                  We offer {servicesList.length} design services, like plan
+                  reviews, 3D renders, and full house design. Each one shows you
+                  exactly what you get and what it costs. Pick one below.
                 </p>
               </div>
 
@@ -1271,9 +1350,9 @@ export const ConsultationView: React.FC = () => {
                     className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-zinc-900 border border-outline-variant/40 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 space-y-1 max-h-[min(70vh,34rem)] overflow-y-auto overscroll-contain touch-pan-y backdrop-blur-xl"
                   >
                     <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-outline-variant/20 mb-1">
-                      Available Services ({serviceCatalog.length})
+                      Available Services ({servicesList.length})
                     </div>
-                    {serviceCatalog.map((service) => {
+                    {servicesList.map((service) => {
                       const isSelected =
                         activeSidebarService?.id === service.id;
                       return (

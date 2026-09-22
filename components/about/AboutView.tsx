@@ -6,13 +6,40 @@ import Link from "next/link";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { MapPin, ShieldCheck, ArrowDown } from "lucide-react";
 
-import { leaders, achievements, studioLocations } from "@/data/about";
+import {
+  leaders as fallbackLeaders,
+  achievements as fallbackAchievements,
+  studioLocations as fallbackStudioLocations,
+} from "@/data/about";
+import type { Leader, Achievement, StudioLocation } from "@/types";
 
 const Metric: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <span className="text-tertiary font-semibold">{children}</span>
 );
 
-export const AboutView: React.FC = () => {
+interface AboutViewProps {
+  initialLeaders?: Leader[];
+  initialAchievements?: Achievement[];
+  initialStudioLocations?: StudioLocation[];
+}
+
+export const AboutView: React.FC<AboutViewProps> = ({
+  initialLeaders,
+  initialAchievements,
+  initialStudioLocations,
+}) => {
+  const leaders =
+    initialLeaders && initialLeaders.length > 0
+      ? initialLeaders
+      : fallbackLeaders;
+  const achievements =
+    initialAchievements && initialAchievements.length > 0
+      ? initialAchievements
+      : fallbackAchievements;
+  const studioLocations =
+    initialStudioLocations && initialStudioLocations.length > 0
+      ? initialStudioLocations
+      : fallbackStudioLocations;
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
       {/* Whole-screen Hero Section (Full Initial Page down to View Selected Works) */}
@@ -36,14 +63,16 @@ export const AboutView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Designing spaces with <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   mathematical precision and soul.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
                 MARK Architects is a collaborative practice of licensed
                 architects, structural engineers, and spatial strategists. We
@@ -81,17 +110,24 @@ export const AboutView: React.FC = () => {
             <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block mb-6">
               In Numbers
             </span>
-            <p
-              className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.35]"
-              style={{ fontSize: "clamp(1.5rem, 1.05rem + 2vw, 2.5rem)" }}
-            >
-              In <Metric>{achievements[0].metric}</Metric> years of practice,
-              we have designed <Metric>{achievements[1].metric}</Metric>{" "}
-              residential and commercial projects spanning{" "}
-              <Metric>{achievements[2].metric}</Metric> square feet, with a{" "}
-              <Metric>{achievements[3].metric}</Metric> record of statutory
-              approval and code compliance.
-            </p>
+            {achievements && achievements.length >= 4 ? (
+              <p
+                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.35]"
+                style={{ fontSize: "clamp(1.5rem, 1.05rem + 2vw, 2.5rem)" }}
+              >
+                In <Metric>{achievements[0]?.metric}</Metric> years of practice,
+                we have designed <Metric>{achievements[1]?.metric}</Metric>{" "}
+                residential and commercial projects spanning{" "}
+                <Metric>{achievements[2]?.metric}</Metric> square feet, with a{" "}
+                <Metric>{achievements[3]?.metric}</Metric> record of statutory
+                approval and code compliance.
+              </p>
+            ) : (
+              <p className="font-playfair text-on-surface-variant dark:text-zinc-400 font-normal text-xl leading-relaxed">
+                Spearheading architectural excellence, seismic safety, and
+                mathematical precision across Pakistan.
+              </p>
+            )}
           </ScrollReveal>
         </div>
       </section>
@@ -122,96 +158,94 @@ export const AboutView: React.FC = () => {
         {/* Full-bleed profile band: qualifications on the left, portrait
             filling the entire right half edge to edge, spanning the whole
             page width rather than sitting inside a small contained card. */}
-        {leaders.map((leader) => (
-          <ScrollReveal key={leader.name}>
-            <div className="w-full grid grid-cols-1 lg:grid-cols-[2fr_3fr] lg:min-h-[480px] items-stretch bg-surface-container-low dark:bg-zinc-900 border-y border-outline-variant/20">
-              {/* Left: portrait — the source photo's studio backdrop was
-                  actually cut out of the asset itself, not faked with a CSS
-                  mask on top of it. The text column is the taller of the two
-                  (its content length varies), so the image sits in its own
-                  aspect-ratio box — sized to its real proportions, not
-                  stretched to the row's full height — and that box is
-                  vertically centered in the row. Centering (rather than
-                  bottom-anchoring) is what gives it even cream breathing
-                  room above and below instead of his hands landing flush
-                  against the panel's bottom edge, which read as a bad crop.
-                  He's looking to his right, so the photo sits on the left
-                  with the text on the right, gaze leading into it. */}
-              <div className="relative min-h-[320px] lg:min-h-0 flex items-center py-8 lg:py-12">
-                <div className="relative w-full max-w-[420px] aspect-[433/577]">
-                  {/* Soft contact shadow under his feet, painted before the
-                      image so the cutout reads as standing rather than a
-                      flat pasted sticker. */}
-                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-40 h-5 rounded-full bg-black/15 blur-md pointer-events-none" />
-                  <Image
-                    fill
-                    src={leader.image}
-                    alt={`${leader.name}, ${leader.role} at MARK Architects`}
-                    sizes="(max-width: 1024px) 100vw, 40vw"
-                    className="object-contain"
-                    priority
-                  />
+        {leaders.length === 0 ? (
+          <div className="max-w-container-max mx-auto px-4 md:px-margin-desktop py-16 text-center border border-dashed border-outline-variant/30 rounded-3xl bg-surface-container-low/40 dark:bg-zinc-900/30">
+            <p className="font-playfair text-2xl text-on-surface dark:text-zinc-200">
+              No team profiles published yet
+            </p>
+            <p className="font-inter text-sm text-zinc-500 mt-2 max-w-md mx-auto">
+              Architect and team leadership profiles will appear here once
+              published from the admin dashboard.
+            </p>
+          </div>
+        ) : (
+          leaders.map((leader) => (
+            <ScrollReveal key={leader.name}>
+              <div className="w-full grid grid-cols-1 lg:grid-cols-[2fr_3fr] lg:min-h-[480px] items-stretch bg-surface-container-low dark:bg-zinc-900 border-y border-outline-variant/20">
+                {/* Left: portrait in architectural circular frame */}
+                <div className="relative min-h-[360px] lg:min-h-0 flex items-center justify-center py-10 lg:py-12 px-6">
+                  <div className="group relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] aspect-square rounded-full overflow-hidden border-4 border-white dark:border-zinc-800 shadow-2xl ring-2 ring-tertiary/25 dark:ring-tertiary/30 hover:ring-tertiary/60 dark:hover:ring-tertiary/60 transition-all duration-500 bg-transparent">
+                    <Image
+                      fill
+                      src={
+                        leader.image === "/images/profile.jpeg"
+                          ? "/images/profile-removebg-preview.png"
+                          : leader.image ||
+                            "/images/profile-removebg-preview.png"
+                      }
+                      alt={`${leader.name}, ${leader.role} at MARK Architects`}
+                      sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 360px"
+                      className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105 will-change-transform"
+                      priority
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Right: qualifications — given more width and larger type
-                  than the portrait so the credentials read as the lead
-                  element. Uses the same px-4/md:px-margin-desktop gutter as
-                  the rest of the page so its text lines up with the heading
-                  above instead of floating at a custom offset. */}
-              <div className="flex flex-col justify-center px-4 md:px-margin-desktop py-14 lg:py-0">
-                <div className="max-w-xl space-y-5 w-full">
-                  <div>
-                    <div className="h-px w-12 bg-tertiary/50 mb-4" />
-                    <h3 className="font-playfair text-4xl sm:text-5xl font-bold text-on-surface dark:text-zinc-100">
-                      {leader.name}
-                    </h3>
-                    <p className="text-sm sm:text-base text-tertiary font-inter font-semibold mt-1.5">
-                      {leader.role}
+                {/* Right: qualifications */}
+                <div className="flex flex-col justify-center px-4 md:px-margin-desktop py-14 lg:py-0">
+                  <div className="max-w-xl space-y-5 w-full">
+                    <div>
+                      <div className="h-px w-12 bg-tertiary/50 mb-4" />
+                      <h3 className="font-playfair text-4xl sm:text-5xl font-bold text-on-surface dark:text-zinc-100">
+                        {leader.name}
+                      </h3>
+                      <p className="text-sm sm:text-base text-tertiary font-inter font-semibold mt-1.5">
+                        {leader.role}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {leader.credentials.split(" • ").map((cred) => (
+                        <span
+                          key={cred}
+                          className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-900 text-on-surface dark:text-zinc-200 text-xs sm:text-sm font-inter font-semibold px-3.5 py-2 rounded-lg border border-outline-variant/40 shadow-xs"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          {cred}
+                        </span>
+                      ))}
+                    </div>
+
+                    <p className="font-inter text-base text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
+                      {leader.bio}
                     </p>
-                  </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {leader.credentials.split(" • ").map((cred) => (
-                      <span
-                        key={cred}
-                        className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-900 text-on-surface dark:text-zinc-200 text-xs sm:text-sm font-inter font-semibold px-3.5 py-2 rounded-lg border border-outline-variant/40 shadow-xs"
-                      >
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        {cred}
-                      </span>
-                    ))}
-                  </div>
-
-                  <p className="font-inter text-base text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
-                    {leader.bio}
-                  </p>
-
-                  <div className="pt-3 border-t border-outline-variant/20 flex flex-wrap gap-5 text-sm text-on-surface-variant dark:text-zinc-400">
-                    <div>
-                      <span className="font-bold text-on-surface dark:text-zinc-200">
-                        Experience:
-                      </span>{" "}
-                      {leader.experience.split(" ").slice(0, 2).join(" ")}
-                    </div>
-                    <div>
-                      <span className="font-bold text-on-surface dark:text-zinc-200">
-                        Focus:
-                      </span>{" "}
-                      Residential &amp; Commercial Masterplanning
-                    </div>
-                    <div>
-                      <span className="font-bold text-on-surface dark:text-zinc-200">
-                        Council:
-                      </span>{" "}
-                      PCATP Licensed Architect
+                    <div className="pt-3 border-t border-outline-variant/20 flex flex-wrap gap-5 text-sm text-on-surface-variant dark:text-zinc-400">
+                      <div>
+                        <span className="font-bold text-on-surface dark:text-zinc-200">
+                          Experience:
+                        </span>{" "}
+                        {leader.experience.split(" ").slice(0, 2).join(" ")}
+                      </div>
+                      <div>
+                        <span className="font-bold text-on-surface dark:text-zinc-200">
+                          Focus:
+                        </span>{" "}
+                        Residential &amp; Commercial Masterplanning
+                      </div>
+                      <div>
+                        <span className="font-bold text-on-surface dark:text-zinc-200">
+                          Council:
+                        </span>{" "}
+                        PCATP Licensed Architect
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </ScrollReveal>
-        ))}
+            </ScrollReveal>
+          ))
+        )}
       </section>
 
       {/* Global & Regional Studios */}
@@ -232,29 +266,41 @@ export const AboutView: React.FC = () => {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {studioLocations.map((studio, idx) => (
-              <ScrollReveal key={studio.city} delay={0.1 * (idx + 1)}>
-                <div className="bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-3xl border border-outline-variant/30 flex flex-col justify-between min-h-[18rem] h-auto shadow-sm">
-                  <div>
-                    <h3 className="font-playfair text-2xl font-bold dark:text-zinc-200">
-                      {studio.city}
-                    </h3>
-                    <p className="font-inter text-xs text-tertiary font-bold tracking-widest mt-1 uppercase">
-                      {studio.role}
-                    </p>
-                    <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light mt-4 leading-relaxed">
-                      {studio.address}
-                    </p>
+          {studioLocations.length === 0 ? (
+            <div className="py-16 text-center border border-dashed border-outline-variant/30 rounded-3xl p-8 bg-surface-container-low/40 dark:bg-zinc-900/30">
+              <p className="font-playfair text-2xl text-on-surface dark:text-zinc-200">
+                No studio locations published yet
+              </p>
+              <p className="font-inter text-sm text-zinc-500 mt-2 max-w-md mx-auto">
+                Studio locations and regional liaison addresses will appear here
+                once published from the admin dashboard.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {studioLocations.map((studio, idx) => (
+                <ScrollReveal key={studio.city} delay={0.1 * (idx + 1)}>
+                  <div className="bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-3xl border border-outline-variant/30 flex flex-col justify-between min-h-[18rem] h-auto shadow-sm">
+                    <div>
+                      <h3 className="font-playfair text-2xl font-bold dark:text-zinc-200">
+                        {studio.city}
+                      </h3>
+                      <p className="font-inter text-xs text-tertiary font-bold tracking-widest mt-1 uppercase">
+                        {studio.role}
+                      </p>
+                      <p className="font-inter text-sm text-on-surface-variant dark:text-zinc-400 font-light mt-4 leading-relaxed">
+                        {studio.address}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 text-xs text-on-surface-variant dark:text-zinc-400 font-light items-center">
+                      <MapPin className="w-4 h-4 text-tertiary" />
+                      <span>{studio.region}</span>
+                    </div>
                   </div>
-                  <div className="flex gap-2 text-xs text-on-surface-variant dark:text-zinc-400 font-light items-center">
-                    <MapPin className="w-4 h-4 text-tertiary" />
-                    <span>{studio.region}</span>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

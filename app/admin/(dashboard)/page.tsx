@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { AdminDashboardView } from "@/components/admin/AdminDashboardView";
 import type { ConsultationRecord, OrderRecord } from "@/types";
-import { seedConsultations, seedOrders } from "@/data/adminSeed";
 
 export const dynamic = "force-dynamic";
 
@@ -45,19 +44,17 @@ export default async function AdminDashboardPage() {
     console.error("Error fetching admin dashboard data:", err);
   }
 
-  // If database is brand new / has no records yet, provide initial seed showcase rows
-  if (consultations.length === 0) {
-    consultations = seedConsultations;
-  }
-
-  if (orders.length === 0) {
-    orders = seedOrders;
-  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const adminEmail =
+    user?.email || process.env.ADMIN_EMAIL || "admin@markarchitects.com";
 
   return (
     <AdminDashboardView
       initialConsultations={consultations}
       initialOrders={orders}
+      adminEmail={adminEmail}
     />
   );
 }

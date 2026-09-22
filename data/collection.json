@@ -1,0 +1,124 @@
+[
+  {
+    "id": "hpr-standard",
+    "tag": "Standard Package",
+    "name": "House Plan Review",
+    "slug": "hpr-standard",
+    "subtitle": "Detailed blueprint diagnostic audit by licensed architects.",
+    "price_pkr": 9000,
+    "updated_at": "2026-09-22T07:39:05.611Z",
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-review.png",
+    "deliverables": [
+      "Comprehensive Diagnostic Report",
+      "Circulation & Ventilation Optimization",
+      "Room Sizing & Furniture Feasibility",
+      "Annotated Architectural PDF Plan"
+    ],
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-review.png"
+    ],
+    "is_published": true,
+    "display_order": 1,
+    "specifications": {},
+    "plot_dimensions": "Any Plot Size",
+    "turnaround_weeks": "24–48 Hours",
+    "covered_area_sqft": 4500,
+    "estimated_construction_cost": "Market Standard"
+  },
+  {
+    "id": "hpc-standard",
+    "tag": "Standard Package",
+    "name": "House Plan Correction (10 Marla)",
+    "slug": "hpc-standard",
+    "subtitle": "Turn flawed drawings into an optimized, harmonious 10 Marla home layout with complete furniture and flow planning.",
+    "price_pkr": 22000,
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-Correction.png",
+    "deliverables": [
+      "2 Corrected Layout Alternatives",
+      "Scaled Furniture Arrangement Plan",
+      "Natural Ventilation & Sunlight Routing",
+      "2 Design Revision Rounds"
+    ],
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/House-Plan-Correction.png"
+    ],
+    "is_published": true,
+    "display_order": 2,
+    "plot_dimensions": "10 Marla",
+    "turnaround_weeks": "3–5 Days",
+    "covered_area_sqft": 4500,
+    "estimated_construction_cost": "PKR 30M – 40M"
+  },
+  {
+    "id": "fe-standard",
+    "tag": "Standard Package",
+    "name": "Front Elevation 3D Render (10 Marla)",
+    "slug": "fe-standard",
+    "subtitle": "Ultra-realistic 3D exterior visualization showcasing daytime lighting, premium materials, and exterior finishes.",
+    "price_pkr": 25000,
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Front-Elevation-3D-(Exterior-Render).png",
+    "deliverables": [
+      "2 High-Res 3D Views (Front & Angle)",
+      "Exterior Material & Paint Color Specs",
+      "Modern Facade Cladding Concepts",
+      "2 Revision Rounds Included"
+    ],
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Front-Elevation-3D-(Exterior-Render).png"
+    ],
+    "is_published": true,
+    "display_order": 3,
+    "plot_dimensions": "10 Marla",
+    "turnaround_weeks": "3–5 Days",
+    "covered_area_sqft": 4500,
+    "estimated_construction_cost": "PKR 35M – 45M"
+  },
+  {
+    "id": "irm-premium",
+    "tag": "Premium Package",
+    "name": "Interior Room Makeover (Premium)",
+    "slug": "irm-premium",
+    "subtitle": "Complete luxury transformation for master bedroom suites, formal drawing rooms, or designer open-plan kitchens.",
+    "price_pkr": 30000,
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Interior-Room-Makeover.png",
+    "deliverables": [
+      "Photorealistic 3D Interior Render",
+      "Complete Aesthetic Moodboard",
+      "Scaled 2D Furniture & Ceiling Plan",
+      "Custom Ambient Lighting Scheme"
+    ],
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Interior-Room-Makeover.png"
+    ],
+    "is_published": true,
+    "display_order": 4,
+    "plot_dimensions": "Master Suite / Open Living",
+    "turnaround_weeks": "5–7 Days",
+    "covered_area_sqft": 1200,
+    "estimated_construction_cost": "Custom Finishes"
+  },
+  {
+    "id": "cce-detailed",
+    "tag": "Detailed Package",
+    "name": "Grey Structure Cost Estimate (10 Marla)",
+    "slug": "cce-detailed",
+    "subtitle": "Protect your investment with exact material calculations and construction rate verification based on market data.",
+    "price_pkr": 19000,
+    "cover_image": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Construction-Cost-Estimate.png",
+    "deliverables": [
+      "Complete Grey Structure Bill of Quantities",
+      "Finishing Material Budget Projections",
+      "Steel, Cement & Brick Quantity Schedules",
+      "Contractor Cost Benchmark Sheet"
+    ],
+    "gallery_urls": [
+      "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/services/Construction-Cost-Estimate.png"
+    ],
+    "is_published": true,
+    "display_order": 5,
+    "plot_dimensions": "10 Marla",
+    "turnaround_weeks": "4–6 Days",
+    "covered_area_sqft": 4500,
+    "estimated_construction_cost": "Cost Assurance"
+  }
+]

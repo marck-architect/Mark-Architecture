@@ -35,13 +35,8 @@ export default async function AdminDashboardLayout({
       {/* Background Architectural Grid Pattern */}
       <div className="fixed inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
 
-      {/* Admin Topbar */}
-      <AdminHeader adminEmail={user.email || "admin@markarchitects.com"} />
-
       {/* Main Content Area */}
-      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 z-10">
-        {children}
-      </main>
+      <div className="relative z-10 w-full min-h-screen">{children}</div>
     </div>
   );
 }

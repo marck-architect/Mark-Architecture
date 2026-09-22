@@ -10,9 +10,7 @@ import {
   ArrowDown,
   ArrowRight,
   Search,
-  Zap,
   ShoppingBag,
-  ChevronDown,
   AlertCircle,
   Video,
   FileSearch,
@@ -32,10 +30,22 @@ import {
   type PricingCategory,
   type PricingTier,
 } from "@/data/pricing";
+import type {
+  PricingSettingsContent,
+  PricingCategoryData,
+  PricingTierData,
+} from "@/types";
 
-export const PricingView: React.FC = () => {
+interface PricingViewProps {
+  initialPricing?: PricingSettingsContent;
+}
+
+export const PricingView: React.FC<PricingViewProps> = ({ initialPricing }) => {
   const router = useRouter();
   const { addToCart, setCartDrawerOpen, showToast } = useStore();
+
+  const categories = initialPricing?.menuCategories || pricingMenuCategories;
+  const policyPoints = initialPricing?.policyPoints || paymentPolicyPoints;
 
   const [activeCategoryFilter, setActiveCategoryFilter] =
     useState<string>("all");
@@ -65,7 +75,10 @@ export const PricingView: React.FC = () => {
   };
 
   // Handle Online Cart / Booking
-  const handleTierBooking = (category: PricingCategory, tier: PricingTier) => {
+  const handleTierBooking = (
+    category: PricingCategory | PricingCategoryData,
+    tier: PricingTier | PricingTierData,
+  ) => {
     if (tier.actionType === "consultation") {
       router.push("/consultation");
       return;
@@ -88,7 +101,7 @@ export const PricingView: React.FC = () => {
   };
 
   // Filter Categories & Tiers
-  const filteredCategories = pricingMenuCategories
+  const filteredCategories = categories
     .filter((cat) => {
       if (activeCategoryFilter === "all") return true;
       return cat.id === activeCategoryFilter;
@@ -156,18 +169,20 @@ export const PricingView: React.FC = () => {
                 style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
               >
                 Transparent <br />
-                <span className="italic font-light text-tertiary">
+                <span className="font-light text-tertiary">
                   pricing and packages.
                 </span>
               </h1>
 
               <p
                 className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
+                style={{
+                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
+                }}
               >
-                Explore our full menu of architectural services. Every
-                package has fixed deliverables, a clear price, and secure
-                checkout through Safepay.
+                Explore our full menu of architectural services. Every package
+                has fixed deliverables, a clear price, and secure checkout
+                through Safepay.
               </p>
 
               {/* Action Buttons */}
@@ -224,7 +239,7 @@ export const PricingView: React.FC = () => {
 
           {/* 4 Policy Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {paymentPolicyPoints.map((pt, idx) => (
+            {policyPoints.map((pt, idx) => (
               <div
                 key={idx}
                 className="bg-white dark:bg-zinc-950 p-5 rounded-2xl border border-outline-variant/40 dark:border-zinc-800 shadow-xs space-y-2 hover:border-tertiary/60 transition-colors"
@@ -304,10 +319,10 @@ export const PricingView: React.FC = () => {
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span>All 7 Categories</span>
+              <span>All ({categories.length}) Categories</span>
             </button>
 
-            {pricingMenuCategories.map((cat) => {
+            {categories.map((cat) => {
               const isSelected = activeCategoryFilter === cat.id;
               return (
                 <button

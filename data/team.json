@@ -1,0 +1,15 @@
+[
+  {
+    "id": "team_1",
+    "name": "Muhammad Arsalan",
+    "role": "Principal Architect & Founder",
+    "credentials": "PCATP Registered • B.Arch • Lead Structural Designer",
+    "bio": "Pioneering mathematical precision in residential and commercial architecture across Pakistan. Specialist in passive solar layouts, municipal submission codes, and structural efficiency.",
+    "specialization": "Minimalist Residential Architecture, Passive Solar Layouts & Municipal Codes",
+    "photo_url": "https://ksrklynukzvydufrgdrh.supabase.co/storage/v1/object/public/media/team/profile-removebg-preview.png",
+    "email": "arsalan@markarchitects.com",
+    "display_order": 1,
+    "is_active": true,
+    "created_at": "2026-09-18T16:02:08.401203+00:00"
+  }
+]

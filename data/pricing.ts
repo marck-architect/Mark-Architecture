@@ -414,3 +414,22 @@ export const pricingMenuCategories: PricingCategory[] = [
     ],
   },
 ];
+
+import { disciplines, plotPresets } from "@/data/calculator";
+import type { PricingSettingsContent } from "@/types";
+
+export const defaultPricingSettings: PricingSettingsContent = {
+  calculator: {
+    disciplines,
+    advancePercentage: 50,
+    plotPresets,
+  },
+  consultationCalls: {
+    basicCallPrice: 3000,
+    premiumCallPrice: 5000,
+    basicCallDuration: 30,
+    premiumCallDuration: 60,
+  },
+  menuCategories: pricingMenuCategories,
+  policyPoints: paymentPolicyPoints,
+};

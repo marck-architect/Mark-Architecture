@@ -8,10 +8,8 @@ import {
   Clock,
   ShieldCheck,
   ArrowRight,
-  MessageSquare,
   AlertCircle,
   Copy,
-  ExternalLink,
   PhoneCall,
 } from "lucide-react";
 

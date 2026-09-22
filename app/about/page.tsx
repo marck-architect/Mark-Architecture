@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { AboutView } from "@/components/about/AboutView";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { generatePersonSchema, siteConfig } from "@/lib/seo/schema";
-import { leaders } from "@/data/about";
 
 export const metadata: Metadata = {
   title: "About Our Practice | MARK Architects Atelier",
@@ -33,21 +32,41 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AboutPage() {
-  const principal = leaders[0];
-  const personSchema = generatePersonSchema({
-    name: principal.name,
-    jobTitle: principal.role,
-    description: principal.bio,
-    image: `${siteConfig.url}/images/profile.jpeg`,
-    url: `${siteConfig.url}/about`,
-    credentials: principal.credentials,
-  });
+import { getPublicTeam } from "@/lib/server/content";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function AboutPage() {
+  const {
+    leaders: dynamicLeaders,
+    achievements: dynamicAchievements,
+    studioLocations: dynamicLocations,
+  } = await getPublicTeam();
+
+  const principal = dynamicLeaders[0];
+  const personSchema = principal
+    ? generatePersonSchema({
+        name: principal.name,
+        jobTitle: principal.role,
+        description: principal.bio,
+        image: principal.image?.startsWith("http")
+          ? principal.image
+          : `${siteConfig.url}${principal.image || "/images/profile-removebg-preview.png"}`,
+        url: `${siteConfig.url}/about`,
+        credentials: principal.credentials,
+      })
+    : null;
 
   return (
     <>
-      <JsonLd data={personSchema} />
-      <AboutView />
+      {personSchema && <JsonLd data={personSchema} />}
+
+      <AboutView
+        initialLeaders={dynamicLeaders}
+        initialAchievements={dynamicAchievements}
+        initialStudioLocations={dynamicLocations}
+      />
     </>
   );
 }

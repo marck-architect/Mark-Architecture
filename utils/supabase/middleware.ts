@@ -12,6 +12,28 @@ export const createClient = async (request: NextRequest) => {
     },
   });
 
+  const pathname = request.nextUrl.pathname;
+  const searchParams = request.nextUrl.searchParams;
+
+  // Intercept any Supabase recovery redirects that landed on the root URL or other pages
+  // (e.g. when Supabase falls back to Site URL http://localhost:3000/?error=... or ?code=...)
+  if (pathname === "/") {
+    const hasAuthError =
+      searchParams.has("error") ||
+      searchParams.has("error_code") ||
+      searchParams.has("error_description");
+    const hasRecoveryParams =
+      searchParams.has("code") ||
+      (searchParams.has("token_hash") &&
+        searchParams.get("type") === "recovery");
+
+    if (hasAuthError || hasRecoveryParams) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/admin/reset-password";
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
   if (!supabaseUrl || !supabaseKey) {
     // Local UI-only dev fallback: no Supabase project configured, skip
     // auth/session handling entirely instead of throwing on every request.
@@ -42,16 +64,16 @@ export const createClient = async (request: NextRequest) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
   const adminEmail =
     process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   if (pathname.startsWith("/admin")) {
     const isLoginPage = pathname === "/admin/login";
+    const isResetPasswordPage = pathname === "/admin/reset-password";
     const isAuthenticatedAdmin =
       Boolean(user) && (!adminEmail || user?.email === adminEmail);
 
-    if (!isAuthenticatedAdmin && !isLoginPage) {
+    if (!isAuthenticatedAdmin && !isLoginPage && !isResetPasswordPage) {
       const url = request.nextUrl.clone();
       url.pathname = "/admin/login";
       return NextResponse.redirect(url);

@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { FaqView } from "@/components/faqs/FaqView";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { generateFaqSchema } from "@/lib/seo/schema";
-import { faqsData } from "@/data/faqs";
 
 export const metadata: Metadata = {
   title: "Frequently Asked Architectural Questions & Guide | MARK Architects",
@@ -39,13 +38,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FaqsPage() {
-  const faqSchema = generateFaqSchema(faqsData);
+import { getPublicFaqs } from "@/lib/server/content";
+
+export const revalidate = 60;
+
+export default async function FaqsPage() {
+  const faqs = await getPublicFaqs();
+  const schemaInput =
+    faqs && faqs.length > 0
+      ? faqs.map((f) => ({
+          question: f.question,
+          shortAnswer: (f as any).shortAnswer || f.answer,
+          fullAnswer: (f as any).fullAnswer || [f.answer],
+        }))
+      : [];
+
+  const faqSchema =
+    schemaInput.length > 0 ? generateFaqSchema(schemaInput) : null;
 
   return (
     <>
-      <JsonLd data={faqSchema} />
-      <FaqView />
+      {faqSchema && <JsonLd data={faqSchema} />}
+      <FaqView initialFaqs={faqs} />
     </>
   );
 }

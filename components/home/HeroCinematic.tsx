@@ -235,15 +235,15 @@ export const HeroCinematic: React.FC = () => {
             style={{ fontSize: "clamp(2rem, 1.25rem + 3vw, 4rem)" }}
           >
             Designing Spaces That <br />
-            <span className="italic font-light">Inspire Generations.</span>
+            <span className="font-light">Inspire Generations.</span>
           </h1>
 
           <p
             className="font-inter text-white/85 max-w-lg font-light leading-relaxed"
             style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)" }}
           >
-            Mathematical precision meets climate-responsive luxury, crafted
-            into bespoke residential and commercial spaces built to endure.
+            Mathematical precision meets climate-responsive luxury, crafted into
+            bespoke residential and commercial spaces built to endure.
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-1">

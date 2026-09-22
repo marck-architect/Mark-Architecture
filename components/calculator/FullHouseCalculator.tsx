@@ -13,16 +13,29 @@ import { useStore } from "@/hooks/useStore";
 import { SafepayService } from "@/lib/safepay";
 
 import { disciplines, plotPresets } from "@/data/calculator";
+import type { Discipline, PlotPreset } from "@/types";
 
-export const FullHouseCalculator: React.FC = () => {
+interface FullHouseCalculatorProps {
+  disciplinesList?: Discipline[];
+  advancePercentage?: number;
+  presets?: PlotPreset[];
+}
+
+export const FullHouseCalculator: React.FC<FullHouseCalculatorProps> = ({
+  disciplinesList,
+  advancePercentage = 50,
+  presets,
+}) => {
+  const activeDisciplines =
+    disciplinesList && disciplinesList.length > 0
+      ? disciplinesList
+      : disciplines;
+  const activePresets = presets && presets.length > 0 ? presets : plotPresets;
+
   const [coveredArea, setCoveredArea] = useState<number>(3800);
-  const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([
-    "arch",
-    "struct",
-    "plumb",
-    "elec",
-    "fire",
-  ]);
+  const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>(
+    activeDisciplines.map((d) => d.id),
+  );
 
   const { addToCart, setCartDrawerOpen } = useStore();
 
@@ -35,17 +48,17 @@ export const FullHouseCalculator: React.FC = () => {
     }
   };
 
-  const ratePerSqFt = disciplines
+  const ratePerSqFt = activeDisciplines
     .filter((d) => selectedDisciplines.includes(d.id))
     .reduce((acc, d) => acc + d.rate, 0);
 
   const totalAmount = Math.max(0, Math.round(coveredArea * ratePerSqFt));
-  const { advanceAmount, remainingBalance } =
-    SafepayService.calculateAdvanceDeposit(totalAmount);
+  const advanceAmount = Math.round(totalAmount * (advancePercentage / 100));
+  const remainingBalance = totalAmount - advanceAmount;
 
   const handleBookPackage = () => {
     addToCart({
-      title: "Full House Design Package (50% Advance)",
+      title: `Full House Design Package (${advancePercentage}% Advance)`,
       price: advanceAmount,
       image: "/images/Full House Design Package.png",
       currency: "PKR",
@@ -71,7 +84,7 @@ export const FullHouseCalculator: React.FC = () => {
           </h3>
           <p className="font-inter text-xs md:text-sm text-on-surface-variant dark:text-zinc-400 font-light mt-1">
             Dynamic per-square-foot calculation across engineering disciplines
-            with 50% advance terms.
+            with {advancePercentage}% advance terms.
           </p>
         </div>
 
@@ -87,7 +100,7 @@ export const FullHouseCalculator: React.FC = () => {
           Step 1: Enter Covered Area (Sq. Ft.) or Choose a Standard Preset
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-          {plotPresets.map((preset) => (
+          {activePresets.map((preset) => (
             <button
               key={preset.label}
               type="button"
@@ -130,7 +143,7 @@ export const FullHouseCalculator: React.FC = () => {
           Step 2: Included Engineering &amp; Architectural Disciplines
         </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {disciplines.map((d) => {
+          {activeDisciplines.map((d) => {
             const isSelected = selectedDisciplines.includes(d.id);
             return (
               <div
@@ -170,7 +183,7 @@ export const FullHouseCalculator: React.FC = () => {
         </div>
       </div>
 
-      {/* Live Quote Breakdown & 50% Advance Display */}
+      {/* Live Quote Breakdown & Advance Display */}
       <div className="bg-surface-container-low dark:bg-zinc-950 p-4 sm:p-6 md:p-8 rounded-2xl border border-outline-variant/30 space-y-5 sm:space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 border-b border-outline-variant/20 pb-6 text-center sm:text-left">
           <div>
@@ -194,7 +207,7 @@ export const FullHouseCalculator: React.FC = () => {
 
           <div className="bg-tertiary/10 p-3 rounded-xl border border-tertiary/30">
             <span className="text-[11px] font-inter font-bold text-tertiary uppercase tracking-wider block">
-              50% Advance Required to Start
+              {advancePercentage}% Advance Required to Start
             </span>
             <span className="font-montserrat text-xl sm:text-2xl font-extrabold text-tertiary">
               {SafepayService.formatPKR(advanceAmount)}

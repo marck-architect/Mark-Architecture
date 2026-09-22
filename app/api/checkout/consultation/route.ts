@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { createSafepayCheckoutSession } from "@/lib/server/safepay";
+import { getAppOrigin } from "@/lib/server/origin";
+import { getSiteContent } from "@/lib/server/content";
+import { defaultPricingSettings } from "@/data/pricing";
+import type { PricingSettingsContent } from "@/types";
 
 export const runtime = "nodejs";
 
@@ -26,10 +30,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Authoritative PKR Pricing
+    // Authoritative PKR Pricing from dynamic studio settings
+    const pricingSettings = await getSiteContent<PricingSettingsContent>(
+      "pricing_settings",
+      defaultPricingSettings,
+    );
+    const basicPrice =
+      pricingSettings?.consultationCalls?.basicCallPrice || 3000;
+    const premiumPrice =
+      pricingSettings?.consultationCalls?.premiumCallPrice || 5000;
+
     const pricing: Record<string, number> = {
-      "Basic Call": 3000,
-      "Premium Call": 5000,
+      "Basic Call": basicPrice,
+      "Premium Call": premiumPrice,
     };
     const pricePkr = pricing[callTier] || pricing["Basic Call"];
     const tierName = pricing[callTier] ? callTier : "Basic Call";
@@ -68,10 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate Safepay Session
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      req.headers.get("origin") ||
-      "http://localhost:3000";
+    const appUrl = getAppOrigin(req);
 
     const redirectUrl = `${appUrl}/payment/callback?orderId=${consultationId}&type=consultation`;
     const cancelUrl = `${appUrl}/consultation?canceled=true`;
