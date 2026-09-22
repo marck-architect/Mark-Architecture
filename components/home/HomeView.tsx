@@ -2,14 +2,12 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TextReveal } from "@/components/ui/TextReveal";
 import { HeroCinematic } from "@/components/home/HeroCinematic";
 import { CredentialsRow } from "@/components/home/CredentialsRow";
 import {
-  MapPin,
-  ArrowRight,
-  Clock,
   PhoneCall,
   CheckCircle2,
   ChevronLeft,
@@ -21,6 +19,7 @@ import {
 import {
   featuredServices as fallbackFeaturedServices,
   curatedProjects as fallbackCuratedProjects,
+  fallbackTestimonials,
 } from "@/data/home";
 import type {
   FeaturedService,
@@ -49,19 +48,33 @@ export const HomeView: React.FC<HomeViewProps> = ({
       : fallbackCuratedProjects;
 
   const testimonials = useMemo(() => {
-    return (initialTestimonials || []).filter((t) => t.is_published !== false);
+    const published = (initialTestimonials || []).filter(
+      (t) => t.is_published !== false,
+    );
+    if (published.length >= 2) return published;
+    if (published.length === 1) {
+      return [
+        ...published,
+        ...fallbackTestimonials.filter(
+          (f) => f.client_name !== published[0].client_name,
+        ),
+      ];
+    }
+    return fallbackTestimonials;
   }, [initialTestimonials]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     if (testimonials.length <= 1 || isPaused) return;
     const interval = setInterval(() => {
+      setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 6000);
+    }, 5000);
     return () => clearInterval(interval);
-  }, [testimonials.length, isPaused]);
+  }, [testimonials.length, isPaused, currentIndex]);
 
   useEffect(() => {
     if (currentIndex >= testimonials.length && testimonials.length > 0) {
@@ -70,15 +83,23 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [testimonials.length, currentIndex]);
 
   const handlePrev = () => {
+    setDirection(-1);
     setCurrentIndex((prev) =>
       prev === 0 ? testimonials.length - 1 : prev - 1,
     );
   };
 
   const handleNext = () => {
+    setDirection(1);
     setCurrentIndex((prev) =>
       prev === testimonials.length - 1 ? 0 : prev + 1,
     );
+  };
+
+  const handleSelect = (idx: number) => {
+    if (idx === currentIndex) return;
+    setDirection(idx > currentIndex ? 1 : -1);
+    setCurrentIndex(idx);
   };
 
   const currentTestimonial = testimonials[currentIndex];
@@ -115,6 +136,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           className="relative overflow-hidden bg-[#292722] px-4 py-24 text-white md:px-margin-desktop md:py-32"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
         >
           {/* Subtle architectural background geometry */}
           <div className="pointer-events-none absolute -right-24 top-0 h-96 w-96 rounded-full border border-[#c9a86e]/15" />
@@ -136,70 +159,110 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             {/* Testimonial Carousel Card */}
             <ScrollReveal delay={0.1}>
-              <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xs p-6 sm:p-10 md:p-14 shadow-2xl transition-all duration-500">
-                {/* Top Row: Rating, Featured Badge & Linked Project */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
-                  <div className="flex items-center gap-3">
-                    {/* Rating Stars */}
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                            i < (currentTestimonial.rating || 5)
-                              ? "fill-[#e8c889] text-[#e8c889]"
-                              : "text-white/20"
-                          }`}
-                        />
-                      ))}
+              <div
+                className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xs p-6 sm:p-10 md:p-14 shadow-2xl transition-all duration-500 overflow-hidden"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+                onTouchStart={() => setIsPaused(true)}
+                onTouchEnd={() => setIsPaused(false)}
+              >
+                {/* Auto-advance subtle progress indicator */}
+                {testimonials.length > 1 && !isPaused && (
+                  <motion.div
+                    key={currentIndex}
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 5, ease: "linear" }}
+                    className="absolute top-0 left-0 h-[2px] bg-[#e8c889]/50"
+                  />
+                )}
+
+                {/* Animated Testimonial Content */}
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={currentIndex}
+                    custom={direction}
+                    initial={{ opacity: 0, x: direction * 25 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: direction * -25 }}
+                    transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+                  >
+                    {/* Top Row: Rating, Featured Badge & Linked Project */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+                      <div className="flex items-center gap-3">
+                        {/* Rating Stars */}
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                                i < (currentTestimonial.rating || 5)
+                                  ? "fill-[#e8c889] text-[#e8c889]"
+                                  : "text-white/20"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        {currentTestimonial.is_featured && (
+                          <span className="px-2.5 py-0.5 bg-[#e8c889]/20 border border-[#e8c889]/40 text-[#e8c889] text-[10px] font-mono uppercase tracking-widest rounded-full">
+                            Featured
+                          </span>
+                        )}
+                      </div>
+
+                      {currentTestimonial.project_title && (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] font-mono text-[#e8c889]">
+                          <Award className="w-3.5 h-3.5 text-[#e8c889]" />
+                          <span>{currentTestimonial.project_title}</span>
+                        </div>
+                      )}
                     </div>
-                    {currentTestimonial.is_featured && (
-                      <span className="px-2.5 py-0.5 bg-[#e8c889]/20 border border-[#e8c889]/40 text-[#e8c889] text-[10px] font-mono uppercase tracking-widest rounded-full">
-                        Featured
+
+                    {/* Quote Content */}
+                    <div className="py-8 sm:py-10 min-h-[170px] sm:min-h-[150px] flex flex-col justify-center">
+                      <span className="block font-playfair text-6xl sm:text-7xl leading-none text-[#e8c889]/30 select-none mb-2">
+                        “
                       </span>
-                    )}
-                  </div>
-
-                  {currentTestimonial.project_title && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] font-mono text-[#e8c889]">
-                      <Award className="w-3.5 h-3.5 text-[#e8c889]" />
-                      <span>{currentTestimonial.project_title}</span>
+                      <blockquote className="font-playfair text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light leading-relaxed text-[#f7f4ef]">
+                        &ldquo;{currentTestimonial.review}&rdquo;
+                      </blockquote>
                     </div>
-                  )}
-                </div>
-
-                {/* Quote Content */}
-                <div className="py-8 sm:py-10">
-                  <span className="block font-playfair text-6xl sm:text-7xl leading-none text-[#e8c889]/30 select-none mb-2">
-                    “
-                  </span>
-                  <blockquote className="font-playfair text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light leading-relaxed text-[#f7f4ef]">
-                    &ldquo;{currentTestimonial.review}&rdquo;
-                  </blockquote>
-                </div>
+                  </motion.div>
+                </AnimatePresence>
 
                 {/* Author Info & Carousel Controls */}
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-6 border-t border-white/10">
-                  <div>
-                    <h3 className="font-playfair text-xl sm:text-2xl font-bold text-[#e8c889]">
-                      {currentTestimonial.client_name}
-                    </h3>
-                    {(currentTestimonial.position ||
-                      currentTestimonial.company) && (
-                      <p className="font-inter text-xs sm:text-sm font-medium text-white/60 uppercase tracking-widest mt-1">
-                        {[
-                          currentTestimonial.position,
-                          currentTestimonial.company,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                      </p>
-                    )}
+                  <div className="min-w-0 flex-1">
+                    <AnimatePresence mode="wait" custom={direction}>
+                      <motion.div
+                        key={currentIndex}
+                        custom={direction}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <h3 className="font-playfair text-xl sm:text-2xl font-bold text-[#e8c889]">
+                          {currentTestimonial.client_name}
+                        </h3>
+                        {(currentTestimonial.position ||
+                          currentTestimonial.company) && (
+                          <p className="font-inter text-xs sm:text-sm font-medium text-white/60 uppercase tracking-widest mt-1">
+                            {[
+                              currentTestimonial.position,
+                              currentTestimonial.company,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
                   </div>
 
                   {/* Carousel Controls */}
                   {testimonials.length > 1 && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       <span className="font-mono text-xs text-white/50 tracking-widest mr-2">
                         {String(currentIndex + 1).padStart(2, "0")} /{" "}
                         {String(testimonials.length).padStart(2, "0")}
@@ -229,7 +292,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   {testimonials.map((_, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setCurrentIndex(idx)}
+                      onClick={() => handleSelect(idx)}
                       aria-label={`Go to testimonial ${idx + 1}`}
                       className={`h-2 rounded-full transition-all duration-300 ${
                         idx === currentIndex
@@ -287,7 +350,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </ScrollReveal>
 
           <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
-            <ScrollReveal direction="right" delay={0.4} className="w-full sm:w-auto">
+            <ScrollReveal
+              direction="right"
+              delay={0.4}
+              className="w-full sm:w-auto"
+            >
               <Link
                 href="/consultation"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#292722] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-white shadow-xl transition-all duration-300 hover:bg-[#8a6125] active:scale-95 text-center min-h-[48px]"
@@ -296,7 +363,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <PhoneCall className="w-4 h-4" />
               </Link>
             </ScrollReveal>
-            <ScrollReveal direction="left" delay={0.5} className="w-full sm:w-auto">
+            <ScrollReveal
+              direction="left"
+              delay={0.5}
+              className="w-full sm:w-auto"
+            >
               <Link
                 href="/consultation"
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-[#c9c0b2] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-[#5f5951] transition-all hover:border-[#8a6125] hover:text-[#8a6125] active:scale-95 text-center min-h-[48px]"
