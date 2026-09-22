@@ -15,6 +15,10 @@ interface ImageUploadFieldProps {
   objectFit?: "cover" | "contain";
   hint?: string;
   previewClassName?: string;
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  fit?: "cover" | "contain" | "fill" | "inside" | "outside";
 }
 
 export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
@@ -25,13 +29,23 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   shape = "rectangle",
   aspectRatio = "aspect-video",
   objectFit: initialObjectFit = "cover",
-  hint = "PNG, JPG, WebP up to 25MB (Auto-optimized to high-resolution WebP)",
+  hint = "PNG, JPG, WebP (Auto-resized & optimized with Sharp to high-clarity WebP)",
   previewClassName = "",
+  maxWidth,
+  maxHeight,
+  quality,
+  fit,
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showManualUrl, setShowManualUrl] = useState(false);
   const [manualUrl, setManualUrl] = useState(value);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadMeta, setUploadMeta] = useState<{
+    width?: number;
+    height?: number;
+    processedSize?: number;
+    originalSize?: number;
+  } | null>(null);
   const [fitMode, setFitMode] = useState<"cover" | "contain">(initialObjectFit);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,6 +60,10 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       const formData = new FormData();
       formData.append("file", file);
       formData.append("folder", folder);
+      if (maxWidth) formData.append("maxWidth", String(maxWidth));
+      if (maxHeight) formData.append("maxHeight", String(maxHeight));
+      if (quality) formData.append("quality", String(quality));
+      if (fit) formData.append("fit", fit);
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -60,6 +78,14 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
 
       onChange(data.url);
       setManualUrl(data.url);
+      if (data.width && data.height) {
+        setUploadMeta({
+          width: data.width,
+          height: data.height,
+          processedSize: data.processedSize,
+          originalSize: data.originalSize,
+        });
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed.";
       setUploadError(msg);
@@ -72,6 +98,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   const handleManualApply = () => {
     if (manualUrl.trim()) {
       onChange(manualUrl.trim());
+      setUploadMeta(null);
       setShowManualUrl(false);
     }
   };
@@ -140,72 +167,99 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       ) : (
         <div className="space-y-2">
           {value ? (
-            <div
-              className={`relative group overflow-hidden border border-stone-200 dark:border-zinc-700 bg-stone-100/90 dark:bg-zinc-800/90 rounded-xl shadow-xs ${previewClassName}`}
-            >
+            <div className="space-y-2">
               <div
-                className={`relative w-full ${
-                  shape === "circle"
-                    ? "w-40 h-40 mx-auto rounded-full overflow-hidden aspect-square border-2 border-stone-200"
-                    : shape === "square"
-                      ? "aspect-square max-w-xs mx-auto"
-                      : aspectRatio
-                }`}
+                className={`relative group overflow-hidden border border-stone-200 dark:border-zinc-700 bg-stone-100/90 dark:bg-zinc-800/90 rounded-xl shadow-xs ${previewClassName}`}
               >
-                <Image
-                  src={value}
-                  alt={label}
-                  fill
-                  className={`${
-                    fitMode === "contain"
-                      ? "object-contain p-1"
-                      : "object-cover object-top"
+                <div
+                  className={`relative w-full ${
+                    shape === "circle"
+                      ? "w-40 h-40 mx-auto rounded-full overflow-hidden aspect-square border-2 border-stone-200"
+                      : shape === "square"
+                        ? "aspect-square max-w-xs mx-auto"
+                        : aspectRatio
                   }`}
-                  unoptimized={value.startsWith("http")}
-                />
+                >
+                  <Image
+                    src={value}
+                    alt={label}
+                    fill
+                    className={`${
+                      fitMode === "contain"
+                        ? "object-contain p-1"
+                        : "object-cover object-top"
+                    }`}
+                    unoptimized={value.startsWith("http")}
+                  />
+                </div>
+
+                {/* Fit Mode Badge */}
+                <div className="absolute top-2 left-2 pointer-events-none">
+                  <span className="px-2 py-0.5 bg-stone-900/75 text-white text-[10px] rounded font-mono uppercase tracking-wider backdrop-blur-xs">
+                    {fitMode === "contain" ? "Full View" : "Cover View"}
+                  </span>
+                </div>
+
+                {/* Overlay actions */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="p-2 bg-white/90 hover:bg-white text-stone-900 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Replace</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFitMode(fitMode === "cover" ? "contain" : "cover")
+                    }
+                    className="p-2 bg-stone-900/90 hover:bg-black text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer"
+                  >
+                    {fitMode === "cover" ? (
+                      <Minimize2 className="w-3.5 h-3.5" />
+                    ) : (
+                      <Maximize2 className="w-3.5 h-3.5" />
+                    )}
+                    <span>{fitMode === "cover" ? "Full Fit" : "Fill"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange("");
+                      setUploadMeta(null);
+                    }}
+                    className="p-2 bg-rose-600/90 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Remove</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Fit Mode Badge */}
-              <div className="absolute top-2 left-2 pointer-events-none">
-                <span className="px-2 py-0.5 bg-stone-900/75 text-white text-[10px] rounded font-mono uppercase tracking-wider backdrop-blur-xs">
-                  {fitMode === "contain" ? "Full View" : "Cover View"}
-                </span>
-              </div>
-
-              {/* Overlay actions */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="p-2 bg-white/90 hover:bg-white text-stone-900 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Replace</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFitMode(fitMode === "cover" ? "contain" : "cover")
-                  }
-                  className="p-2 bg-stone-900/90 hover:bg-black text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer"
-                >
-                  {fitMode === "cover" ? (
-                    <Minimize2 className="w-3.5 h-3.5" />
-                  ) : (
-                    <Maximize2 className="w-3.5 h-3.5" />
-                  )}
-                  <span>{fitMode === "cover" ? "Full Fit" : "Fill"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onChange("")}
-                  className="p-2 bg-rose-600/90 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  <span>Remove</span>
-                </button>
-              </div>
+              {uploadMeta && (
+                <div className="flex items-center justify-between text-[11px] font-mono text-stone-500 dark:text-zinc-400 bg-stone-100 dark:bg-zinc-800/80 px-2.5 py-1 rounded-md border border-stone-200 dark:border-zinc-700">
+                  <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Sharp Optimized (WebP)
+                  </span>
+                  <span>
+                    {uploadMeta.width && uploadMeta.height
+                      ? `${uploadMeta.width}×${uploadMeta.height} px`
+                      : ""}{" "}
+                    {uploadMeta.processedSize
+                      ? `• ${(uploadMeta.processedSize / 1024).toFixed(0)} KB`
+                      : ""}
+                    {uploadMeta.originalSize &&
+                    uploadMeta.processedSize &&
+                    uploadMeta.originalSize > uploadMeta.processedSize
+                      ? ` (${Math.round((1 - uploadMeta.processedSize / uploadMeta.originalSize) * 100)}% smaller)`
+                      : ""}
+                  </span>
+                </div>
+              )}
             </div>
           ) : (
             <div

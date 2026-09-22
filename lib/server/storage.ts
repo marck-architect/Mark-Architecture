@@ -1,4 +1,6 @@
 import "server-only";
+import fs from "fs";
+import path from "path";
 import sharp from "sharp";
 import { createClient } from "@supabase/supabase-js";
 
@@ -74,11 +76,42 @@ export interface ProcessUploadResult {
   isImage: boolean;
   width?: number;
   height?: number;
+  originalSize?: number;
+}
+
+export interface ProcessUploadOptions {
+  fileBuffer: Buffer;
+  fileName: string;
+  mimeType: string;
+  folder?: UploadFolder;
+  bucket?: string;
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  fit?: keyof sharp.FitEnum;
 }
 
 /**
- * Processes an uploaded file buffer (optimizing images with sharp, keeping PDFs intact)
- * and stores it into Supabase Storage.
+ * Intelligent image resizing presets tailored to architectural deliverables
+ */
+const FOLDER_RESIZE_PRESETS: Record<
+  UploadFolder,
+  { width: number; height: number; quality: number; fit: keyof sharp.FitEnum }
+> = {
+  team: { width: 1000, height: 1000, quality: 86, fit: "inside" },
+  services: { width: 1600, height: 1200, quality: 86, fit: "inside" },
+  collection: { width: 2048, height: 2048, quality: 88, fit: "inside" },
+  projects: { width: 2560, height: 2560, quality: 88, fit: "inside" },
+  media: { width: 2560, height: 2560, quality: 88, fit: "inside" },
+  site: { width: 2048, height: 2048, quality: 88, fit: "inside" },
+  consultations: { width: 2560, height: 2560, quality: 88, fit: "inside" },
+  orders: { width: 2560, height: 2560, quality: 88, fit: "inside" },
+};
+
+/**
+ * Processes an uploaded file buffer using Sharp for image resizing and optimization,
+ * converting to high-clarity WebP while preserving PDFs and SVG vectors intact.
+ * Automatically saves to Supabase Storage with local filesystem fallback.
  */
 export async function processAndUploadFile({
   fileBuffer,
@@ -86,13 +119,11 @@ export async function processAndUploadFile({
   mimeType,
   folder = "media",
   bucket,
-}: {
-  fileBuffer: Buffer;
-  fileName: string;
-  mimeType: string;
-  folder?: UploadFolder;
-  bucket?: string;
-}): Promise<ProcessUploadResult> {
+  maxWidth,
+  maxHeight,
+  quality,
+  fit,
+}: ProcessUploadOptions): Promise<ProcessUploadResult> {
   const supabase = getStorageClient();
   const targetBucket =
     bucket ||
@@ -102,45 +133,80 @@ export async function processAndUploadFile({
 
   await ensureBucketExists(supabase, targetBucket);
 
-  const isImage =
-    mimeType.startsWith("image/") ||
-    /\.(jpg|jpeg|png|webp|avif|gif)$/i.test(fileName);
   const isPdf = mimeType === "application/pdf" || /\.pdf$/i.test(fileName);
+  const isSvg = mimeType === "image/svg+xml" || /\.svg$/i.test(fileName);
+  const isImage =
+    !isSvg &&
+    (mimeType.startsWith("image/") ||
+      /\.(jpg|jpeg|png|webp|avif|gif|tiff|bmp)$/i.test(fileName));
 
-  if (!isImage && !isPdf) {
+  if (!isImage && !isPdf && !isSvg) {
     throw new Error(
-      "Unsupported file format. Please upload an image (PNG, JPG, WebP, AVIF) or PDF blueprint.",
+      "Unsupported file format. Please upload an image (PNG, JPG, WebP, AVIF, SVG) or PDF blueprint.",
     );
   }
 
-  let finalBuffer: Buffer;
-  let finalMimeType: string;
-  let finalExtension: string;
+  let finalBuffer: Buffer = fileBuffer;
+  let finalMimeType: string = mimeType;
+  let finalExtension: string = (
+    fileName.split(".").pop() || "bin"
+  ).toLowerCase();
   let imageWidth: number | undefined;
   let imageHeight: number | undefined;
 
   if (isImage) {
-    // Resize & optimize image using sharp:
-    // Max 2560x2560 box, fit inside, retain aspect ratio without enlargement.
-    // Convert to webp with high quality (88) for optimal architectural clarity.
-    const imagePipeline = sharp(fileBuffer).rotate();
-    const metadata = await imagePipeline.metadata();
+    const preset = FOLDER_RESIZE_PRESETS[folder] || {
+      width: 2560,
+      height: 2560,
+      quality: 88,
+      fit: "inside" as const,
+    };
 
-    finalBuffer = await imagePipeline
-      .resize({
-        width: 2560,
-        height: 2560,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .webp({ quality: 88, effort: 4 })
-      .toBuffer();
+    const targetWidth = maxWidth || preset.width;
+    const targetHeight = maxHeight || preset.height;
+    const targetQuality = quality || preset.quality;
+    const targetFit = fit || preset.fit;
 
-    const finalMeta = await sharp(finalBuffer).metadata();
-    imageWidth = finalMeta.width;
-    imageHeight = finalMeta.height;
-    finalMimeType = "image/webp";
-    finalExtension = "webp";
+    try {
+      // Execute sharp pipeline:
+      // 1. rotate() -> auto-orient based on EXIF tag
+      // 2. toColorspace('srgb') -> normalize CMYK architectural graphics to sRGB for browsers
+      // 3. resize() -> fit inside bounding box without upscaling smaller assets
+      // 4. webp() -> high quality, efficient compression
+      const pipeline = sharp(fileBuffer, { failOnError: false })
+        .rotate()
+        .toColorspace("srgb")
+        .resize({
+          width: targetWidth,
+          height: targetHeight,
+          fit: targetFit,
+          withoutEnlargement: true,
+        })
+        .webp({
+          quality: targetQuality,
+          effort: 4,
+        });
+
+      finalBuffer = await pipeline.toBuffer();
+      const meta = await sharp(finalBuffer).metadata();
+      imageWidth = meta.width;
+      imageHeight = meta.height;
+      finalMimeType = "image/webp";
+      finalExtension = "webp";
+    } catch (sharpError) {
+      console.warn(
+        "Sharp image processing warning; falling back to original buffer:",
+        sharpError,
+      );
+      finalBuffer = fileBuffer;
+      finalMimeType = mimeType || "image/jpeg";
+      finalExtension = (fileName.split(".").pop() || "jpg").toLowerCase();
+    }
+  } else if (isSvg) {
+    // Vector SVG: keep vector XML pristine
+    finalBuffer = fileBuffer;
+    finalMimeType = "image/svg+xml";
+    finalExtension = "svg";
   } else {
     // PDF document: keep binary buffer intact
     finalBuffer = fileBuffer;
@@ -158,30 +224,53 @@ export async function processAndUploadFile({
   const uniqueId = `${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
   const storagePath = `${folder}/${uniqueId}-${baseName || "asset"}.${finalExtension}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from(targetBucket)
-    .upload(storagePath, finalBuffer, {
-      contentType: finalMimeType,
-      upsert: true,
-    });
+  let publicUrl: string;
 
-  if (uploadError) {
-    console.error("Supabase storage error:", uploadError);
-    if (uploadError.message?.toLowerCase().includes("bucket not found")) {
+  try {
+    const { error: uploadError } = await supabase.storage
+      .from(targetBucket)
+      .upload(storagePath, finalBuffer, {
+        contentType: finalMimeType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from(targetBucket)
+      .getPublicUrl(storagePath);
+
+    publicUrl = urlData.publicUrl;
+  } catch (storageErr: any) {
+    console.warn(
+      `Supabase storage upload notice (attempting local fallback):`,
+      storageErr?.message || storageErr,
+    );
+
+    // Local filesystem fallback: write to public/uploads/{folder}
+    try {
+      const localUploadsDir = path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        folder,
+      );
+      if (!fs.existsSync(localUploadsDir)) {
+        fs.mkdirSync(localUploadsDir, { recursive: true });
+      }
+      const localFileName = path.basename(storagePath);
+      const localFilePath = path.join(localUploadsDir, localFileName);
+      fs.writeFileSync(localFilePath, finalBuffer);
+      publicUrl = `/uploads/${folder}/${localFileName}`;
+    } catch (fsErr) {
+      console.error("Local upload fallback write failed:", fsErr);
       throw new Error(
-        `Supabase Storage bucket '${targetBucket}' was not found. Please create a public bucket named '${targetBucket}' in your Supabase Dashboard (Storage -> New Bucket -> Toggle Public) or run the SQL in 'supabase/create_buckets_only.sql'.`,
+        `Failed to upload asset: ${storageErr?.message || "Storage unavailable"}`,
       );
     }
-    throw new Error(
-      `Failed to upload to Supabase storage: ${uploadError.message}`,
-    );
   }
-
-  const { data: urlData } = supabase.storage
-    .from(targetBucket)
-    .getPublicUrl(storagePath);
-
-  const publicUrl = urlData.publicUrl;
 
   // Track in media_assets table if non-consultation upload
   if (folder !== "consultations" && folder !== "orders") {
@@ -208,6 +297,7 @@ export async function processAndUploadFile({
     path: storagePath,
     originalName: fileName,
     processedSize: finalBuffer.length,
+    originalSize: fileBuffer.length,
     mimeType: finalMimeType,
     isImage,
     width: imageWidth,

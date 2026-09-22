@@ -12,6 +12,15 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
     const folder = (formData.get("folder") as UploadFolder) || "media";
     const bucket = formData.get("bucket") as string | undefined;
+    const maxWidthRaw = formData.get("maxWidth") as string | null;
+    const maxHeightRaw = formData.get("maxHeight") as string | null;
+    const qualityRaw = formData.get("quality") as string | null;
+    const fitRaw = formData.get("fit") as string | null;
+
+    const maxWidth = maxWidthRaw ? parseInt(maxWidthRaw, 10) : undefined;
+    const maxHeight = maxHeightRaw ? parseInt(maxHeightRaw, 10) : undefined;
+    const quality = qualityRaw ? parseInt(qualityRaw, 10) : undefined;
+    const fit = fitRaw as any;
 
     if (!file) {
       return NextResponse.json(
@@ -38,6 +47,10 @@ export async function POST(req: NextRequest) {
       mimeType: file.type || "application/octet-stream",
       folder,
       bucket,
+      maxWidth,
+      maxHeight,
+      quality,
+      fit,
     });
 
     return NextResponse.json({

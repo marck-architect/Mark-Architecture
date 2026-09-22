@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
-import { processAndUploadFile, STORAGE_BUCKET } from "@/lib/server/storage";
+import {
+  processAndUploadFile,
+  STORAGE_BUCKET,
+  type UploadFolder,
+} from "@/lib/server/storage";
 import { logAdminAction } from "@/lib/server/audit";
 
 export const runtime = "nodejs";
@@ -57,17 +61,25 @@ export async function POST(request: NextRequest) {
     const { user } = authResult.admin;
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const folder = (formData.get("folder") as UploadFolder) || "media";
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
+
+    const maxWidthRaw = formData.get("maxWidth") as string | null;
+    const maxHeightRaw = formData.get("maxHeight") as string | null;
+    const qualityRaw = formData.get("quality") as string | null;
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const uploadResult = await processAndUploadFile({
       fileBuffer: buffer,
       fileName: file.name,
       mimeType: file.type || "application/octet-stream",
-      folder: "consultations",
+      folder,
+      maxWidth: maxWidthRaw ? parseInt(maxWidthRaw, 10) : undefined,
+      maxHeight: maxHeightRaw ? parseInt(maxHeightRaw, 10) : undefined,
+      quality: qualityRaw ? parseInt(qualityRaw, 10) : undefined,
     });
 
     await logAdminAction({
@@ -81,16 +93,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const assetRecord = {
+      id: uploadResult.path,
+      name: uploadResult.originalName,
+      url: uploadResult.url,
+      size_bytes: uploadResult.processedSize,
+      mime_type: uploadResult.mimeType,
+      created_at: new Date().toISOString(),
+    };
+
     return NextResponse.json({
       success: true,
-      data: {
-        id: uploadResult.path,
-        name: uploadResult.originalName,
-        url: uploadResult.url,
-        size_bytes: uploadResult.processedSize,
-        mime_type: uploadResult.mimeType,
-        created_at: new Date().toISOString(),
-      },
+      data: assetRecord,
+      asset: assetRecord,
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);

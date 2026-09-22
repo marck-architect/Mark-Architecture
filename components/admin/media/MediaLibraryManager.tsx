@@ -71,8 +71,9 @@ export const MediaLibraryManager: React.FC = () => {
         throw new Error(data.error || "Failed to upload asset.");
       }
 
-      if (data.asset) {
-        setAssets((prev) => [data.asset, ...prev]);
+      const uploadedAsset = data.asset || data.data;
+      if (uploadedAsset) {
+        setAssets((prev) => [uploadedAsset, ...prev]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload error";
