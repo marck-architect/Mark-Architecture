@@ -200,7 +200,7 @@ export const CredentialsRow: React.FC = () => {
               >
                 {String(idx + 1).padStart(2, "0")}
               </span>
-              <h3 className="mt-2 font-playfair text-2xl font-bold text-[#272522]">
+              <h3 className="mt-2 font-inter text-2xl font-bold text-[#272522]">
                 {item.title}
               </h3>
               <p className="mt-3 font-inter text-base font-light leading-relaxed text-[#77716a]">
