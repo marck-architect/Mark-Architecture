@@ -3,12 +3,19 @@
 import React from "react";
 import Image from "next/image";
 import { Sparkles, ArrowUpRight, PhoneCall, ChevronRight } from "lucide-react";
-import type { ConsultationServicesSidebarProps } from "@/types";
-import { serviceCatalog, getStartingPriceText } from "@/data/services";
+import { getStartingPriceText } from "@/data/services";
+import type { ServiceData } from "@/types";
+
+export interface ConsultationServicesSidebarProps {
+  onSelectService: (service: ServiceData) => void;
+  services?: ServiceData[];
+}
 
 export const ConsultationServicesSidebar: React.FC<
   ConsultationServicesSidebarProps
-> = ({ onSelectService }) => {
+> = ({ onSelectService, services = [] }) => {
+  const serviceList = services;
+
   return (
     <aside className="w-full space-y-6">
       {/* Sidebar Header */}
@@ -18,7 +25,7 @@ export const ConsultationServicesSidebar: React.FC<
             <Sparkles className="w-4 h-4" />
           </span>
           <span className="font-inter text-[11px] font-bold text-tertiary uppercase tracking-widest">
-            Service Catalog ({serviceCatalog.length})
+            Service Catalog ({serviceList.length})
           </span>
         </div>
         <h3 className="font-playfair text-xl md:text-2xl font-bold text-on-surface dark:text-zinc-100">
@@ -32,14 +39,14 @@ export const ConsultationServicesSidebar: React.FC<
 
       {/* Services List */}
       <div className="space-y-3">
-        {serviceCatalog.length === 0 ? (
+        {serviceList.length === 0 ? (
           <div className="p-6 rounded-2xl bg-surface-container-low dark:bg-zinc-900/40 border border-dashed border-outline-variant/30 text-center">
             <p className="font-inter text-xs text-zinc-500 dark:text-zinc-400">
               No additional service add-ons published yet.
             </p>
           </div>
         ) : (
-          serviceCatalog.map((service) => (
+          serviceList.map((service) => (
             <div
               key={service.id}
               onClick={() => onSelectService(service)}

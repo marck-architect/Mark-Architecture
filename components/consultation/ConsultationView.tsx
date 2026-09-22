@@ -39,24 +39,60 @@ import type {
   PlotSize,
   AttachedFile,
   BriefFormValues,
+  PricingSettingsContent,
+  CallTierOption,
+  AdminService,
 } from "@/types";
 import {
   briefFormSchema,
   consultationMonths as months,
   consultationTimeSlots as timeSlots,
   callTiers,
-  serviceCatalog,
   getStartingPriceText,
 } from "@/data/services";
-import type { PricingSettingsContent, CallTierOption } from "@/types";
 
 interface ConsultationViewProps {
   initialPricing?: PricingSettingsContent;
+  initialServices?: (AdminService | ServiceData)[];
 }
 
 export const ConsultationView: React.FC<ConsultationViewProps> = ({
   initialPricing,
+  initialServices,
 }) => {
+  const servicesList: ServiceData[] = useMemo(() => {
+    if (!initialServices || initialServices.length === 0) return [];
+    return initialServices.map((s: any) => {
+      if (s.shortDesc && s.tiers) return s as ServiceData;
+      return {
+        id: s.slug || s.id,
+        slug: s.slug,
+        title: s.title,
+        category: s.category || "Architectural Service",
+        popularityRank: s.popularity_rank || 99,
+        shortDesc: s.short_description || s.shortDesc || "",
+        image:
+          s.image_url || s.image || "/images/Full House Design Package.png",
+        pricingType: s.pricing_type || s.pricingType || "flat",
+        tiers:
+          s.tiers?.map((t: any) => ({
+            name: t.tier_name || t.name,
+            deliveryTime: t.delivery_time || t.deliveryTime || "Prompt",
+            details: t.description || t.details || "",
+            deliverables: t.deliverables || [],
+            pricePKR:
+              t.pricing_rules?.find((r: any) => r.plot_size === "Any")
+                ?.price_pkr || t.pricePKR,
+            priceByPlot: t.pricing_rules?.reduce((acc: any, r: any) => {
+              if (r.plot_size !== "Any") {
+                acc[r.plot_size] = r.price_pkr;
+              }
+              return acc;
+            }, t.priceByPlot || {}),
+          })) || [],
+      };
+    });
+  }, [initialServices]);
   const dynamicCallTiers: CallTierOption[] = useMemo(() => {
     if (!initialPricing?.consultationCalls) return callTiers;
     const {
@@ -1272,7 +1308,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
                   Skip the Call. Book a Service Directly.
                 </h3>
                 <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                  We offer {serviceCatalog.length} design services, like plan
+                  We offer {servicesList.length} design services, like plan
                   reviews, 3D renders, and full house design. Each one shows you
                   exactly what you get and what it costs. Pick one below.
                 </p>
@@ -1314,9 +1350,9 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
                     className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-zinc-900 border border-outline-variant/40 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 space-y-1 max-h-[min(70vh,34rem)] overflow-y-auto overscroll-contain touch-pan-y backdrop-blur-xl"
                   >
                     <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-outline-variant/20 mb-1">
-                      Available Services ({serviceCatalog.length})
+                      Available Services ({servicesList.length})
                     </div>
-                    {serviceCatalog.map((service) => {
+                    {servicesList.map((service) => {
                       const isSelected =
                         activeSidebarService?.id === service.id;
                       return (

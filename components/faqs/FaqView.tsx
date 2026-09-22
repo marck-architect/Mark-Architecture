@@ -3,26 +3,18 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
-  Search,
   SearchX,
-  X,
   ChevronDown,
   PhoneCall,
   Share2,
   ArrowRight,
   ArrowDown,
-  Video,
   HelpCircle,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
-import {
-  faqsData as fallbackFaqs,
-  faqCategories,
-  aeoQuickFacts,
-  type FaqCategory,
-} from "@/data/faqs";
+import { faqsData as fallbackFaqs, faqCategories } from "@/data/faqs";
 import type { AdminFaq } from "@/types";
 
 interface FaqViewProps {

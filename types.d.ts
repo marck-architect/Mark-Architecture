@@ -222,6 +222,7 @@ export interface ServiceDetailModalProps {
 
 export interface ConsultationServicesSidebarProps {
   onSelectService: (service: ServiceData) => void;
+  services?: ServiceData[];
 }
 
 // ============================================================================
@@ -520,6 +521,8 @@ export interface AdminProject {
   year: string;
   client_name?: string | null;
   area_sqft?: number | string | null;
+  price?: string | null;
+  aspectClass?: string | null;
   description: string;
   short_description?: string | null;
   cover_image: string;

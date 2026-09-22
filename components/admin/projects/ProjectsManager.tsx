@@ -39,9 +39,11 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
       title: "",
       slug: "",
       category: "residential",
-      location: "Lahore, Pakistan",
+      location: "Hayatabad, Peshawar, Pakistan",
       year: new Date().getFullYear().toString(),
-      area_sqft: 5000,
+      area_sqft: 6200,
+      price: "1 Kanal • 6,200 sq. ft.",
+      aspectClass: "aspect-[4/5]",
       description: "",
       short_description: "",
       cover_image: "/images/Full House Design Package.png",
@@ -122,7 +124,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                 fill
                 className="object-cover"
               />
-              <div className="absolute top-3 left-3 flex gap-1.5">
+              <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-[#1C1B1B]/80 text-[#D4AF37] backdrop-blur-md">
                   {proj.category}
                 </span>
@@ -132,7 +134,19 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                     <span>Featured</span>
                   </span>
                 )}
+                {proj.aspectClass && (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-black/50 text-stone-300 backdrop-blur-xs">
+                    {proj.aspectClass.replace("aspect-[", "").replace("]", "")}
+                  </span>
+                )}
               </div>
+              {proj.price && (
+                <div className="absolute top-3 right-3 max-w-[55%]">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-black/70 text-white backdrop-blur-md border border-white/10 truncate block">
+                    {proj.price}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Content */}
@@ -330,6 +344,64 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                       setEditingProject({
                         ...editingProject,
                         year: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-stone-600 font-medium mb-1">
+                    Plot Scale / Price Subtitle
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1 Kanal • 6,200 sq. ft."
+                    value={editingProject.price || ""}
+                    onChange={(e) =>
+                      setEditingProject({
+                        ...editingProject,
+                        price: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-stone-600 font-medium mb-1">
+                    Aspect Ratio
+                  </label>
+                  <select
+                    value={editingProject.aspectClass || "aspect-[4/5]"}
+                    onChange={(e) =>
+                      setEditingProject({
+                        ...editingProject,
+                        aspectClass: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900 font-mono text-xs"
+                  >
+                    <option value="aspect-[4/5]">4:5 (Portrait)</option>
+                    <option value="aspect-[16/10]">16:10 (Wide)</option>
+                    <option value="aspect-[16/9]">16:9 (Cinematic)</option>
+                    <option value="aspect-[4/3]">4:3 (Standard)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-stone-600 font-medium mb-1">
+                    Display Order
+                  </label>
+                  <input
+                    type="number"
+                    value={editingProject.display_order ?? 1}
+                    onChange={(e) =>
+                      setEditingProject({
+                        ...editingProject,
+                        display_order: Number(e.target.value),
                       })
                     }
                     className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900"

@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
 };
 
-import { getSiteContent } from "@/lib/server/content";
+import { getSiteContent, getPublicServices } from "@/lib/server/content";
 import { defaultPricingSettings } from "@/data/pricing";
 import type { PricingSettingsContent } from "@/types";
 
@@ -38,9 +38,14 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ConsultationPage() {
-  const pricing = await getSiteContent<PricingSettingsContent>(
-    "pricing_settings",
-    defaultPricingSettings,
+  const [pricing, services] = await Promise.all([
+    getSiteContent<PricingSettingsContent>(
+      "pricing_settings",
+      defaultPricingSettings,
+    ),
+    getPublicServices(),
+  ]);
+  return (
+    <ConsultationView initialPricing={pricing} initialServices={services} />
   );
-  return <ConsultationView initialPricing={pricing} />;
 }

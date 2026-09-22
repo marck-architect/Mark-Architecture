@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { AboutView } from "@/components/about/AboutView";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { generatePersonSchema, siteConfig } from "@/lib/seo/schema";
-import { leaders } from "@/data/about";
 
 export const metadata: Metadata = {
   title: "About Our Practice | MARK Architects Atelier",
@@ -45,7 +44,7 @@ export default async function AboutPage() {
     studioLocations: dynamicLocations,
   } = await getPublicTeam();
 
-  const principal = dynamicLeaders[0] || leaders[0];
+  const principal = dynamicLeaders[0];
   const personSchema = principal
     ? generatePersonSchema({
         name: principal.name,

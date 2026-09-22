@@ -35,7 +35,12 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
     year: p.year || new Date().getFullYear().toString(),
     description: p.description || "",
     category: p.category || "residential",
-    price: p.budget_range || p.price,
+    price:
+      p.price ||
+      p.budget_range ||
+      (p.area_sqft
+        ? `${Number(p.area_sqft).toLocaleString()} sq. ft.`
+        : undefined),
     aspectClass: p.aspectClass,
   }));
 

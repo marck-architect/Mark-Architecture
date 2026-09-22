@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Plus, Search, X, Edit2, Trash2, Mail } from "lucide-react";
+import { Plus, Search, X, Edit2, Trash2, Mail, Loader2 } from "lucide-react";
 import type { AdminTeamMember } from "@/types";
 import { ImageUploadField } from "@/components/admin/ui/ImageUploadField";
 
@@ -21,6 +21,7 @@ export const TeamManager: React.FC = () => {
     specialization: "",
     photo_url: "",
     email: "",
+    display_order: 1,
     is_active: true,
   });
 
@@ -48,6 +49,16 @@ export const TeamManager: React.FC = () => {
     fetchTeam();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isModalOpen && !isSaving) {
+        setIsModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen, isSaving]);
+
   const filteredTeam = team.filter((m) => {
     if (!searchTerm) return true;
     const q = searchTerm.toLowerCase();
@@ -69,6 +80,7 @@ export const TeamManager: React.FC = () => {
       specialization: "",
       photo_url: "/images/profile.jpeg",
       email: "",
+      display_order: team.length + 1,
       is_active: true,
     });
     setIsModalOpen(true);
@@ -84,6 +96,7 @@ export const TeamManager: React.FC = () => {
       specialization: m.specialization || "",
       photo_url: m.photo_url || "/images/profile.jpeg",
       email: m.email || "",
+      display_order: m.display_order ?? 1,
       is_active: m.is_active,
     });
     setIsModalOpen(true);
@@ -172,7 +185,7 @@ export const TeamManager: React.FC = () => {
         const newMember: AdminTeamMember = data.data || {
           id: `tm_${Date.now()}`,
           ...formData,
-          display_order: team.length + 1,
+          display_order: Number(formData.display_order) || team.length + 1,
           created_at: new Date().toISOString(),
         };
 
@@ -350,160 +363,231 @@ export const TeamManager: React.FC = () => {
 
       {/* Edit/Create Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white border border-stone-200 rounded-sm shadow-xl max-w-lg w-full overflow-hidden">
-            <div className="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
-              <h3 className="text-base font-serif text-stone-900 font-medium">
-                {editingMember ? "Edit Practitioner" : "New Team Member"}
-              </h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/60 backdrop-blur-sm animate-fadeIn"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSaving) {
+              setIsModalOpen(false);
+            }
+          }}
+        >
+          <div className="relative w-full max-w-2xl bg-white border border-stone-200 rounded-sm shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50 shrink-0">
+              <div>
+                <h3 className="text-base font-serif text-stone-900 font-medium">
+                  {editingMember ? "Edit Practitioner" : "New Team Member"}
+                </h3>
+                <p className="text-[11px] text-stone-500 mt-0.5">
+                  {editingMember
+                    ? "Update architect details, qualifications, and public visibility."
+                    : "Add an architect, designer, or consultant to the public studio team."}
+                </p>
+              </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-stone-400 hover:text-stone-600"
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-sm hover:bg-stone-100 transition-colors cursor-pointer"
+                title="Close modal"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
-              <div>
-                <label className="block text-stone-700 font-medium mb-1">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder="e.g. Ar. Danial Rafiq"
-                  className="w-full p-2.5 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714]"
-                />
-              </div>
+            {/* Form */}
+            <form
+              onSubmit={handleSubmit}
+              className="flex-1 flex flex-col min-h-0 overflow-hidden"
+            >
+              {/* Scrollable Form Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                {/* Top Section: Photo on Left, Key Info on Right */}
+                <div className="flex flex-col sm:flex-row gap-5 items-start">
+                  <div className="w-full sm:w-48 shrink-0">
+                    <ImageUploadField
+                      label="Portrait Photo"
+                      folder="team"
+                      shape="rectangle"
+                      aspectRatio="aspect-[3/4]"
+                      previewClassName="w-full max-w-[180px] mx-auto"
+                      objectFit="cover"
+                      value={formData.photo_url}
+                      onChange={(url) =>
+                        setFormData({ ...formData, photo_url: url })
+                      }
+                      hint="3:4 portrait ratio. PNG, JPG or WebP."
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
+                  <div className="flex-1 w-full space-y-3">
+                    <div>
+                      <label className="block text-stone-700 font-medium mb-1">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
+                        placeholder="e.g. Ar. Danial Rafiq"
+                        className="w-full p-2.5 bg-white border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] text-stone-900"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-stone-700 font-medium mb-1">
+                          Role / Position *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.role}
+                          onChange={(e) =>
+                            setFormData({ ...formData, role: e.target.value })
+                          }
+                          placeholder="e.g. Principal Architect"
+                          className="w-full p-2.5 bg-white border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] text-stone-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-stone-700 font-medium mb-1">
+                          Display Order
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={formData.display_order}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              display_order: Number(e.target.value) || 1,
+                            })
+                          }
+                          placeholder="1"
+                          className="w-full p-2.5 bg-white border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] text-stone-900"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-stone-700 font-medium mb-1">
+                        Credentials
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.credentials}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            credentials: e.target.value,
+                          })
+                        }
+                        placeholder="e.g. B.Arch, PCATP, Lead Structural Designer"
+                        className="w-full p-2.5 bg-white border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] text-stone-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-stone-700 font-medium mb-1">
+                        Direct Email
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        placeholder="name@markarchitects.com"
+                        className="w-full p-2.5 bg-white border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] text-stone-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Specialization */}
                 <div>
                   <label className="block text-stone-700 font-medium mb-1">
-                    Role / Position *
+                    Specialization Focus
                   </label>
                   <input
                     type="text"
-                    required
-                    value={formData.role}
+                    value={formData.specialization}
                     onChange={(e) =>
-                      setFormData({ ...formData, role: e.target.value })
+                      setFormData({
+                        ...formData,
+                        specialization: e.target.value,
+                      })
                     }
-                    placeholder="Principal Architect"
-                    className="w-full p-2.5 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714]"
+                    placeholder="e.g. Passive House Design, Sustainable Facades & Municipal Submission Codes"
+                    className="w-full p-2.5 bg-white border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] text-stone-900"
                   />
                 </div>
+
+                {/* Biography */}
                 <div>
                   <label className="block text-stone-700 font-medium mb-1">
-                    Credentials
+                    Biography & Architectural Philosophy
                   </label>
-                  <input
-                    type="text"
-                    value={formData.credentials}
+                  <textarea
+                    value={formData.bio}
                     onChange={(e) =>
-                      setFormData({ ...formData, credentials: e.target.value })
+                      setFormData({ ...formData, bio: e.target.value })
                     }
-                    placeholder="B.Arch, PCATP"
-                    className="w-full p-2.5 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714]"
+                    rows={4}
+                    placeholder="Summarize architectural training, design philosophy, and key commissions..."
+                    className="w-full p-2.5 bg-white border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] text-stone-900 resize-none leading-relaxed"
                   />
+                </div>
+
+                {/* Display on Public Studio Page */}
+                <div className="pt-1">
+                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_active}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          is_active: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 rounded border-stone-300 text-[#7E5714] focus:ring-[#7E5714] accent-[#7E5714] cursor-pointer"
+                    />
+                    <span className="text-stone-700 font-medium">
+                      Display on Public Studio Page
+                    </span>
+                  </label>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-stone-700 font-medium mb-1">
-                  Specialization Focus
-                </label>
-                <input
-                  type="text"
-                  value={formData.specialization}
-                  onChange={(e) =>
-                    setFormData({ ...formData, specialization: e.target.value })
-                  }
-                  placeholder="e.g. Passive House Design & Sustainable Facades"
-                  className="w-full p-2.5 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714]"
-                />
-              </div>
-
-              <ImageUploadField
-                label="Portrait Photo (Full View & Crop Available)"
-                folder="team"
-                shape="rectangle"
-                aspectRatio="aspect-[3/4]"
-                objectFit="contain"
-                value={formData.photo_url}
-                onChange={(url) => setFormData({ ...formData, photo_url: url })}
-                hint="Upload portrait. Click 'Show Full Image' above to see uncropped full view."
-              />
-
-              <div>
-                <label className="block text-stone-700 font-medium mb-1">
-                  Direct Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder="name@markarchitects.com"
-                  className="w-full p-2.5 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-stone-700 font-medium mb-1">
-                  Biography & Architectural Philosophy
-                </label>
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) =>
-                    setFormData({ ...formData, bio: e.target.value })
-                  }
-                  rows={4}
-                  placeholder="Summarize architectural training, design philosophy, and key commissions..."
-                  className="w-full p-2.5 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] resize-none"
-                />
-              </div>
-
-              <div className="pt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_active}
-                    onChange={(e) =>
-                      setFormData({ ...formData, is_active: e.target.checked })
-                    }
-                    className="accent-[#7E5714]"
-                  />
-                  <span className="text-stone-700">
-                    Display on Public Studio Page
-                  </span>
-                </label>
-              </div>
-
-              <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
+              {/* Modal Sticky Footer */}
+              <div className="px-6 py-3.5 border-t border-stone-200 bg-stone-50 shrink-0 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   disabled={isSaving}
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-stone-200 text-stone-600 hover:bg-stone-50 rounded-sm transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-stone-200 text-stone-600 hover:bg-stone-100 rounded-sm transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-4 py-2 bg-[#7E5714] hover:bg-[#684710] text-white font-medium rounded-sm transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+                  className="px-4 py-2 bg-[#7E5714] hover:bg-[#684710] text-white font-medium rounded-sm transition-colors disabled:opacity-50 inline-flex items-center gap-2 cursor-pointer shadow-xs"
                 >
-                  {isSaving
-                    ? "Saving..."
-                    : editingMember
-                      ? "Save Changes"
-                      : "Add Member"}
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : editingMember ? (
+                    "Save Changes"
+                  ) : (
+                    "Add Member"
+                  )}
                 </button>
               </div>
             </form>

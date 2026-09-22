@@ -49,8 +49,8 @@ export const callTiers: CallTierOption[] = [
       "Focused video session for immediate layout review, structural feedback, and quick solutions.",
     features: [
       "30 min Live Video Session",
-      "Immediate layout flaw diagnosis",
-      "Material & design directional advice",
+      "Spatial Flow Guidance",
+      "Live Q&A with Lead Architect",
     ],
   },
   {
@@ -60,10 +60,10 @@ export const callTiers: CallTierOption[] = [
     description:
       "In-depth architectural consultation covering spatial planning, material schedules, and realistic budget roadmaps.",
     features: [
-      "60 min Comprehensive Session",
-      "Deep-dive space & circulation review",
-      "Finishing materials & contractor guidance",
-      "Realistic budget allocation roadmap",
+      "60 min In-Depth Session",
+      "Comprehensive Layout Roadmap",
+      "Material Grade Suggestions",
+      "Budget Planning Strategy",
     ],
   },
 ];
@@ -71,9 +71,6 @@ export const callTiers: CallTierOption[] = [
 export const serviceCatalog: ServiceData[] = [];
 
 export function getStartingPriceText(service: ServiceData): string {
-  if (service.pricingType === "rate_formula") {
-    return "From PKR 280 / sq ft";
-  }
   if (
     service.pricingType === "flat" &&
     service.tiers &&

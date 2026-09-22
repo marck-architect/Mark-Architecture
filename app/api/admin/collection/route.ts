@@ -1,10 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 import { revalidatePath } from "next/cache";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
 import { logAdminAction } from "@/lib/server/audit";
-import { architecturalPackages } from "@/data/collection";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const LOCAL_COLLECTION_FILE = path.join(
+  process.cwd(),
+  "data",
+  "collection.json",
+);
+
+export function readLocalCollection(): any[] {
+  try {
+    if (fs.existsSync(LOCAL_COLLECTION_FILE)) {
+      const content = fs.readFileSync(LOCAL_COLLECTION_FILE, "utf8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Reading local collection data:", err);
+  }
+
+  return [];
+}
+
+export function writeLocalCollection(packages: any[]): void {
+  try {
+    const dir = path.dirname(LOCAL_COLLECTION_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(
+      LOCAL_COLLECTION_FILE,
+      JSON.stringify(packages, null, 2),
+      "utf8",
+    );
+  } catch (err) {
+    console.warn("Notice: Writing local collection data:", err);
+  }
+}
 
 export async function GET() {
   try {
@@ -12,42 +52,25 @@ export async function GET() {
     if (!authResult.success) return authResult.response;
 
     const { supabase } = authResult.admin;
-    const { data, error } = await supabase
-      .from("collection_packages")
-      .select("*")
-      .order("display_order", { ascending: true });
 
-    if (!error && data) {
-      return NextResponse.json({ success: true, data });
+    try {
+      const { data, error } = await supabase
+        .from("collection_packages")
+        .select("*")
+        .order("display_order", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        return NextResponse.json({ success: true, data });
+      }
+    } catch {
+      // Supabase offline/fallback
     }
 
-    // Default mapping from static collection
-    const defaultData = architecturalPackages.map((p, idx) => ({
-      id: p.id,
-      slug: p.id,
-      name: p.title,
-      subtitle: p.description,
-      tag: p.tier,
-      covered_area_sqft: p.plotSize?.includes("10")
-        ? 4500
-        : p.plotSize?.includes("1")
-          ? 9000
-          : 2250,
-      plot_dimensions: p.plotSize || "50' x 90'",
-      price_pkr: p.pricePKR,
-      estimated_construction_cost: "Market Standard",
-      turnaround_weeks: p.deliveryTime,
-      cover_image: p.image,
-      gallery_urls: [p.image],
-      deliverables: p.inclusions,
-      is_published: true,
-      display_order: idx + 1,
-    }));
-
-    return NextResponse.json({ success: true, data: defaultData });
+    const localData = readLocalCollection();
+    return NextResponse.json({ success: true, data: localData });
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: errorMsg }, { status: 500 });
+    const localData = readLocalCollection();
+    return NextResponse.json({ success: true, data: localData });
   }
 }
 
@@ -79,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     if (!name || !price_pkr) {
       return NextResponse.json(
-        { error: "Villa name and price in PKR are required." },
+        { error: "Package name and price in PKR are required." },
         { status: 400 },
       );
     }
@@ -91,15 +114,17 @@ export async function POST(request: NextRequest) {
         .replace(/[^a-z0-9]/g, "-")
         .replace(/-+/g, "-"),
       subtitle: subtitle || "",
-      tag: tag || "Signature Villa",
-      covered_area_sqft: Number(covered_area_sqft) || 5000,
-      plot_dimensions: plot_dimensions || "50' x 90'",
-      price_pkr: Number(price_pkr) || 28000,
+      tag: tag || "Standard Package",
+      covered_area_sqft: Number(covered_area_sqft) || 3500,
+      plot_dimensions: plot_dimensions || "Standard",
+      price_pkr: Number(price_pkr) || 25000,
       estimated_construction_cost:
-        estimated_construction_cost || "PKR 45M – 55M",
-      turnaround_weeks: turnaround_weeks || "3-4 weeks delivery",
-      cover_image: cover_image || "/images/hero-3d-render.webp",
-      gallery_urls: Array.isArray(gallery_urls) ? gallery_urls : [],
+        estimated_construction_cost || "Market Standard",
+      turnaround_weeks: turnaround_weeks || "3–5 Days",
+      cover_image: cover_image || "/images/Full House Design Package.png",
+      gallery_urls: Array.isArray(gallery_urls)
+        ? gallery_urls
+        : [cover_image || "/images/Full House Design Package.png"],
       deliverables: Array.isArray(deliverables) ? deliverables : [],
       specifications: specifications || {},
       is_published: is_published !== undefined ? Boolean(is_published) : true,
@@ -108,17 +133,25 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
-      .from("collection_packages")
-      .insert(newPackage)
-      .select()
-      .single();
+    let created: any = { id: `pkg_${Date.now()}`, ...newPackage };
 
-    if (error) {
-      console.warn("Supabase collection insert warning:", error);
+    try {
+      const { data, error } = await supabase
+        .from("collection_packages")
+        .insert(newPackage)
+        .select()
+        .single();
+
+      if (!error && data) {
+        created = data;
+      }
+    } catch (err) {
+      console.warn("Supabase collection insert warning:", err);
     }
 
-    const created = data || { id: `villa_${Date.now()}`, ...newPackage };
+    // Persist to local JSON
+    const current = readLocalCollection();
+    writeLocalCollection([created, ...current]);
 
     await logAdminAction({
       adminEmail: user.email,

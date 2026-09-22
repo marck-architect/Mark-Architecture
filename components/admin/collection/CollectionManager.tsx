@@ -103,7 +103,7 @@ export const CollectionManager: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const isNew = !editingItem.id || editingItem.id.startsWith("villa_");
+      const isNew = !editingItem.id;
       const url = isNew
         ? "/api/admin/collection"
         : `/api/admin/collection/${editingItem.id}`;
@@ -341,9 +341,9 @@ export const CollectionManager: React.FC = () => {
           <div className="bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-2xl max-w-2xl w-full p-6 md:p-8 space-y-6 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-stone-100 dark:border-zinc-800">
               <h3 className="font-playfair font-bold text-xl text-stone-900 dark:text-zinc-100">
-                {editingItem.id && !editingItem.id.startsWith("villa_")
-                  ? "Edit Villa Package"
-                  : "New Villa Design"}
+                {editingItem.id
+                  ? "Edit Architectural Package"
+                  : "New Architectural Package"}
               </h3>
               <button
                 type="button"

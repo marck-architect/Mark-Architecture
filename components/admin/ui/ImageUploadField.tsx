@@ -14,6 +14,7 @@ interface ImageUploadFieldProps {
   aspectRatio?: string; // e.g. "aspect-video", "aspect-square", "aspect-[3/4]"
   objectFit?: "cover" | "contain";
   hint?: string;
+  previewClassName?: string;
 }
 
 export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
@@ -25,6 +26,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   aspectRatio = "aspect-video",
   objectFit: initialObjectFit = "cover",
   hint = "PNG, JPG, WebP up to 25MB (Auto-optimized to high-resolution WebP)",
+  previewClassName = "",
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showManualUrl, setShowManualUrl] = useState(false);
@@ -138,7 +140,9 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       ) : (
         <div className="space-y-2">
           {value ? (
-            <div className="relative group overflow-hidden border border-stone-200 dark:border-zinc-700 bg-stone-100/90 dark:bg-zinc-800/90 rounded-xl shadow-xs">
+            <div
+              className={`relative group overflow-hidden border border-stone-200 dark:border-zinc-700 bg-stone-100/90 dark:bg-zinc-800/90 rounded-xl shadow-xs ${previewClassName}`}
+            >
               <div
                 className={`relative w-full ${
                   shape === "circle"
@@ -208,7 +212,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
               onClick={() => !isUploading && fileInputRef.current?.click()}
               className={`border-2 border-dashed border-stone-300 dark:border-zinc-700 hover:border-[#7E5714] dark:hover:border-amber-500/80 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-stone-50/50 dark:bg-zinc-900/50 ${
                 shape === "circle" ? "w-36 h-36 mx-auto rounded-full" : ""
-              }`}
+              } ${previewClassName}`}
             >
               {isUploading ? (
                 <div className="flex flex-col items-center gap-2">

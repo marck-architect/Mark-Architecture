@@ -66,7 +66,7 @@ export default async function HomePage() {
     category: (p.category || "RESIDENTIAL").toUpperCase(),
     location: p.location || "Pakistan",
     image: p.cover_image || "/images/dha_lahore_villa.png",
-    scale: p.year ? `Completed • ${p.year}` : "Luxury Residence",
+    scale: p.price || (p.year ? `Completed • ${p.year}` : "Luxury Residence"),
   }));
 
   const featuredServices = servicesData.slice(0, 4).map((s) => {

@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { FaqView } from "@/components/faqs/FaqView";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { generateFaqSchema } from "@/lib/seo/schema";
-import { faqsData } from "@/data/faqs";
 
 export const metadata: Metadata = {
   title: "Frequently Asked Architectural Questions & Guide | MARK Architects",
@@ -52,7 +51,7 @@ export default async function FaqsPage() {
           shortAnswer: (f as any).shortAnswer || f.answer,
           fullAnswer: (f as any).fullAnswer || [f.answer],
         }))
-      : faqsData;
+      : [];
 
   const faqSchema =
     schemaInput.length > 0 ? generateFaqSchema(schemaInput) : null;

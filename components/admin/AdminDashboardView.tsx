@@ -33,7 +33,7 @@ import type {
   BlockedDate,
   AdminDashboardViewProps,
 } from "@/types";
-import { seedAvailabilitySettings } from "@/data/adminSeed";
+import { seedAvailabilitySettings, seedProjects } from "@/data/adminSeed";
 
 const VALID_TABS: AdminTabType[] = [
   "dashboard",
@@ -70,7 +70,7 @@ function AdminDashboardInner({
 
   // Studio Services & Portfolio Data
   const [services, setServices] = useState<AdminService[]>([]);
-  const [projects, setProjects] = useState<AdminProject[]>([]);
+  const [projects, setProjects] = useState<AdminProject[]>(seedProjects || []);
 
   // Calendar & Availability Data
   const [availabilitySettings, setAvailabilitySettings] =
@@ -101,7 +101,8 @@ function AdminDashboardInner({
     fetch("/api/admin/services")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.services?.length > 0) setServices(data.services);
+        const list = data?.services || data?.data;
+        if (Array.isArray(list) && list.length > 0) setServices(list);
       })
       .catch(() => {});
 
@@ -109,7 +110,8 @@ function AdminDashboardInner({
     fetch("/api/admin/projects")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.projects?.length > 0) setProjects(data.projects);
+        const list = data?.projects || data?.data;
+        if (Array.isArray(list) && list.length > 0) setProjects(list);
       })
       .catch(() => {});
 
@@ -244,21 +246,31 @@ function AdminDashboardInner({
         category: projectData.category || "residential",
         location: projectData.location || "Lahore, Pakistan",
         year: projectData.year || new Date().getFullYear().toString(),
+        area_sqft: projectData.area_sqft,
+        price: projectData.price || null,
+        aspectClass: projectData.aspectClass || null,
         description: projectData.description || "",
+        short_description: projectData.short_description || null,
         cover_image:
           projectData.cover_image || "/images/Full House Design Package.png",
         gallery_urls: projectData.gallery_urls || [],
         is_featured: projectData.is_featured ?? false,
         is_published: projectData.is_published ?? true,
-        display_order: projects.length + 1,
+        display_order: projectData.display_order ?? projects.length + 1,
       };
       setProjects((prev) => [newProj, ...prev]);
       try {
-        await fetch("/api/admin/projects", {
+        const res = await fetch("/api/admin/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(projectData),
         });
+        const saved = await res.json();
+        if (saved?.data?.id) {
+          setProjects((prev) =>
+            prev.map((p) => (p.id === newProj.id ? saved.data : p)),
+          );
+        }
       } catch {}
     }
   };
