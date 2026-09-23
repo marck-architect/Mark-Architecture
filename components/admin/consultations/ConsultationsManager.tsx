@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Calendar,
   Clock,
@@ -16,6 +16,9 @@ import {
   Mail,
   Phone,
   Paperclip,
+  CalendarCheck,
+  RefreshCw,
+  Link as LinkIcon,
 } from "lucide-react";
 import type { ConsultationRecord } from "@/types";
 
@@ -28,13 +31,58 @@ interface ConsultationsManagerProps {
 export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
   consultations,
   onInspect,
+  onRefresh,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [tierFilter, setTierFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
 
+  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
+  const [googleEmail, setGoogleEmail] = useState<string | null>(null);
+  const [isDisconnectingGoogle, setIsDisconnectingGoogle] = useState(false);
+
   const today = new Date().toISOString().split("T")[0];
+
+  useEffect(() => {
+    async function checkGoogleStatus() {
+      try {
+        const res = await fetch("/api/admin/google/status");
+        if (res.ok) {
+          const data = await res.json();
+          setGoogleConnected(Boolean(data.connected));
+          setGoogleEmail(data.accountEmail || null);
+        }
+      } catch (err) {
+        console.warn("Could not check Google status:", err);
+      }
+    }
+    checkGoogleStatus();
+  }, []);
+
+  const handleDisconnectGoogle = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to disconnect Google Calendar integration?",
+      )
+    ) {
+      return;
+    }
+    setIsDisconnectingGoogle(true);
+    try {
+      const res = await fetch("/api/admin/google/disconnect", {
+        method: "POST",
+      });
+      if (res.ok) {
+        setGoogleConnected(false);
+        setGoogleEmail(null);
+      }
+    } catch (err) {
+      console.error("Disconnect error:", err);
+    } finally {
+      setIsDisconnectingGoogle(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     return consultations.filter((item) => {
@@ -49,6 +97,10 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
       let matchesStatus = true;
       if (statusFilter === "needs_link") {
         matchesStatus = item.payment_status === "paid" && !item.meeting_url;
+      } else if (statusFilter === "meeting_failed") {
+        matchesStatus = item.meeting_status === "failed";
+      } else if (statusFilter === "email_failed") {
+        matchesStatus = item.email_status === "failed";
       } else if (statusFilter !== "all") {
         matchesStatus = item.payment_status === statusFilter;
       }
@@ -76,7 +128,10 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
       "Booking Date",
       "Booking Time",
       "Payment Status",
+      "Meeting Status",
+      "Email Status",
       "Meeting URL",
+      "Calendar Event ID",
       "Created At",
     ];
 
@@ -90,7 +145,10 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
       c.booking_date,
       c.booking_time,
       c.payment_status,
+      c.meeting_status || (c.meeting_url ? "scheduled" : "not_created"),
+      c.email_status || (c.meeting_link_sent_at ? "sent" : "not_sent"),
       c.meeting_url || "",
+      c.calendar_event_id || "",
       c.created_at || "",
     ]);
 
@@ -109,35 +167,28 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
   const getStatusBadge = (status: string, hasLink: boolean) => {
     if (status === "paid") {
       return (
-        <div className="flex flex-col gap-0.5">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3" /> Paid & Confirmed
-          </span>
-          {!hasLink && (
-            <span className="text-[9px] font-mono text-amber-700 font-semibold">
-              Needs Meeting Link
-            </span>
-          )}
-        </div>
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Paid
+        </span>
       );
     }
     if (status === "completed") {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-50 text-sky-800 border border-sky-200">
-          <CheckCircle2 className="w-3 h-3" /> Completed
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-sky-50 text-sky-800 border border-sky-200">
+          <CheckCircle2 className="w-3 h-3 text-sky-600" /> Completed
         </span>
       );
     }
     if (status === "rescheduled") {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
-          <Clock4 className="w-3 h-3" /> Rescheduled
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
+          <Clock4 className="w-3 h-3 text-amber-600" /> Rescheduled
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-stone-100 text-stone-700 border border-stone-200">
-        <Clock className="w-3 h-3" /> Pending Checkout
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-stone-100 text-stone-700 border border-stone-200">
+        <Clock className="w-3 h-3 text-stone-500" /> Pending
       </span>
     );
   };
@@ -151,18 +202,81 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
             Consultation Appointments
           </h2>
           <p className="text-xs text-stone-500 font-light mt-0.5">
-            Manage client appointments, confirm Safepay transactions, and
-            dispatch video meeting URLs.
+            Automated Google Meet scheduling, Resend confirmations, and Safepay
+            transaction management.
           </p>
         </div>
 
-        <button
-          onClick={handleExportCsv}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-semibold shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
-        >
-          <Download className="w-3.5 h-3.5 text-[#7E5714]" />
-          <span>Export CSV ({filtered.length})</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              className="p-2 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 shadow-2xs transition-colors cursor-pointer"
+              title="Refresh Consultations"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          <button
+            onClick={handleExportCsv}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5 text-[#7E5714]" />
+            <span>Export CSV ({filtered.length})</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Google Integration Status Banner */}
+      <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-[#7E5714] shrink-0">
+            <CalendarCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-stone-900">
+                Google Calendar &amp; Meet Integration
+              </span>
+              {googleConnected === true ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  Connected
+                </span>
+              ) : googleConnected === false ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                  Not Connected
+                </span>
+              ) : null}
+            </div>
+            <p className="text-[11px] text-stone-500 mt-0.5">
+              {googleConnected
+                ? `Authorized for: ${googleEmail || "Atelier Google Account"}. Automatically creating Calendar events & Meet links.`
+                : "Connect your atelier Google account once to enable automatic Google Meet video room creation."}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          {googleConnected ? (
+            <button
+              onClick={handleDisconnectGoogle}
+              disabled={isDisconnectingGoogle}
+              className="px-3 py-1.5 rounded-xl border border-stone-200 hover:border-stone-300 text-stone-600 hover:text-stone-900 text-xs font-medium cursor-pointer shadow-2xs"
+            >
+              {isDisconnectingGoogle ? "Disconnecting..." : "Disconnect Google"}
+            </button>
+          ) : (
+            <a
+              href="/api/admin/google/connect"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#7E5714] hover:bg-[#684710] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            >
+              <LinkIcon className="w-3.5 h-3.5" />
+              <span>Connect Google Account</span>
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Filter Toolbar */}
@@ -188,8 +302,10 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
               className="px-3 py-2 rounded-xl bg-stone-50/50 border border-stone-200 text-stone-700 text-xs focus:outline-none focus:border-[#7E5714]"
             >
               <option value="all">All Statuses</option>
+              <option value="paid">Paid &amp; Confirmed</option>
               <option value="needs_link">Needs Meeting Link</option>
-              <option value="paid">Confirmed & Paid</option>
+              <option value="meeting_failed">Meeting Creation Failed</option>
+              <option value="email_failed">Email Dispatch Failed</option>
               <option value="pending">Pending Payment</option>
               <option value="completed">Completed</option>
               <option value="rescheduled">Rescheduled</option>
@@ -228,9 +344,9 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                 <tr>
                   <th className="px-5 py-3.5">Date &amp; Timeslot</th>
                   <th className="px-5 py-3.5">Client Details</th>
-                  <th className="px-5 py-3.5">Call Tier &amp; Fee</th>
-                  <th className="px-5 py-3.5">Safepay Status</th>
-                  <th className="px-5 py-3.5">Video Meeting Link</th>
+                  <th className="px-5 py-3.5">Tier &amp; Fee</th>
+                  <th className="px-5 py-3.5">Payment</th>
+                  <th className="px-5 py-3.5">Meeting &amp; Email</th>
                   <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -238,6 +354,12 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                 {filtered.map((b) => {
                   const isToday = b.booking_date === today;
                   const hasLink = Boolean(b.meeting_url);
+                  const meetingStatus =
+                    b.meeting_status ||
+                    (b.meeting_url ? "scheduled" : "not_created");
+                  const emailStatus =
+                    b.email_status ||
+                    (b.meeting_link_sent_at ? "sent" : "not_sent");
 
                   return (
                     <tr
@@ -299,42 +421,57 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                         </div>
                       </td>
 
-                      {/* Status */}
+                      {/* Payment */}
                       <td className="px-5 py-4 whitespace-nowrap">
                         {getStatusBadge(b.payment_status, hasLink)}
                       </td>
 
-                      {/* Meeting URL */}
+                      {/* Meeting & Email Pipeline */}
                       <td className="px-5 py-4 whitespace-nowrap">
-                        {b.meeting_url ? (
-                          <div className="flex items-center gap-2">
-                            <a
-                              href={b.meeting_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold hover:bg-emerald-100 transition-colors shadow-2xs"
-                            >
-                              <Video className="w-3 h-3" />
-                              <span>Meet Link</span>
-                              <ExternalLink className="w-2.5 h-2.5" />
-                            </a>
-                            {b.meeting_link_sent_at && (
-                              <span
-                                className="text-[10px] text-stone-400 font-mono"
-                                title={`Sent: ${b.meeting_link_sent_at}`}
+                        <div className="space-y-1">
+                          {/* Meet Pill */}
+                          <div className="flex items-center gap-1.5">
+                            {b.meeting_url ? (
+                              <a
+                                href={b.meeting_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold hover:bg-emerald-100 transition-colors"
                               >
-                                Sent ✓
+                                <Video className="w-3 h-3" />
+                                <span>Join Meet</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            ) : meetingStatus === "failed" ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold">
+                                <AlertCircle className="w-3 h-3" /> Meet Failed
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-stone-400 font-mono">
+                                Meet: Pending
                               </span>
                             )}
                           </div>
-                        ) : (
-                          <button
-                            onClick={() => onInspect(b)}
-                            className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-[11px] font-bold cursor-pointer transition-colors"
-                          >
-                            + Assign Link
-                          </button>
-                        )}
+
+                          {/* Email Pill */}
+                          <div>
+                            {emailStatus === "sent" ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-stone-500 font-mono">
+                                <Mail className="w-3 h-3 text-emerald-600" />{" "}
+                                Email: Sent ✓
+                              </span>
+                            ) : emailStatus === "failed" ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-rose-600 font-mono font-bold">
+                                <AlertCircle className="w-3 h-3 text-rose-600" />{" "}
+                                Email: Failed
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-stone-400 font-mono">
+                                Email: Not sent
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
 
                       {/* Actions */}

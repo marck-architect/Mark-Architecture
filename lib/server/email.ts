@@ -128,14 +128,18 @@ export async function sendConsultationMeetingInvite({
   meetingUrl,
   consultationId,
 }: SendMeetingInviteParams): Promise<SendMeetingInviteResult> {
-  const subject = `Confirmed: Architectural Consultation Session with MARK Architects (${bookingDate} at ${bookingTime} PKT)`;
+  const subject = `Your Architecture Consultation is Confirmed - MARK Architects`;
 
-  const htmlBody = generateMeetingInviteHtml({
+  const { sendConsultationConfirmation } = await import("./email/emailService");
+  const result = await sendConsultationConfirmation({
+    consultationId,
+    clientEmail,
     clientName,
-    tierName,
-    bookingDate,
-    bookingTime,
+    consultationTitle: tierName,
+    date: bookingDate,
+    startTime: bookingTime,
     meetingUrl,
+    forceResend: true,
   });
 
   const plainText = `Hello ${clientName},\n\nYour architectural consultation (${tierName}) with MARK Architects has been confirmed for ${bookingDate} at ${bookingTime} PKT.\n\nJoin Video Session: ${meetingUrl}\n\nPlease have your site photos and plan drawings ready.\n\nWarm regards,\nMARK Architects Atelier\nHotline: +92 300 1234567`;
@@ -144,76 +148,12 @@ export async function sendConsultationMeetingInvite({
     subject,
   )}&body=${encodeURIComponent(plainText)}`;
 
-  let dispatchStatus: "sent" | "manual" | "failed" = "manual";
-  let errorMessage: string | null = null;
-
-  // Check if Resend API key is present
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (resendApiKey) {
-    try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from:
-            process.env.EMAIL_FROM ||
-            "MARK Architects <consultations@markarchitects.com>",
-          to: [clientEmail],
-          subject,
-          html: htmlBody,
-        }),
-      });
-
-      if (res.ok) {
-        dispatchStatus = "sent";
-      } else {
-        const errData = await res.json();
-        errorMessage = errData.message || "Failed to send email via Resend";
-        dispatchStatus = "failed";
-      }
-    } catch (err: unknown) {
-      errorMessage = err instanceof Error ? err.message : String(err);
-      dispatchStatus = "failed";
-    }
-  } else {
-    // In local development or until API key is set, log dispatch and mark manual fallback
-    console.log(
-      `[Email Dispatch - Dev Fallback] To: ${clientEmail} | Subject: ${subject}`,
-    );
-    dispatchStatus = "sent"; // Set to sent for seamless development preview
-  }
-
-  // Record communication log entry in Supabase
-  try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-
-    await supabase.from("communication_logs").insert({
-      recipient_email: clientEmail,
-      client_name: clientName,
-      type: "meeting_invite",
-      consultation_id: consultationId,
-      meeting_url: meetingUrl,
-      status: dispatchStatus,
-      sent_at: new Date().toISOString(),
-      error_message: errorMessage,
-    });
-  } catch (err) {
-    console.warn(
-      "[Email Dispatch] Non-fatal: unable to insert communication log:",
-      err,
-    );
-  }
-
   return {
-    success: dispatchStatus !== "failed",
-    status: dispatchStatus,
+    success: result.success,
+    status: result.status === "sent" ? "sent" : "failed",
     emailSubject: subject,
     emailPreview: plainText,
     mailtoLink,
-    error: errorMessage || undefined,
+    error: result.error,
   };
 }

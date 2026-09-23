@@ -37,33 +37,34 @@ export async function POST(req: NextRequest) {
     console.log(`[Safepay Webhook] Event: ${event} | Tracker: ${tracker}`);
 
     if (event === "payment.succeeded" || data?.status === "PAID") {
-      const cookieStore = await cookies();
-      const supabase = createClient(cookieStore);
+      const { getSupabaseAdminClient } =
+        await import("@/lib/server/supabaseAdmin");
+      const supabaseAdmin = getSupabaseAdminClient();
 
-      // Attempt updating consultation
+      // Check if this tracker belongs to a consultation
       try {
-        await supabase
+        const { data: consultation } = await supabaseAdmin
           .from("consultations")
-          .update({
-            payment_status: "paid",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("safepay_tracker", tracker);
-      } catch (err) {
-        console.warn("Could not update consultation on webhook:", err);
-      }
+          .select("id, payment_status")
+          .eq("safepay_tracker", tracker)
+          .maybeSingle();
 
-      // Attempt updating order
-      try {
-        await supabase
-          .from("orders")
-          .update({
-            payment_status: "advance_paid",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("safepay_tracker", tracker);
+        if (consultation) {
+          const { processPaidConsultation } =
+            await import("@/lib/server/consultationWorkflow");
+          await processPaidConsultation(consultation.id, tracker);
+        } else {
+          // Attempt updating order
+          await supabaseAdmin
+            .from("orders")
+            .update({
+              payment_status: "advance_paid",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("safepay_tracker", tracker);
+        }
       } catch (err) {
-        console.warn("Could not update order on webhook:", err);
+        console.warn("Could not process webhook event:", err);
       }
     }
 

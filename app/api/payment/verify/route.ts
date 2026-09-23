@@ -28,19 +28,21 @@ export async function GET(req: NextRequest) {
       statusData.isSimulated === true;
 
     if (isPaid && orderId) {
-      const cookieStore = await cookies();
-      const supabase = createClient(cookieStore);
-
-      try {
-        if (type === "consultation") {
-          await supabase
-            .from("consultations")
-            .update({
-              payment_status: "paid",
-              safepay_tracker: tracker,
-            })
-            .eq("id", orderId);
-        } else {
+      if (type === "consultation") {
+        try {
+          const { processPaidConsultation } =
+            await import("@/lib/server/consultationWorkflow");
+          await processPaidConsultation(orderId, tracker);
+        } catch (workflowErr) {
+          console.error(
+            "Error running consultation workflow in payment verify:",
+            workflowErr,
+          );
+        }
+      } else {
+        const cookieStore = await cookies();
+        const supabase = createClient(cookieStore);
+        try {
           await supabase
             .from("orders")
             .update({
@@ -48,9 +50,9 @@ export async function GET(req: NextRequest) {
               safepay_tracker: tracker,
             })
             .eq("id", orderId);
+        } catch (dbErr) {
+          console.warn("Could not update database status on verify:", dbErr);
         }
-      } catch (dbErr) {
-        console.warn("Could not update database status on verify:", dbErr);
       }
     }
 

@@ -396,6 +396,57 @@ export interface ConsultationRecord {
   duration_minutes?: number;
   safepay_tracker?: string | null;
   safepay_token?: string | null;
+  meeting_status?:
+    | "not_created"
+    | "creating"
+    | "scheduled"
+    | "cancelled"
+    | "failed";
+  email_status?: "not_sent" | "sending" | "sent" | "failed";
+  calendar_event_id?: string | null;
+  timezone?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MeetingRecord {
+  id: string;
+  consultation_id: string;
+  provider: "google_meet";
+  calendar_event_id?: string | null;
+  calendar_id?: string;
+  meet_space_name?: string | null;
+  meeting_url?: string | null;
+  scheduled_start?: string | null;
+  scheduled_end?: string | null;
+  timezone: string;
+  status: "not_created" | "creating" | "scheduled" | "cancelled" | "failed";
+  error?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NotificationRecord {
+  id: string;
+  consultation_id?: string | null;
+  type: string;
+  recipient: string;
+  status: "pending" | "sent" | "failed";
+  provider: "resend";
+  provider_message_id?: string | null;
+  error?: string | null;
+  sent_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface GoogleIntegrationRecord {
+  id: string;
+  provider: "google";
+  account_email: string;
+  refresh_token: string;
+  scope?: string | null;
+  expires_at?: string | null;
   created_at?: string;
   updated_at?: string;
 }

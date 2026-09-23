@@ -13,6 +13,9 @@ import {
   Loader2,
   Send,
   Copy,
+  Calendar,
+  RefreshCw,
+  Mail,
 } from "lucide-react";
 import type { ConsultationRecord, BookingDetailModalProps } from "@/types";
 
@@ -31,6 +34,10 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingLink, setIsSendingLink] = useState(false);
+  const [isRetryingMeeting, setIsRetryingMeeting] = useState(false);
+  const [isRetryingEmail, setIsRetryingEmail] = useState(false);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copiedTemplate, setCopiedTemplate] = useState(false);
@@ -70,7 +77,7 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
         throw new Error(err.error || "Failed to update booking.");
       }
 
-      const updated = {
+      const updated: ConsultationRecord = {
         ...booking,
         meeting_url: meetingUrl,
         admin_notes: adminNotes,
@@ -86,6 +93,118 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
       setSaveError(err instanceof Error ? err.message : "Save failed.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Admin Action: Retry / Create Google Meeting
+  const handleRetryMeeting = async () => {
+    setIsRetryingMeeting(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const res = await fetch(
+        `/api/admin/consultations/${booking.id}/retry-meeting`,
+        { method: "POST" },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create Google Meet meeting.");
+      }
+
+      const updated: ConsultationRecord = {
+        ...booking,
+        meeting_status: "scheduled",
+        meeting_url: data.data?.meetingUrl || meetingUrl,
+        calendar_event_id:
+          data.data?.calendarEventId || booking.calendar_event_id,
+      };
+
+      if (data.data?.meetingUrl) {
+        setMeetingUrl(data.data.meetingUrl);
+      }
+
+      onUpdate(updated);
+      setSaveSuccess(
+        "Google Calendar event and Meet conference successfully generated!",
+      );
+      setTimeout(() => setSaveSuccess(null), 4000);
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : "Failed to retry meeting creation.",
+      );
+    } finally {
+      setIsRetryingMeeting(false);
+    }
+  };
+
+  // Admin Action: Retry Failed Email
+  const handleRetryEmail = async () => {
+    setIsRetryingEmail(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const res = await fetch(
+        `/api/admin/consultations/${booking.id}/retry-email`,
+        { method: "POST" },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to dispatch email.");
+      }
+
+      const updated: ConsultationRecord = {
+        ...booking,
+        email_status: "sent",
+        meeting_link_sent_at: new Date().toISOString(),
+      };
+
+      onUpdate(updated);
+      setSaveSuccess("Confirmation email successfully sent via Resend!");
+      setTimeout(() => setSaveSuccess(null), 4000);
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to dispatch email.",
+      );
+    } finally {
+      setIsRetryingEmail(false);
+    }
+  };
+
+  // Admin Action: Explicit Resend Confirmation Email
+  const handleResendEmail = async () => {
+    setIsResendingEmail(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const res = await fetch(
+        `/api/admin/consultations/${booking.id}/resend-email`,
+        { method: "POST" },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to resend confirmation email.");
+      }
+
+      const updated: ConsultationRecord = {
+        ...booking,
+        email_status: "sent",
+        meeting_link_sent_at: new Date().toISOString(),
+      };
+
+      onUpdate(updated);
+      setSaveSuccess("Confirmation email resent successfully via Resend!");
+      setTimeout(() => setSaveSuccess(null), 4000);
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to resend confirmation.",
+      );
+    } finally {
+      setIsResendingEmail(false);
     }
   };
 
@@ -134,6 +253,7 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
         confirmed_at: new Date().toISOString(),
         meeting_link_sent_at: new Date().toISOString(),
         admin_notes: adminNotes,
+        email_status: "sent",
       };
 
       setPaymentStatus("paid");
@@ -161,6 +281,14 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
   const cleanPhone = booking.client_phone
     ? booking.client_phone.replace(/[^0-9+]/g, "")
     : "";
+
+  const meetingStatus =
+    booking.meeting_status ||
+    (booking.meeting_url ? "scheduled" : "not_created");
+  const emailStatus =
+    booking.email_status ||
+    (booking.meeting_link_sent_at ? "sent" : "not_sent");
+  const calendarEventExists = Boolean(booking.calendar_event_id);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-950/60 backdrop-blur-xs animate-fadeIn font-inter">
@@ -205,6 +333,98 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
               <span className="font-medium">{saveError}</span>
             </div>
           )}
+
+          {/* 4-Pillar Pipeline Status Grid */}
+          <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
+            <span className="text-[10px] uppercase font-mono tracking-widest text-[#7E5714] font-bold block">
+              Workflow Status Pipeline
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+              {/* Payment Status */}
+              <div className="p-2.5 rounded-xl bg-white border border-stone-200 flex flex-col justify-between">
+                <span className="text-[10px] text-stone-400 font-mono uppercase">
+                  Payment
+                </span>
+                <span className="font-bold mt-1">
+                  {paymentStatus === "paid" ? (
+                    <span className="text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Paid
+                    </span>
+                  ) : paymentStatus === "failed" ? (
+                    <span className="text-rose-700 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> Failed
+                    </span>
+                  ) : (
+                    <span className="text-amber-700">⏳ Pending</span>
+                  )}
+                </span>
+              </div>
+
+              {/* Calendar Event */}
+              <div className="p-2.5 rounded-xl bg-white border border-stone-200 flex flex-col justify-between">
+                <span className="text-[10px] text-stone-400 font-mono uppercase">
+                  Calendar
+                </span>
+                <span className="font-bold mt-1">
+                  {calendarEventExists ? (
+                    <span className="text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Created
+                    </span>
+                  ) : meetingStatus === "failed" ? (
+                    <span className="text-rose-700 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> Failed
+                    </span>
+                  ) : (
+                    <span className="text-stone-400">— Not Created</span>
+                  )}
+                </span>
+              </div>
+
+              {/* Google Meet Conference */}
+              <div className="p-2.5 rounded-xl bg-white border border-stone-200 flex flex-col justify-between">
+                <span className="text-[10px] text-stone-400 font-mono uppercase">
+                  Google Meet
+                </span>
+                <span className="font-bold mt-1">
+                  {meetingStatus === "scheduled" && booking.meeting_url ? (
+                    <span className="text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Scheduled
+                    </span>
+                  ) : meetingStatus === "failed" ? (
+                    <span className="text-rose-700 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> Failed
+                    </span>
+                  ) : meetingStatus === "creating" ? (
+                    <span className="text-amber-700 flex items-center gap-1">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Creating
+                    </span>
+                  ) : (
+                    <span className="text-stone-400">— Not Created</span>
+                  )}
+                </span>
+              </div>
+
+              {/* Confirmation Email via Resend */}
+              <div className="p-2.5 rounded-xl bg-white border border-stone-200 flex flex-col justify-between">
+                <span className="text-[10px] text-stone-400 font-mono uppercase">
+                  Resend Email
+                </span>
+                <span className="font-bold mt-1">
+                  {emailStatus === "sent" ? (
+                    <span className="text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Sent
+                    </span>
+                  ) : emailStatus === "failed" ? (
+                    <span className="text-rose-700 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> Failed
+                    </span>
+                  ) : (
+                    <span className="text-stone-400">— Not Sent</span>
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* 1. Client & Contact Information */}
           <div className="bg-stone-50/60 border border-stone-200/80 rounded-2xl p-4 space-y-3">
@@ -325,21 +545,50 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
             </div>
           </div>
 
-          {/* 3. Primary Admin Action: Meeting Link Dispatch */}
+          {/* 3. Google Meet & Calendar Actions */}
           <div className="p-5 rounded-2xl border-2 border-[#7E5714]/20 bg-amber-50/30 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Video className="w-4 h-4 text-[#7E5714]" />
                 <h3 className="font-playfair text-sm font-bold text-stone-900">
-                  Google Meet / Zoom URL &amp; Invitation Dispatch
+                  Google Meet &amp; Calendar Conference
                 </h3>
               </div>
-              {booking.meeting_link_sent_at && (
-                <span className="text-[10px] text-emerald-800 font-mono font-semibold bg-emerald-100 px-2 py-0.5 rounded-full">
-                  Invited ✓
+              {meetingUrl && (
+                <span className="text-[10px] text-emerald-800 font-mono font-semibold bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                  Meet Ready ✓
                 </span>
               )}
             </div>
+
+            {/* Quick Link Buttons if Meeting Exists */}
+            {meetingUrl && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                <a
+                  href={meetingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                >
+                  <Video className="w-3.5 h-3.5" />
+                  <span>Join Google Meet</span>
+                  <ExternalLink className="w-3 h-3 ml-0.5" />
+                </a>
+
+                {booking.calendar_event_id && (
+                  <a
+                    href="https://calendar.google.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-semibold shadow-2xs transition-colors"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-[#7E5714]" />
+                    <span>Open Calendar Event</span>
+                    <ExternalLink className="w-3 h-3 text-stone-400" />
+                  </a>
+                )}
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-stone-700">
@@ -367,32 +616,76 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Quick Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+            {/* Smart Recovery / Action Buttons */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-[#7E5714]/15">
+              {/* If meeting missing or failed: Retry Meeting Creation */}
+              {(!meetingUrl || meetingStatus === "failed") && (
+                <button
+                  onClick={handleRetryMeeting}
+                  disabled={isRetryingMeeting}
+                  className="px-3.5 py-2 rounded-xl bg-[#7E5714] hover:bg-[#684710] text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {isRetryingMeeting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  )}
+                  <span>Create / Retry Google Meeting</span>
+                </button>
+              )}
+
+              {/* If email failed: Retry Email */}
+              {emailStatus === "failed" && meetingUrl && (
+                <button
+                  onClick={handleRetryEmail}
+                  disabled={isRetryingEmail}
+                  className="px-3.5 py-2 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {isRetryingEmail ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Mail className="w-3.5 h-3.5" />
+                  )}
+                  <span>Retry Confirmation Email</span>
+                </button>
+              )}
+
+              {/* If email already sent: Resend Confirmation */}
+              {emailStatus === "sent" && meetingUrl && (
+                <button
+                  onClick={handleResendEmail}
+                  disabled={isResendingEmail}
+                  className="px-3 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+                >
+                  {isResendingEmail ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Mail className="w-3.5 h-3.5 text-[#7E5714]" />
+                  )}
+                  <span>Resend Confirmation</span>
+                </button>
+              )}
+
+              {/* Manual Confirmation Dispatch */}
               <button
                 onClick={handleConfirmAndSendLink}
                 disabled={isSendingLink || !meetingUrl}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[#7E5714] hover:bg-[#684710] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                className="px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-black text-white font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
               >
                 {isSendingLink ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Dispatching Invitation...</span>
-                  </>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Accept Payment &amp; Send Meeting Link</span>
-                  </>
+                  <Send className="w-3.5 h-3.5" />
                 )}
+                <span>Send Manual Invitation</span>
               </button>
 
               <button
                 onClick={handleCopyInvitationText}
-                className="px-3 py-2.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+                className="px-3 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer ml-auto"
               >
                 <Copy className="w-3.5 h-3.5 text-[#7E5714]" />
-                <span>{copiedTemplate ? "Copied!" : "Copy Template"}</span>
+                <span>{copiedTemplate ? "Copied!" : "Copy Text"}</span>
               </button>
             </div>
           </div>
