@@ -182,40 +182,15 @@ export const AboutView: React.FC<AboutViewProps> = ({
                   there's no seam to fight regardless of the source photo's
                   own backdrop color. */}
               <div className="flex items-center justify-start px-6 md:px-margin-desktop lg:px-16 py-14 lg:py-16">
-                <div className="relative w-[280px] sm:w-[360px] lg:w-[450px] aspect-square shrink-0">
-                  {/* Offset gold ring, sitting a few px behind/right of the
-                      photo for depth — traces in like a drawn circle
-                      slightly after the photo scales/fades into place. */}
-                  <svg
-                    className="absolute -right-3 -bottom-3 w-full h-full pointer-events-none overflow-visible"
-                    viewBox="0 0 100 100"
-                  >
-                    <motion.circle
-                      cx="50"
-                      cy="50"
-                      r="49.5"
-                      fill="none"
-                      stroke="#8a6125"
-                      strokeWidth="0.6"
-                      pathLength={1}
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      whileInView={{ pathLength: 1, opacity: 1 }}
-                      viewport={{ once: true, amount: 0.2 }}
-                      transition={{
-                        pathLength: { duration: 0.7, delay: 0.35, ease: "easeOut" },
-                        opacity: { duration: 0.2, delay: 0.35 },
-                      }}
-                    />
-                  </svg>
-
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="relative w-[280px] sm:w-[360px] lg:w-[450px] aspect-square shrink-0"
+                >
                   {/* Photo circle */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.85, x: 40 }}
-                    whileInView={{ opacity: 1, scale: 1, x: 0 }}
-                    viewport={{ once: true, amount: 0.2 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="relative w-full h-full rounded-full overflow-hidden shadow-xl ring-1 ring-black/5"
-                  >
+                  <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl bg-surface-container dark:bg-zinc-950">
                     <Image
                       fill
                       src={leader.image}
@@ -224,8 +199,44 @@ export const AboutView: React.FC<AboutViewProps> = ({
                       className="object-cover object-top"
                       priority
                     />
-                  </motion.div>
-                </div>
+                  </div>
+
+                  {/* Circular border framing the photo */}
+                  <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none z-10 -rotate-90 overflow-visible"
+                    viewBox="0 0 100 100"
+                  >
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="49"
+                      fill="none"
+                      stroke="#8a6125"
+                      strokeWidth="1.2"
+                      strokeOpacity="0.3"
+                    />
+                    <motion.circle
+                      cx="50"
+                      cy="50"
+                      r="49"
+                      fill="none"
+                      stroke="#8a6125"
+                      strokeWidth="1.5"
+                      pathLength={1}
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      whileInView={{ pathLength: 1, opacity: 1 }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{
+                        pathLength: {
+                          duration: 0.8,
+                          delay: 0.2,
+                          ease: "easeInOut",
+                        },
+                        opacity: { duration: 0.3, delay: 0.2 },
+                      }}
+                    />
+                  </svg>
+                </motion.div>
               </div>
 
               {/* Right: qualifications — vertically centered, same left
