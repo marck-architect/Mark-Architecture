@@ -23,6 +23,7 @@ import {
   ShieldAlert,
   X,
   ExternalLink,
+  ShoppingBag,
 } from "lucide-react";
 import type { AdminTabType } from "@/types";
 
@@ -34,6 +35,7 @@ interface AdminSidebarProps {
   mobileOpen: boolean;
   onMobileClose: () => void;
   pendingCount?: number;
+  pendingOrdersCount?: number;
   unreadNotifsCount?: number;
 }
 
@@ -53,6 +55,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   mobileOpen,
   onMobileClose,
   pendingCount = 0,
+  pendingOrdersCount = 0,
   unreadNotifsCount = 0,
 }) => {
   const navSections: { title?: string; items: NavItem[] }[] = [
@@ -65,6 +68,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           icon: Clock,
           badge: pendingCount > 0 ? pendingCount : undefined,
           badgeColor: "bg-amber-100 text-amber-900 border-amber-200",
+        },
+        {
+          id: "orders",
+          label: "Package Orders",
+          icon: ShoppingBag,
+          badge: pendingOrdersCount > 0 ? pendingOrdersCount : undefined,
+          badgeColor: "bg-blue-100 text-blue-900 border-blue-200",
         },
         { id: "calendar", label: "Calendar & Hours", icon: Calendar },
         { id: "payments", label: "Payments & Safepay", icon: CreditCard },

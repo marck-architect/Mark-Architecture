@@ -35,6 +35,33 @@ export interface CartItem {
   plotSize?: string;
 }
 
+export interface ConfirmedOrderItem {
+  title: string;
+  price: number;
+  quantity: number;
+  tier?: string;
+  plotSize?: string;
+  image?: string;
+}
+
+export interface ConfirmedOrder {
+  id: string;
+  type: "consultation" | "order";
+  referenceNumber: string;
+  tracker?: string;
+  title: string;
+  amountPkr: number;
+  status: "paid" | "completed" | "advance_paid";
+  date: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
+  meetingUrl?: string | null;
+  items?: ConfirmedOrderItem[];
+}
+
 export interface AttachedFile {
   name: string;
   size: number;
@@ -110,6 +137,12 @@ export interface AppStore {
   removeFromCart: (index: number) => void;
   changeQuantity: (index: number, delta: number) => void;
   clearCart: () => void;
+
+  // Confirmed Orders / Payment History (Persisted)
+  confirmedOrders: ConfirmedOrder[];
+  addConfirmedOrder: (order: ConfirmedOrder) => void;
+  removeConfirmedOrder: (id: string) => void;
+  clearConfirmedOrders: () => void;
 
   // Quick View Modal
   quickView: {
@@ -456,18 +489,24 @@ export interface GoogleIntegrationRecord {
 export interface OrderRecord {
   id: string;
   order_number: string;
+  service_id?: string | null;
+  tier_id?: string | null;
   client_name: string;
   client_email: string;
   client_phone: string;
   plot_size?: string | null;
   covered_area_sqft?: number | null;
+  selected_disciplines?: string[] | Record<string, any> | null;
   total_amount_pkr: number;
   advance_amount_pkr: number;
   remaining_balance_pkr: number;
   payment_type: string;
   payment_status: string;
   safepay_tracker?: string | null;
+  attachment_urls?: string[];
+  notes?: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
 // ============================================================================
@@ -477,6 +516,7 @@ export interface OrderRecord {
 export type AdminTabType =
   | "dashboard"
   | "consultations"
+  | "orders"
   | "calendar"
   | "services"
   | "pricing"

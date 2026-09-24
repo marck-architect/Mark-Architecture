@@ -101,10 +101,7 @@ export async function POST(
     const updates: Record<string, unknown> = {
       meeting_url,
       payment_status: "paid",
-      consultation_status: "confirmed",
-      confirmed_by_admin: true,
-      confirmed_at: nowIso,
-      meeting_link_sent_at: emailResult.status === "sent" ? nowIso : null,
+      email_status: emailResult.status === "sent" ? "sent" : "failed",
       updated_at: nowIso,
     };
 

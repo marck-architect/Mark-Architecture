@@ -22,6 +22,8 @@ import { AnalyticsView } from "./analytics/AnalyticsView";
 import { SettingsManager } from "./settings/SettingsManager";
 import { AuditLogsView } from "./audit/AuditLogsView";
 import { BookingDetailModal } from "./BookingDetailModal";
+import { OrdersManager } from "./orders/OrdersManager";
+import { OrderDetailModal } from "./orders/OrderDetailModal";
 import type {
   ConsultationRecord,
   OrderRecord,
@@ -38,6 +40,7 @@ import { seedAvailabilitySettings, seedProjects } from "@/data/adminSeed";
 const VALID_TABS: AdminTabType[] = [
   "dashboard",
   "consultations",
+  "orders",
   "calendar",
   "services",
   "pricing",
@@ -66,7 +69,7 @@ function AdminDashboardInner({
   const [consultations, setConsultations] = useState<ConsultationRecord[]>(
     initialConsultations || [],
   );
-  const [orders] = useState<OrderRecord[]>(initialOrders || []);
+  const [orders, setOrders] = useState<OrderRecord[]>(initialOrders || []);
 
   // Studio Services & Portfolio Data
   const [services, setServices] = useState<AdminService[]>([]);
@@ -91,9 +94,10 @@ function AdminDashboardInner({
   // Notifications State
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
 
-  // Inspection Modal
+  // Inspection Modals
   const [selectedBooking, setSelectedBooking] =
     useState<ConsultationRecord | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
 
   // Fetch initial dynamic data from APIs (with graceful fallback to seeds)
   useEffect(() => {
@@ -169,6 +173,27 @@ function AdminDashboardInner({
       prev.map((c) => (c.id === updated.id ? updated : c)),
     );
     setSelectedBooking(updated);
+  };
+
+  // Update Order handler
+  const handleOrderUpdate = (updated: OrderRecord) => {
+    setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    setSelectedOrder(updated);
+  };
+
+  // Refresh Orders from API
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch("/api/admin/orders");
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.data)) {
+          setOrders(json.data);
+        }
+      }
+    } catch (err) {
+      console.warn("Notice: Refreshing orders from API fallback:", err);
+    }
   };
 
   // Services handlers
@@ -349,6 +374,10 @@ function AdminDashboardInner({
     ).length;
   }, [consultations]);
 
+  const pendingOrdersCount = useMemo(() => {
+    return orders.filter((o) => o.payment_status === "pending").length;
+  }, [orders]);
+
   const unreadNotifsCount = useMemo(() => {
     return notifications.filter((n) => !n.is_read).length;
   }, [notifications]);
@@ -364,6 +393,7 @@ function AdminDashboardInner({
         mobileOpen={mobileSidebarOpen}
         onMobileClose={() => setMobileSidebarOpen(false)}
         pendingCount={pendingCount}
+        pendingOrdersCount={pendingOrdersCount}
         unreadNotifsCount={unreadNotifsCount}
       />
 
@@ -397,6 +427,14 @@ function AdminDashboardInner({
             <ConsultationsManager
               consultations={consultations}
               onInspect={setSelectedBooking}
+            />
+          )}
+
+          {activeTab === "orders" && (
+            <OrdersManager
+              orders={orders}
+              onInspect={setSelectedOrder}
+              onRefresh={fetchOrders}
             />
           )}
 
@@ -468,6 +506,15 @@ function AdminDashboardInner({
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
           onUpdate={handleBookingUpdate}
+        />
+      )}
+
+      {/* Package & Collection Order Detail Inspection Modal */}
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          onUpdate={handleOrderUpdate}
         />
       )}
     </div>

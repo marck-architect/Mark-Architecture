@@ -11,6 +11,7 @@ import {
   FolderGit2,
   ExternalLink,
   ShieldCheck,
+  ShoppingBag,
 } from "lucide-react";
 import type {
   ConsultationRecord,
@@ -101,7 +102,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       </div>
 
       {/* 2. Key Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Bookings */}
         <div
           onClick={() => onNavigateTab("consultations")}
@@ -121,6 +122,31 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           <div className="text-[11px] text-stone-500 mt-1 flex items-center gap-1 font-medium">
             <span>{upcomingBookings.length} upcoming scheduled</span>
             <ArrowRight className="w-3 h-3 text-[#7E5714] group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        {/* Package Orders */}
+        <div
+          onClick={() => onNavigateTab("orders")}
+          className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:border-blue-500/60 transition-all cursor-pointer group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-stone-400 font-semibold">
+              Package Orders
+            </span>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 group-hover:scale-105 transition-transform">
+              <ShoppingBag className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-stone-900 mt-2">
+            {orders.length}
+          </div>
+          <div className="text-[11px] text-blue-700 mt-1 flex items-center gap-1 font-medium">
+            <span>
+              {orders.filter((o) => o.payment_status === "pending").length}{" "}
+              pending
+            </span>
+            <ArrowRight className="w-3 h-3 text-blue-600 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
 

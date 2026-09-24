@@ -11,38 +11,74 @@ import {
   AlertCircle,
   Copy,
   PhoneCall,
+  ShoppingBag,
 } from "lucide-react";
+import { useStore } from "@/hooks/useStore";
+import type { ConfirmedOrder } from "@/types";
 
 function PaymentCallbackContent() {
   const searchParams = useSearchParams();
+  const { addConfirmedOrder, setCartDrawerOpen } = useStore();
 
-  const tracker = searchParams.get("tracker") || "";
-  const orderId = searchParams.get("orderId") || "";
+  const trackerParam =
+    searchParams.get("tracker") || searchParams.get("beacon") || "";
+  const orderId =
+    searchParams.get("orderId") || searchParams.get("reference") || "";
   const type = searchParams.get("type") || "consultation";
   const isSimulated = searchParams.get("simulated") === "true";
 
-  const [isVerifying, setIsVerifying] = useState(Boolean(tracker));
+  const [tracker, setTracker] = useState(trackerParam);
+  const [isVerifying, setIsVerifying] = useState(
+    Boolean(trackerParam || orderId),
+  );
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(
-    tracker ? null : "No payment tracker reference received from Safepay.",
+    trackerParam || orderId
+      ? null
+      : "No payment tracker or reference number received from Safepay.",
   );
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!tracker) return;
+    if (!trackerParam && !orderId) return;
 
     let isMounted = true;
 
     async function verifyPayment() {
       try {
+        const queryParams = new URLSearchParams();
+        if (trackerParam) queryParams.set("tracker", trackerParam);
+        if (orderId) queryParams.set("orderId", orderId);
+        queryParams.set("type", type);
+
         const res = await fetch(
-          `/api/payment/verify?tracker=${encodeURIComponent(tracker)}&orderId=${encodeURIComponent(orderId)}&type=${encodeURIComponent(type)}`,
+          `/api/payment/verify?${queryParams.toString()}`,
         );
         const data = await res.json();
 
         if (isMounted) {
-          if (data.isPaid || data.success) {
+          if (data.isPaid) {
             setIsSuccess(true);
+            const activeTrk = data.tracker || trackerParam;
+            if (activeTrk) {
+              setTracker(activeTrk);
+            }
+
+            // Persist confirmed order into store & localStorage
+            const orderPayload: ConfirmedOrder = data.details || {
+              id: orderId || activeTrk || `ref_${Date.now()}`,
+              type: type === "order" ? "order" : "consultation",
+              referenceNumber: orderId || activeTrk || "Confirmed",
+              tracker: activeTrk || undefined,
+              title:
+                type === "order"
+                  ? "Design Package Order"
+                  : "Architectural Consultation",
+              amountPkr: 0,
+              status: "paid",
+              date: new Date().toISOString(),
+            };
+            addConfirmedOrder(orderPayload);
           } else {
             setErrorMsg(
               data.error ||
@@ -70,7 +106,7 @@ function PaymentCallbackContent() {
     return () => {
       isMounted = false;
     };
-  }, [tracker, orderId, type, isSimulated]);
+  }, [trackerParam, orderId, type, isSimulated]);
 
   const handleCopyTracker = () => {
     if (!tracker) return;
@@ -192,6 +228,17 @@ function PaymentCallbackContent() {
 
           {/* Action CTAs */}
           <div className="space-y-3 pt-2">
+            {isSuccess && (
+              <button
+                type="button"
+                onClick={() => setCartDrawerOpen(true)}
+                className="w-full py-3.5 px-6 rounded-xl bg-tertiary/15 hover:bg-tertiary/25 border border-tertiary/40 text-tertiary font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>View Receipt &amp; Details in Cart</span>
+              </button>
+            )}
+
             <a
               href="tel:+923001234567"
               className="w-full py-3.5 px-6 rounded-xl bg-primary hover:bg-tertiary text-on-primary font-medium text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-lg active:scale-98 cursor-pointer"

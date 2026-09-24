@@ -50,10 +50,9 @@ export async function processPaidConsultation(
     throw new Error(`Consultation ${consultationId} not found in database.`);
   }
 
-  // 2. Mark payment_status = 'paid' and consultation_status = 'confirmed'
+  // 2. Mark payment_status = 'paid'
   const paymentUpdates: Record<string, unknown> = {
     payment_status: "paid",
-    consultation_status: "confirmed",
     updated_at: nowIso,
   };
   if (safepayTracker && !consultation.safepay_tracker) {
@@ -61,10 +60,17 @@ export async function processPaidConsultation(
   }
 
   try {
-    await supabase
+    const { error: updateErr } = await supabase
       .from("consultations")
       .update(paymentUpdates)
       .eq("id", consultationId);
+
+    if (updateErr) {
+      console.error(
+        `[Workflow] Error updating payment_status for ${consultationId}:`,
+        updateErr.message,
+      );
+    }
   } catch (err) {
     console.warn(
       `[Workflow] Non-fatal: could not update payment_status for ${consultationId}:`,

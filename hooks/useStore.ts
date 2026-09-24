@@ -8,6 +8,8 @@ import type {
   LightboxProject,
   ToastState,
   AppStore,
+  ConfirmedOrder,
+  ConfirmedOrderItem,
 } from "@/types";
 
 export type {
@@ -18,6 +20,8 @@ export type {
   LightboxProject,
   ToastState,
   AppStore,
+  ConfirmedOrder,
+  ConfirmedOrderItem,
 };
 
 let toastTimeout: NodeJS.Timeout;
@@ -84,6 +88,32 @@ export const useStore = create<AppStore>()(
           return { cart: newCart };
         }),
       clearCart: () => set({ cart: [] }),
+
+      confirmedOrders: [],
+      addConfirmedOrder: (order) =>
+        set((state) => {
+          const list = state.confirmedOrders || [];
+          const existingIdx = list.findIndex(
+            (o) =>
+              o.id === order.id ||
+              (o.referenceNumber &&
+                order.referenceNumber &&
+                o.referenceNumber === order.referenceNumber),
+          );
+          if (existingIdx > -1) {
+            const updated = [...list];
+            updated[existingIdx] = { ...updated[existingIdx], ...order };
+            return { confirmedOrders: updated };
+          }
+          return { confirmedOrders: [order, ...list] };
+        }),
+      removeConfirmedOrder: (id) =>
+        set((state) => ({
+          confirmedOrders: (state.confirmedOrders || []).filter(
+            (o) => o.id !== id && o.referenceNumber !== id,
+          ),
+        })),
+      clearConfirmedOrders: () => set({ confirmedOrders: [] }),
 
       quickView: {
         isOpen: false,
@@ -189,7 +219,10 @@ export const useStore = create<AppStore>()(
     {
       name: "mark_architects_cart_store",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ cart: state.cart }),
+      partialize: (state) => ({
+        cart: state.cart,
+        confirmedOrders: state.confirmedOrders,
+      }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated?.(true);
       },

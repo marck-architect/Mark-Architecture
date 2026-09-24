@@ -6,7 +6,6 @@ import {
   ConsultationEmailData,
 } from "./templates/consultation-confirmation";
 import { getSupabaseAdminClient } from "../supabaseAdmin";
-import type { NotificationRecord } from "@/types";
 
 export interface SendConsultationEmailParams extends ConsultationEmailData {
   forceResend?: boolean;
@@ -136,14 +135,20 @@ export async function sendConsultationConfirmation(
 
   // 4. Update consultation record email_status
   try {
-    await supabase
+    const { error: emailUpdateErr } = await supabase
       .from("consultations")
       .update({
         email_status: status,
-        meeting_link_sent_at: status === "sent" ? nowIso : null,
         updated_at: nowIso,
       })
       .eq("id", consultationId);
+
+    if (emailUpdateErr) {
+      console.warn(
+        "[EmailService] Failed to update consultation email_status:",
+        emailUpdateErr.message,
+      );
+    }
   } catch (err) {
     console.warn(
       "[EmailService] Failed to update consultation email_status:",

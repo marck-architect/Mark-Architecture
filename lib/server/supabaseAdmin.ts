@@ -21,6 +21,15 @@ export function getSupabaseAdminClient(): SupabaseClient {
     );
   }
 
+  if (
+    !process.env.SUPABASE_SERVICE_ROLE_KEY &&
+    process.env.NODE_ENV !== "test"
+  ) {
+    console.warn(
+      "[SupabaseAdmin] WARNING: SUPABASE_SERVICE_ROLE_KEY is not set in .env.local. Falling back to publishable key. Server-side database updates (marking payments as paid, etc.) will be blocked by RLS policies unless SUPABASE_SERVICE_ROLE_KEY is set.",
+    );
+  }
+
   if (!cachedAdminClient) {
     cachedAdminClient = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false },

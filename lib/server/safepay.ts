@@ -141,13 +141,18 @@ export async function createSafepayCheckoutSession(
   }
 
   // 4. Generate Checkout URL
+  const separator = redirectUrl.includes("?") ? "&" : "?";
+  const finalRedirectUrl = redirectUrl.includes("tracker=")
+    ? redirectUrl
+    : `${redirectUrl}${separator}tracker=${encodeURIComponent(trackerToken)}`;
+
   const checkoutUrl = safepayClient.checkout.createCheckoutUrl({
     env,
     tracker: trackerToken,
     tbt: tbtToken,
     source: "hosted",
     user_id: customerToken,
-    redirect_url: redirectUrl,
+    redirect_url: finalRedirectUrl,
     cancel_url: cancelUrl,
   });
 
@@ -166,6 +171,7 @@ export async function fetchSafepayTrackerStatus(trackerToken: string) {
   if (!hasLiveSafepayCredentials || !safepayClient) {
     return {
       state: "TRACKER_ENDED",
+      isCompleted: true,
       isSimulated: true,
       success: true,
     };
@@ -173,17 +179,24 @@ export async function fetchSafepayTrackerStatus(trackerToken: string) {
 
   try {
     const response = await safepayClient.reporter.payments.fetch(trackerToken);
-    const tracker = response?.data?.tracker;
+    const tracker = response?.data?.tracker || response?.data;
+    const trackerState = tracker?.state || response?.data?.state;
+    const isCompleted =
+      trackerState === "TRACKER_ENDED" ||
+      trackerState === "COMPLETED" ||
+      trackerState === "PAID" ||
+      tracker?.is_success === true;
+
     return {
-      state: tracker?.state, // e.g. "TRACKER_ENDED"
-      isCompleted: tracker?.state === "TRACKER_ENDED",
+      state: trackerState,
+      isCompleted,
       purchaseTotals: tracker?.purchase_totals,
       action: response?.data?.action,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("Error fetching Safepay tracker:", message);
-    return { error: message };
+    return { error: message, isCompleted: false };
   }
 }
 
