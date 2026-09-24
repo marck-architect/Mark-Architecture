@@ -111,7 +111,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <HeroCinematic />
 
       {/* Practice Principles Tailored to Pakistan */}
-      <section className="mx-auto max-w-container-max px-4 py-24 md:px-margin-desktop md:py-32">
+      <section
+        id="home-content"
+        className="mx-auto max-w-container-max px-4 py-24 md:px-margin-desktop md:py-32"
+      >
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <ScrollReveal>
             <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#8a6125] md:text-sm">

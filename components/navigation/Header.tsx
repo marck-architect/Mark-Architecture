@@ -33,10 +33,14 @@ export const Header: React.FC = () => {
         const nextSection = document.getElementById("home-content");
         if (nextSection) {
           const rect = nextSection.getBoundingClientRect();
-          // Keep header completely transparent during both hero images
-          // until the next content section reaches the top of the viewport
-          return rect.top <= 80;
+          // Keep header completely transparent during the hero section
+          // until the next content section reaches the bottom of the header (72px)
+          return rect.top <= 72;
         }
+        return (
+          window.scrollY >=
+          (typeof window !== "undefined" ? window.innerHeight : 800)
+        );
       }
       return window.scrollY > 40;
     };
@@ -57,9 +61,11 @@ export const Header: React.FC = () => {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
     return () => {
       cancelAnimationFrame(initialFrame);
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
     };
   }, [pathname]);
 
