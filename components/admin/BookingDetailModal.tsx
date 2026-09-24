@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Mail,
 } from "lucide-react";
+import { useStore } from "@/hooks/useStore";
 import type { ConsultationRecord, BookingDetailModalProps } from "@/types";
 
 export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
@@ -87,8 +88,8 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
       };
 
       onUpdate(updated);
-      setSaveSuccess("Changes successfully saved to database.");
-      setTimeout(() => setSaveSuccess(null), 3500);
+      useStore.getState().showToast("Changes successfully saved to database.");
+      onClose();
     } catch (err: unknown) {
       setSaveError(err instanceof Error ? err.message : "Save failed.");
     } finally {

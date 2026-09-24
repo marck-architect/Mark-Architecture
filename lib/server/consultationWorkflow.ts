@@ -2,7 +2,6 @@ import "server-only";
 import { getSupabaseAdminClient } from "./supabaseAdmin";
 import { createConsultationCalendarEvent } from "./google/googleCalendarService";
 import { sendConsultationConfirmation } from "./email/emailService";
-import type { ConsultationRecord } from "@/types";
 
 export interface ProcessPaidConsultationResult {
   success: boolean;

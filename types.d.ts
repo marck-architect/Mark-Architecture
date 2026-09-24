@@ -97,6 +97,8 @@ export interface AppStore {
 
   // Cart State
   cart: CartItem[];
+  hasHydrated?: boolean;
+  setHasHydrated?: (hydrated: boolean) => void;
   addToCart: (item: {
     title: string;
     price: number;

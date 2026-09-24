@@ -12,11 +12,18 @@ import { navLinks } from "@/data/navigation";
 export const Header: React.FC = () => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const { toggleCartDrawer, toggleMobileMenu, mobileMenuOpen, cart } =
     useStore();
 
-  const totalCartQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const totalCartQuantity = mounted
+    ? cart.reduce((acc, item) => acc + item.quantity, 0)
+    : 0;
 
   useEffect(() => {
     let ticking = false;
