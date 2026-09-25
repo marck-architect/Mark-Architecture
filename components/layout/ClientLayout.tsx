@@ -11,6 +11,7 @@ import { ProductModal } from "@/components/ui/ProductModal";
 import { LightboxModal } from "@/components/ui/LightboxModal";
 import { SuccessModal } from "@/components/ui/SuccessModal";
 import { Toast } from "@/components/ui/Toast";
+import { RouteProgressBar } from "@/components/navigation/RouteProgressBar";
 import type { ClientLayoutProps } from "@/types";
 
 export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
@@ -78,9 +79,19 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
     };
   }, [isAdminRoute]);
 
+  useEffect(() => {
+    // Reset scroll to top immediately on route transitions without friction
+    if (!isAdminRoute && typeof window !== "undefined") {
+      (window as unknown as { lenis?: Lenis }).lenis?.scrollTo(0, {
+        immediate: true,
+      });
+    }
+  }, [pathname, isAdminRoute]);
+
   if (isAdminRoute) {
     return (
       <>
+        <RouteProgressBar />
         <main className="flex-grow min-h-screen bg-surface text-on-surface">
           {children}
         </main>
@@ -91,6 +102,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
 
   return (
     <>
+      <RouteProgressBar />
       <Header />
       <MobileMenu />
 

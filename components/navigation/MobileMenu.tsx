@@ -53,6 +53,7 @@ export const MobileMenu: React.FC = () => {
             <Link
               key={link.href}
               href={link.href}
+              prefetch={true}
               onClick={() => setMobileMenuOpen(false)}
               className="font-inter text-base font-semibold text-on-surface hover:text-tertiary transition-colors py-1.5 flex items-center min-h-[44px]"
             >
@@ -61,6 +62,7 @@ export const MobileMenu: React.FC = () => {
           ))}
           <Link
             href="/consultation"
+            prefetch={true}
             onClick={() => setMobileMenuOpen(false)}
             className="w-full bg-primary text-on-primary py-3.5 rounded-xl font-bold mt-2 text-center block shadow-md hover:bg-tertiary active:scale-98 transition-all min-h-[48px] flex items-center justify-center font-inter text-xs uppercase tracking-wider"
           >

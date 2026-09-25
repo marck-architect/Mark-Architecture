@@ -84,6 +84,7 @@ export const Header: React.FC = () => {
         {/* Brand Logo */}
         <Link
           href="/"
+          prefetch={true}
           className="flex items-center group cursor-pointer focus:outline-none"
           aria-label="MARK Architects Home"
         >
@@ -126,6 +127,7 @@ export const Header: React.FC = () => {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch={true}
                 className={cn(
                   "font-inter text-sm font-semibold tracking-wide transition-colors pb-1 border-b-2 border-transparent",
                   isHomeHero

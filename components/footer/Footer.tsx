@@ -64,6 +64,7 @@ export const Footer: React.FC = () => {
               <li key={item.label}>
                 <Link
                   href={item.href}
+                  prefetch={true}
                   className="hover:text-tertiary-fixed transition-colors"
                 >
                   {item.label}
@@ -82,8 +83,9 @@ export const Footer: React.FC = () => {
             {footerResourceLinks.map((item) => (
               <li key={item.label}>
                 <Link
-                  className="hover:text-tertiary-fixed transition-colors"
                   href={item.href}
+                  prefetch={true}
+                  className="hover:text-tertiary-fixed transition-colors"
                 >
                   {item.label}
                 </Link>

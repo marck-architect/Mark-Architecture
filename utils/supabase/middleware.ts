@@ -40,41 +40,41 @@ export const createClient = async (request: NextRequest) => {
     return NextResponse.redirect(homeUrl);
   }
 
-  if (!supabaseUrl || !supabaseKey) {
-    // Local UI-only dev fallback: no Supabase project configured, skip
-    // auth/session handling entirely instead of throwing on every request.
-    return supabaseResponse;
-  }
-
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value),
-        );
-        supabaseResponse = NextResponse.next({
-          request,
-        });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options),
-        );
-      },
-    },
-  });
-
-  // Refresh user session token
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const adminEmail =
-    process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-
-  // 3. Protect /markarchit/admin routes
+  // 3. Only initialize Supabase Auth on admin back-office routes
   if (pathname.startsWith("/markarchit/admin")) {
+    if (!supabaseUrl || !supabaseKey) {
+      // Local UI-only dev fallback: no Supabase project configured, skip
+      // auth/session handling entirely instead of throwing on every request.
+      return supabaseResponse;
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          supabaseResponse = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options),
+          );
+        },
+      },
+    });
+
+    // Refresh user session token
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const adminEmail =
+      process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
     const isLoginPage = pathname === "/markarchit/admin/login";
     const isResetPasswordPage = pathname === "/markarchit/admin/reset-password";
     const isAuthenticatedAdmin =

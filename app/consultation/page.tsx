@@ -34,8 +34,7 @@ import { getSiteContent, getPublicServices } from "@/lib/server/content";
 import { defaultPricingSettings } from "@/data/pricing";
 import type { PricingSettingsContent } from "@/types";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function ConsultationPage() {
   const [pricing, services] = await Promise.all([
