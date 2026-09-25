@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { Header } from "@/components/navigation/Header";
@@ -91,7 +91,9 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   if (isAdminRoute) {
     return (
       <>
-        <RouteProgressBar />
+        <Suspense fallback={null}>
+          <RouteProgressBar />
+        </Suspense>
         <main className="flex-grow min-h-screen bg-surface text-on-surface">
           {children}
         </main>
@@ -102,7 +104,9 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
 
   return (
     <>
-      <RouteProgressBar />
+      <Suspense fallback={null}>
+        <RouteProgressBar />
+      </Suspense>
       <Header />
       <MobileMenu />
 

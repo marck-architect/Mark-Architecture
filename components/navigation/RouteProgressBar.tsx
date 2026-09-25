@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export const RouteProgressBar: React.FC = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -20,7 +19,7 @@ export const RouteProgressBar: React.FC = () => {
       }, 250);
       return () => clearTimeout(timer);
     }
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   // Intercept click on internal links to provide instant visual feedback (< 16ms)
   useEffect(() => {
