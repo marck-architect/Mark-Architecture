@@ -52,7 +52,7 @@
     ]
   },
   "consultationCalls": {
-    "basicCallPrice": 1000,
+    "basicCallPrice": 3000,
     "premiumCallPrice": 5000,
     "basicCallDuration": 30,
     "premiumCallDuration": 60
@@ -67,7 +67,7 @@
           "tag": "Quick Guidance",
           "name": "Basic Call",
           "notes": "Ideal for quick spatial checks or second opinions on layout drawings.",
-          "pricePKR": 1000,
+          "pricePKR": 3000,
           "actionType": "consultation",
           "inclusions": [
             "30 minutes Zoom video call",
@@ -76,7 +76,7 @@
             "Direct answers to design dilemmas"
           ],
           "deliveryTime": "Scheduled (30 mins)",
-          "priceFormatted": "PKR 1,000"
+          "priceFormatted": "PKR 3,000"
         },
         {
           "id": "consult-premium",
@@ -434,7 +434,7 @@
     }
   ],
   "currency": "PKR",
-  "updatedAt": "2026-09-22T07:53:56.903Z",
+  "updatedAt": "2026-09-25T05:38:22.537Z",
   "turnkeyRateSqFt": 57,
   "consultationRateBasic": 3000,
   "consultationRatePremium": 5000

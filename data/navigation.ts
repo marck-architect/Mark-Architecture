@@ -4,8 +4,8 @@ export const navLinks: NavLink[] = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Portfolio", href: "/portfolio" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Products", href: "/collection" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Services & Consultation", href: "/consultation" },
   { label: "FAQs", href: "/faqs" },
 ];
@@ -14,9 +14,9 @@ export const mobileMenuLinks: NavLink[] = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Portfolio", href: "/portfolio" },
-  { label: "Pricing Menu", href: "/pricing" },
-  { label: "Services & Consultation", href: "/consultation" },
   { label: "Products", href: "/collection" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Services & Consultation", href: "/consultation" },
   { label: "FAQs & Guide", href: "/faqs" },
 ];
 
@@ -31,8 +31,6 @@ export const footerNavigationLinks: NavLink[] = [
 
 export const footerResourceLinks: NavLink[] = [
   { label: "FAQs & Client Guide", href: "/faqs" },
-  { label: "Blueprint Access", href: "#" },
-  { label: "Press Kit", href: "#" },
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms of Service", href: "#" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms of Service", href: "/terms" },
 ];

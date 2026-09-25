@@ -342,7 +342,7 @@ export const AdminResetPasswordView: React.FC = () => {
 
       // Redirect after confirmation
       setTimeout(() => {
-        router.push("/admin");
+        router.push("/markarchit/admin");
         router.refresh();
       }, 1500);
     } catch (err: unknown) {
@@ -460,7 +460,7 @@ export const AdminResetPasswordView: React.FC = () => {
                     : "Or enter 6-digit code from email"}
                 </button>
                 <Link
-                  href="/admin/login"
+                  href="/markarchit/admin/login"
                   className="text-stone-500 hover:text-stone-800 transition-colors font-medium"
                 >
                   Return to Sign In
@@ -611,7 +611,7 @@ export const AdminResetPasswordView: React.FC = () => {
 
             <div className="text-center pt-2">
               <Link
-                href="/admin/login"
+                href="/markarchit/admin/login"
                 className="text-xs text-stone-500 hover:text-stone-800 transition-colors inline-flex items-center gap-1 font-medium"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />

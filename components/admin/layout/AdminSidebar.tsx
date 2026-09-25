@@ -147,7 +147,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         {/* Brand Header */}
         <div className="h-16 px-4 flex items-center justify-between border-b border-stone-200/80 bg-stone-50/50 transition-all">
           <Link
-            href="/admin"
+            href="/markarchit/admin"
             className="flex items-center gap-2.5 overflow-hidden focus:outline-none"
           >
             <div className="w-8 h-8 rounded-lg bg-[#1C1B1B] p-1.5 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">

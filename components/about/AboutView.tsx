@@ -136,18 +136,23 @@ export const AboutView: React.FC<AboutViewProps> = ({
       {/* Firm Leadership & Credentials */}
       <section
         id="leadership"
-        className="py-24 border-b border-outline-variant/20 scroll-mt-20"
+        className="relative overflow-hidden bg-[#292722] text-white py-24 border-b border-white/10 scroll-mt-20"
       >
-        <div className="px-4 md:px-margin-desktop max-w-container-max mx-auto">
+        {/* Subtle architectural background geometry matching Testimonials Carousel */}
+        <div className="pointer-events-none absolute -right-24 top-0 h-96 w-96 rounded-full border border-[#c9a86e]/15" />
+        <div className="pointer-events-none absolute -right-8 top-8 h-80 w-80 rounded-full border border-[#c9a86e]/10" />
+        <div className="pointer-events-none absolute -left-20 bottom-0 h-72 w-72 rounded-full border border-[#c9a86e]/10" />
+
+        <div className="relative z-10 px-4 md:px-margin-desktop max-w-container-max mx-auto">
           <ScrollReveal>
             <div className="space-y-3 mb-16 max-w-2xl">
-              <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
+              <span className="font-inter text-xs md:text-sm font-bold uppercase tracking-[0.3em] text-[#c9a86e] block">
                 PRACTICE LEADERSHIP
               </span>
-              <h2 className="font-playfair text-3xl md:text-5xl text-on-surface dark:text-zinc-100 font-normal">
+              <h2 className="font-playfair text-3xl md:text-5xl text-white font-normal">
                 Principal Architect and Founder.
               </h2>
-              <p className="font-inter text-sm md:text-base text-on-surface-variant dark:text-zinc-400 font-light">
+              <p className="font-inter text-sm md:text-base text-zinc-300 font-light leading-relaxed">
                 Every project is personally spearheaded by Muhammad Arsalan,
                 ensuring structural stability, functional elegance, and strict
                 compliance with local municipal codes.
@@ -156,15 +161,13 @@ export const AboutView: React.FC<AboutViewProps> = ({
           </ScrollReveal>
         </div>
 
-        {/* Full-bleed profile band: qualifications on the left, portrait
-            filling the entire right half edge to edge, spanning the whole
-            page width rather than sitting inside a small contained card. */}
+        {/* Full-bleed profile band */}
         {leaders.length === 0 ? (
-          <div className="max-w-container-max mx-auto px-4 md:px-margin-desktop py-16 text-center border border-dashed border-outline-variant/30 rounded-3xl bg-surface-container-low/40 dark:bg-zinc-900/30">
-            <p className="font-playfair text-2xl text-on-surface dark:text-zinc-200">
+          <div className="relative z-10 max-w-container-max mx-auto px-4 md:px-margin-desktop py-16 text-center border border-dashed border-white/20 rounded-3xl bg-white/[0.03]">
+            <p className="font-playfair text-2xl text-white">
               No team profiles published yet
             </p>
-            <p className="font-inter text-sm text-zinc-500 mt-2 max-w-md mx-auto">
+            <p className="font-inter text-sm text-zinc-400 mt-2 max-w-md mx-auto">
               Architect and team leadership profiles will appear here once
               published from the admin dashboard.
             </p>
@@ -173,24 +176,19 @@ export const AboutView: React.FC<AboutViewProps> = ({
           leaders.map((leader) => (
             <div
               key={leader.name}
-              className="w-full grid grid-cols-1 lg:grid-cols-[2fr_3fr] bg-surface-container-low dark:bg-zinc-900 border-y border-outline-variant/20"
+              className="relative z-10 w-full grid grid-cols-1 lg:grid-cols-[2fr_3fr] bg-white/[0.03] border-y border-white/10 overflow-hidden"
             >
-              {/* Left: contained circular portrait — left-aligned in its
-                  column, vertically centered against the text. A defined
-                  circular boundary (with the offset gold ring as the
-                  deliberate edge) rather than a full-bleed rectangle means
-                  there's no seam to fight regardless of the source photo's
-                  own backdrop color. */}
+              {/* Left: contained circular portrait sliding in from the left */}
               <div className="flex items-center justify-start px-6 md:px-margin-desktop lg:px-16 py-14 lg:py-16">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  initial={{ opacity: 0, x: -70, scale: 0.96 }}
+                  whileInView={{ opacity: 1, x: 0, scale: 1 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                   className="relative w-[280px] sm:w-[360px] lg:w-[450px] aspect-square shrink-0"
                 >
                   {/* Photo circle */}
-                  <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl bg-surface-container dark:bg-zinc-950">
+                  <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl bg-zinc-950 border border-white/10">
                     <Image
                       fill
                       src={leader.image}
@@ -211,52 +209,53 @@ export const AboutView: React.FC<AboutViewProps> = ({
                       cy="50"
                       r="49"
                       fill="none"
-                      stroke="#8a6125"
+                      stroke="#c9a86e"
                       strokeWidth="1.2"
-                      strokeOpacity="0.3"
+                      strokeOpacity="0.4"
                     />
                     <motion.circle
                       cx="50"
                       cy="50"
                       r="49"
                       fill="none"
-                      stroke="#8a6125"
+                      stroke="#e8c889"
                       strokeWidth="1.5"
                       pathLength={1}
                       initial={{ pathLength: 0, opacity: 0 }}
                       whileInView={{ pathLength: 1, opacity: 1 }}
-                      viewport={{ once: true, amount: 0.2 }}
+                      viewport={{ once: true, amount: 0.25 }}
                       transition={{
                         pathLength: {
-                          duration: 0.8,
-                          delay: 0.2,
+                          duration: 1.0,
+                          delay: 0.35,
                           ease: "easeInOut",
                         },
-                        opacity: { duration: 0.3, delay: 0.2 },
+                        opacity: { duration: 0.4, delay: 0.3 },
                       }}
                     />
                   </svg>
                 </motion.div>
               </div>
 
-              {/* Right: qualifications — vertically centered, same left
-                  gutter as the rest of the page. Slides up slightly after
-                  the photo starts, rather than sliding sideways too, so the
-                  two don't compete with identical motion. */}
+              {/* Right: qualifications sliding in from the right */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
+                initial={{ opacity: 0, x: 70 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{
+                  duration: 0.85,
+                  ease: [0.22, 1, 0.36, 1],
+                  delay: 0.15,
+                }}
                 className="flex flex-col justify-center px-4 md:px-margin-desktop py-14 lg:py-20"
               >
                 <div className="max-w-xl space-y-5 w-full">
                   <div>
-                    <div className="h-px w-12 bg-tertiary/50 mb-4" />
-                    <h3 className="font-playfair text-4xl sm:text-5xl font-bold text-on-surface dark:text-zinc-100">
+                    <div className="h-px w-12 bg-[#c9a86e] mb-4" />
+                    <h3 className="font-playfair text-4xl sm:text-5xl font-bold text-white">
                       {leader.name}
                     </h3>
-                    <p className="text-sm sm:text-base text-tertiary font-inter font-semibold mt-1.5">
+                    <p className="text-sm sm:text-base text-[#e8c889] font-inter font-semibold mt-1.5">
                       {leader.role}
                     </p>
                   </div>
@@ -265,35 +264,29 @@ export const AboutView: React.FC<AboutViewProps> = ({
                     {leader.credentials.split(" • ").map((cred) => (
                       <span
                         key={cred}
-                        className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-900 text-on-surface dark:text-zinc-200 text-xs sm:text-sm font-inter font-semibold px-3.5 py-2 rounded-lg border border-outline-variant/40 shadow-xs"
+                        className="inline-flex items-center gap-1.5 bg-white/10 text-white text-xs sm:text-sm font-inter font-medium px-3.5 py-2 rounded-lg border border-white/15 shadow-xs backdrop-blur-xs"
                       >
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#e8c889] shrink-0" />
                         {cred}
                       </span>
                     ))}
                   </div>
 
-                  <p className="font-inter text-base text-on-surface-variant dark:text-zinc-300 font-light leading-relaxed">
+                  <p className="font-inter text-base text-zinc-300 font-light leading-relaxed">
                     {leader.bio}
                   </p>
 
-                  <div className="pt-3 border-t border-outline-variant/20 flex flex-wrap gap-5 text-sm text-on-surface-variant dark:text-zinc-400">
+                  <div className="pt-3 border-t border-white/10 flex flex-wrap gap-5 text-sm text-zinc-400">
                     <div>
-                      <span className="font-bold text-on-surface dark:text-zinc-200">
-                        Experience:
-                      </span>{" "}
+                      <span className="font-bold text-white">Experience:</span>{" "}
                       {leader.experience.split(" ").slice(0, 2).join(" ")}
                     </div>
                     <div>
-                      <span className="font-bold text-on-surface dark:text-zinc-200">
-                        Focus:
-                      </span>{" "}
+                      <span className="font-bold text-white">Focus:</span>{" "}
                       Residential &amp; Commercial Masterplanning
                     </div>
                     <div>
-                      <span className="font-bold text-on-surface dark:text-zinc-200">
-                        Council:
-                      </span>{" "}
+                      <span className="font-bold text-white">Council:</span>{" "}
                       PCATP Licensed Architect
                     </div>
                   </div>

@@ -81,12 +81,12 @@ export const Footer: React.FC = () => {
           <ul className="space-y-2.5 font-inter text-sm font-light">
             {footerResourceLinks.map((item) => (
               <li key={item.label}>
-                <a
+                <Link
                   className="hover:text-tertiary-fixed transition-colors"
                   href={item.href}
                 >
                   {item.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

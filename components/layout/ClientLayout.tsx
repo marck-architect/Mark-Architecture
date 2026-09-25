@@ -15,7 +15,9 @@ import type { ClientLayoutProps } from "@/types";
 
 export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   const pathname = usePathname();
-  const isAdminRoute = pathname?.startsWith("/admin");
+  const isAdminRoute = Boolean(
+    pathname?.startsWith("/markarchit/admin") || pathname?.startsWith("/admin"),
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -36,9 +38,12 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
 
     if (
       (isRecoveryHash || isRecoverySearch) &&
+      !pathname?.startsWith("/markarchit/admin/reset-password") &&
       !pathname?.startsWith("/admin/reset-password")
     ) {
-      window.location.replace(`/admin/reset-password${search}${hash}`);
+      window.location.replace(
+        `/markarchit/admin/reset-password${search}${hash}`,
+      );
     }
   }, [pathname]);
 

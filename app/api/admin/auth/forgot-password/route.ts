@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     // Determine application origin for redirect (production live link vs local development)
     const origin = getAppOrigin(request);
-    const redirectTo = `${origin}/auth/callback?next=/admin/reset-password`;
+    const redirectTo = `${origin}/auth/callback?next=/markarchit/admin/reset-password`;
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);

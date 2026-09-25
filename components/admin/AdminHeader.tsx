@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
-import { LogOut, Loader2 } from "lucide-react";
+import { LogOut, Loader2, Lock } from "lucide-react";
 import Link from "next/link";
 import type { AdminHeaderProps } from "@/types";
 
@@ -16,8 +16,19 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ adminEmail }) => {
   const handleSignOut = async () => {
     setIsLoggingOut(true);
     await supabase.auth.signOut();
-    router.push("/admin/login");
+    router.push("/markarchit/admin/login");
     router.refresh();
+  };
+
+  const handleLockPortal = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch("/api/admin/auth/lock", { method: "POST" });
+      await supabase.auth.signOut();
+    } catch {
+      // Fallback
+    }
+    window.location.href = "/";
   };
 
   return (
@@ -26,7 +37,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ adminEmail }) => {
         {/* Brand & Badge */}
         <div className="flex items-center gap-3">
           <Link
-            href="/admin"
+            href="/markarchit/admin"
             className="flex items-center gap-2.5 text-stone-900 hover:text-[#7E5714] transition-colors group"
           >
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center p-1.5 group-hover:scale-105 transition-transform">
@@ -67,6 +78,17 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ adminEmail }) => {
           >
             <span>Live Site</span>
           </Link>
+
+          {/* Lock Portal Button */}
+          <button
+            onClick={handleLockPortal}
+            disabled={isLoggingOut}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-all cursor-pointer disabled:opacity-50"
+            title="Lock Portal (Revoke URL Key Cookie and return to Live Site)"
+          >
+            <Lock className="w-3.5 h-3.5 text-amber-700" />
+            <span className="hidden sm:inline">Lock Portal</span>
+          </button>
 
           {/* Sign Out Button */}
           <button

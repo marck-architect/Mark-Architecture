@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
-
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -15,8 +14,7 @@ export const createClient = async (request: NextRequest) => {
   const pathname = request.nextUrl.pathname;
   const searchParams = request.nextUrl.searchParams;
 
-  // Intercept any Supabase recovery redirects that landed on the root URL or other pages
-  // (e.g. when Supabase falls back to Site URL http://localhost:3000/?error=... or ?code=...)
+  // 1. Intercept any Supabase recovery redirects that landed on the root URL or other pages
   if (pathname === "/") {
     const hasAuthError =
       searchParams.has("error") ||
@@ -29,9 +27,17 @@ export const createClient = async (request: NextRequest) => {
 
     if (hasAuthError || hasRecoveryParams) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/admin/reset-password";
+      redirectUrl.pathname = "/markarchit/admin/reset-password";
       return NextResponse.redirect(redirectUrl);
     }
+  }
+
+  // 2. Cloak legacy /admin routes: redirect bots and direct visitors to home (/)
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    homeUrl.search = "";
+    return NextResponse.redirect(homeUrl);
   }
 
   if (!supabaseUrl || !supabaseKey) {
@@ -67,21 +73,23 @@ export const createClient = async (request: NextRequest) => {
   const adminEmail =
     process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
-  if (pathname.startsWith("/admin")) {
-    const isLoginPage = pathname === "/admin/login";
-    const isResetPasswordPage = pathname === "/admin/reset-password";
+  // 3. Protect /markarchit/admin routes
+  if (pathname.startsWith("/markarchit/admin")) {
+    const isLoginPage = pathname === "/markarchit/admin/login";
+    const isResetPasswordPage = pathname === "/markarchit/admin/reset-password";
     const isAuthenticatedAdmin =
-      Boolean(user) && (!adminEmail || user?.email === adminEmail);
+      Boolean(user) &&
+      (!adminEmail || user?.email?.toLowerCase() === adminEmail.toLowerCase());
 
     if (!isAuthenticatedAdmin && !isLoginPage && !isResetPasswordPage) {
       const url = request.nextUrl.clone();
-      url.pathname = "/admin/login";
+      url.pathname = "/markarchit/admin/login";
       return NextResponse.redirect(url);
     }
 
     if (isAuthenticatedAdmin && isLoginPage) {
       const url = request.nextUrl.clone();
-      url.pathname = "/admin";
+      url.pathname = "/markarchit/admin";
       return NextResponse.redirect(url);
     }
   }

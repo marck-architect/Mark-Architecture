@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const returnUrl =
-      searchParams.get("returnUrl") || "/admin?tab=consultations";
+      searchParams.get("returnUrl") || "/markarchit/admin?tab=consultations";
 
     const authUrl = getGoogleAuthUrl(encodeURIComponent(returnUrl));
     return NextResponse.redirect(authUrl);

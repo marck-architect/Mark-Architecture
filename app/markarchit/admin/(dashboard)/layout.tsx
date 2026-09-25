@@ -2,7 +2,6 @@ import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { AdminHeader } from "@/components/admin/AdminHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -23,11 +22,11 @@ export default async function AdminDashboardLayout({
 
   // Enforce single-email admin protection
   if (!user) {
-    redirect("/admin/login");
+    redirect("/markarchit/admin/login");
   }
 
   if (adminEmail && user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
-    redirect("/admin/login");
+    redirect("/markarchit/admin/login");
   }
 
   return (

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
     const returnUrl = state
       ? decodeURIComponent(state)
-      : "/admin?tab=consultations";
+      : "/markarchit/admin?tab=consultations";
     const appOrigin =
       process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
 

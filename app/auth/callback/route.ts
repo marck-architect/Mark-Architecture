@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/admin/reset-password";
+  const next = searchParams.get("next") ?? "/markarchit/admin/reset-password";
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       errorDescription || error || "Recovery link is invalid or has expired.",
     );
     return NextResponse.redirect(
-      `${origin}/admin/reset-password?error=${errorMsg}`,
+      `${origin}/markarchit/admin/reset-password?error=${errorMsg}`,
     );
   }
 
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
         );
         const errorMsg = encodeURIComponent(exchangeError.message);
         return NextResponse.redirect(
-          `${origin}/admin/reset-password?error=${errorMsg}`,
+          `${origin}/markarchit/admin/reset-password?error=${errorMsg}`,
         );
       }
     } catch (err) {
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
         );
         const errorMsg = encodeURIComponent(verifyError.message);
         return NextResponse.redirect(
-          `${origin}/admin/reset-password?error=${errorMsg}`,
+          `${origin}/markarchit/admin/reset-password?error=${errorMsg}`,
         );
       }
     } catch (err) {
@@ -86,5 +86,5 @@ export async function GET(request: Request) {
 
   // If no server-readable code/token_hash was found (e.g. hash fragment was used in browser),
   // NEVER redirect to login; redirect directly to the reset-password page so client-side auth can process it!
-  return NextResponse.redirect(`${origin}/admin/reset-password`);
+  return NextResponse.redirect(`${origin}/markarchit/admin/reset-password`);
 }

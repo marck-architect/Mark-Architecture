@@ -39,7 +39,7 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
     } catch {
       // Ignore
     }
-    router.push("/admin/login");
+    router.push("/markarchit/admin/login");
     router.refresh();
   };
 

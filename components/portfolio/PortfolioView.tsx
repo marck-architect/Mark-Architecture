@@ -159,15 +159,10 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                     price: project.price,
                   })
                 }
-                className="group relative overflow-hidden rounded-3xl cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900 flex flex-col justify-between"
+                className="group relative overflow-hidden rounded-3xl cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900 flex flex-col justify-between h-full"
               >
-                {/* Image Container with Next.js Image */}
-                <div
-                  className={cn(
-                    "relative w-full overflow-hidden bg-zinc-950",
-                    project.aspectClass || "aspect-[4/3]",
-                  )}
-                >
+                {/* Standardized Responsive Image Container with Next.js Image */}
+                <div className="relative w-full aspect-[16/10] overflow-hidden bg-zinc-950 shrink-0">
                   <Image
                     fill
                     src={project.imageSrc}
@@ -188,16 +183,18 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                   )}
                 </div>
 
-                {/* Content Overlay / Card Footer */}
-                <div className="p-6 space-y-2 bg-surface-container-low dark:bg-zinc-900 border-t border-outline-variant/20">
-                  <h3 className="font-playfair text-xl font-bold text-on-surface dark:text-zinc-100 group-hover:text-tertiary transition-colors">
-                    {project.title}
-                  </h3>
-                  <div className="flex items-center gap-1.5 text-xs text-on-surface-variant dark:text-zinc-400">
-                    <MapPin className="w-3.5 h-3.5 text-tertiary shrink-0" />
-                    <span>{project.location}</span>
+                {/* Content Overlay / Card Footer - Equalized layout */}
+                <div className="p-6 space-y-3 bg-surface-container-low dark:bg-zinc-900 border-t border-outline-variant/20 flex-1 flex flex-col justify-between">
+                  <div className="space-y-1.5">
+                    <h3 className="font-playfair text-xl font-bold text-on-surface dark:text-zinc-100 group-hover:text-tertiary transition-colors line-clamp-1">
+                      {project.title}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-xs text-on-surface-variant dark:text-zinc-400">
+                      <MapPin className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                      <span className="truncate">{project.location}</span>
+                    </div>
                   </div>
-                  <p className="font-inter text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 pt-1 font-light leading-relaxed">
+                  <p className="font-inter text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 font-light leading-relaxed min-h-[2rem]">
                     {project.description}
                   </p>
                 </div>

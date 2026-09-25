@@ -75,7 +75,7 @@ export const AdminLoginView: React.FC = () => {
           return;
         }
 
-        router.push("/admin");
+        router.push("/markarchit/admin");
         router.refresh();
       }
     } catch (err: unknown) {
@@ -128,7 +128,7 @@ export const AdminLoginView: React.FC = () => {
             : "http://localhost:3000";
         const { error: clientError } =
           await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-            redirectTo: `${origin}/admin/reset-password`,
+            redirectTo: `${origin}/markarchit/admin/reset-password`,
           });
 
         if (clientError) {
