@@ -6,17 +6,16 @@ import {
   Star,
   Plus,
   Search,
-  CheckCircle2,
   X,
   Edit2,
   Trash2,
-  Building2,
   Award,
   Eye,
   EyeOff,
   Loader2,
 } from "lucide-react";
 import type { AdminTestimonial } from "@/types";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 export const TestimonialsManager: React.FC = () => {
   const [testimonials, setTestimonials] = useState<AdminTestimonial[]>([]);
@@ -27,6 +26,12 @@ export const TestimonialsManager: React.FC = () => {
   >("all");
   const [editingItem, setEditingItem] = useState<AdminTestimonial | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
   const fetchTestimonials = async () => {
     try {
@@ -75,6 +80,11 @@ export const TestimonialsManager: React.FC = () => {
       return true;
     });
   }, [testimonials, filterStatus, searchTerm]);
+
+  const paginatedTestimonials = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   const handleOpenCreate = () => {
     setEditingItem(null);
@@ -245,7 +255,7 @@ export const TestimonialsManager: React.FC = () => {
 
       {/* Testimonials Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filtered.map((item) => (
+        {paginatedTestimonials.map((item) => (
           <div
             key={item.id}
             className="bg-white border border-stone-200 rounded-sm p-6 shadow-sm flex flex-col justify-between hover:border-stone-400 transition-colors relative group"
@@ -354,6 +364,17 @@ export const TestimonialsManager: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      <AdminPagination
+        currentPage={currentPage}
+        totalItems={filtered.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[9, 18, 27]}
+        itemName="testimonials"
+      />
 
       {isLoading && (
         <div className="p-12 text-center bg-white border border-stone-200 rounded-sm text-stone-400 text-xs font-mono flex items-center justify-center gap-2">

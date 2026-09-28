@@ -4,13 +4,9 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import Image from "next/image";
 import {
   Upload,
-  Image as ImageIcon,
-  File,
   Trash2,
   Copy,
-  Check,
   Search,
-  ExternalLink,
   Grid,
   List,
   X,
@@ -19,6 +15,7 @@ import {
   FileText,
 } from "lucide-react";
 import type { MediaAsset } from "@/types";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 export const MediaLibraryManager: React.FC = () => {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
@@ -28,7 +25,13 @@ export const MediaLibraryManager: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(16);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetch("/api/admin/media")
@@ -51,6 +54,11 @@ export const MediaLibraryManager: React.FC = () => {
         (a.alt_text && a.alt_text.toLowerCase().includes(q)),
     );
   }, [assets, searchTerm]);
+
+  const paginatedAssets = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredAssets.slice(start, start + pageSize);
+  }, [filteredAssets, currentPage, pageSize]);
 
   // Handle File Upload
   const handleFileUpload = async (file: File) => {
@@ -212,7 +220,7 @@ export const MediaLibraryManager: React.FC = () => {
       {/* Assets Display */}
       {viewMode === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredAssets.map((asset) => (
+          {paginatedAssets.map((asset) => (
             <div
               key={asset.id}
               className="bg-white border border-stone-200 rounded-sm shadow-sm overflow-hidden group flex flex-col justify-between hover:border-stone-400 transition-colors"
@@ -272,6 +280,11 @@ export const MediaLibraryManager: React.FC = () => {
               </div>
             </div>
           ))}
+          {filteredAssets.length === 0 && (
+            <div className="col-span-full py-12 text-center text-stone-400 font-mono text-xs">
+              No media assets match current filters.
+            </div>
+          )}
         </div>
       ) : (
         <div className="bg-white border border-stone-200 rounded-sm shadow-sm overflow-hidden">
@@ -286,7 +299,7 @@ export const MediaLibraryManager: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-mono text-[11px]">
-              {filteredAssets.map((asset) => (
+              {paginatedAssets.map((asset) => (
                 <tr
                   key={asset.id}
                   className="hover:bg-stone-50/70 transition-colors"
@@ -342,10 +355,31 @@ export const MediaLibraryManager: React.FC = () => {
                   </td>
                 </tr>
               ))}
+              {filteredAssets.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="py-12 text-center text-stone-400 font-mono"
+                  >
+                    No media assets match current filters.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <AdminPagination
+        currentPage={currentPage}
+        totalItems={filteredAssets.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[16, 32, 48]}
+        itemName="assets"
+      />
 
       {/* Asset Preview Modal */}
       {selectedAsset && (

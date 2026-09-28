@@ -19,6 +19,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import type { ConsultationRecord } from "@/types";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 interface ConsultationsManagerProps {
   consultations: ConsultationRecord[];
@@ -35,6 +36,13 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [tierFilter, setTierFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset to first page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, tierFilter, dateFilter]);
 
   const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
   const [googleEmail, setGoogleEmail] = useState<string | null>(null);
@@ -114,6 +122,11 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
       return matchesSearch && matchesStatus && matchesTier && matchesDate;
     });
   }, [consultations, searchTerm, statusFilter, tierFilter, dateFilter, today]);
+
+  const paginatedConsultations = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   const handleExportCsv = () => {
     const headers = [
@@ -349,7 +362,7 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 text-stone-700">
-                {filtered.map((b) => {
+                {paginatedConsultations.map((b) => {
                   const isToday = b.booking_date === today;
                   const hasLink = Boolean(b.meeting_url);
                   const meetingStatus =
@@ -500,6 +513,19 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
           </div>
         )}
       </div>
+
+      {/* Pagination Bar */}
+      {filtered.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 20, 50]}
+          itemName="consultations"
+        />
+      )}
     </div>
   );
 };

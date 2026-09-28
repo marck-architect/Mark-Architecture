@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import {
   Plus,
@@ -15,6 +15,7 @@ import {
   Search,
 } from "lucide-react";
 import { ImageUploadField } from "@/components/admin/ui/ImageUploadField";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 export interface CollectionItem {
   id: string;
@@ -49,6 +50,12 @@ export const CollectionManager: React.FC = () => {
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const fetchPackages = async () => {
     setIsLoading(true);
@@ -227,12 +234,19 @@ export const CollectionManager: React.FC = () => {
     }
   };
 
-  const filteredPackages = packages.filter(
-    (p) =>
-      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.plot_dimensions?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredPackages = useMemo(() => {
+    return packages.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.plot_dimensions?.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [packages, searchTerm]);
+
+  const paginatedPackages = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredPackages.slice(start, start + pageSize);
+  }, [filteredPackages, currentPage, pageSize]);
 
   return (
     <div className="space-y-6">
@@ -320,7 +334,7 @@ export const CollectionManager: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredPackages.map((pkg) => (
+          {paginatedPackages.map((pkg) => (
             <div
               key={pkg.id}
               className="bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
@@ -420,6 +434,17 @@ export const CollectionManager: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <AdminPagination
+        currentPage={currentPage}
+        totalItems={filteredPackages.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[9, 18, 27]}
+        itemName="products"
+      />
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (

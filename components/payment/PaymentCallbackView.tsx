@@ -20,8 +20,11 @@ function PaymentCallbackContent() {
   const searchParams = useSearchParams();
   const { addConfirmedOrder, setCartDrawerOpen } = useStore();
 
-  const trackerParam =
+  const rawTracker =
     searchParams.get("tracker") || searchParams.get("beacon") || "";
+  const trackerParam = rawTracker
+    ? decodeURIComponent(rawTracker).split("?")[0].split("&")[0].trim()
+    : "";
   const orderId =
     searchParams.get("orderId") || searchParams.get("reference") || "";
   const type = searchParams.get("type") || "consultation";

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Layers,
   Search,
@@ -14,6 +14,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { OrderRecord } from "@/types";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 interface OrdersManagerProps {
   orders: OrderRecord[];
@@ -30,6 +31,13 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentTypeFilter, setPaymentTypeFilter] = useState("all");
   const [copiedTracker, setCopiedTracker] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, paymentTypeFilter]);
 
   const copyToClipboard = (text: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -108,6 +116,11 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [orders, searchTerm, statusFilter, paymentTypeFilter]);
+
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredOrders.slice(start, start + pageSize);
+  }, [filteredOrders, currentPage, pageSize]);
 
   // Export CSV
   const handleExportCSV = () => {
@@ -217,10 +230,11 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
           {onRefresh && (
             <button
               onClick={onRefresh}
-              className="p-2.5 rounded-xl border border-stone-200 bg-white text-stone-600 hover:text-stone-900 hover:bg-stone-50 transition-colors shadow-2xs cursor-pointer"
-              title="Refresh Orders"
+              className="px-3.5 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 hover:text-stone-900 hover:bg-stone-50 transition-colors shadow-2xs text-xs font-semibold flex items-center gap-2 cursor-pointer"
+              title="Refresh and auto-sync payments with Safepay"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4 text-stone-500" />
+              <span>Sync & Refresh</span>
             </button>
           )}
 
@@ -348,7 +362,7 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-inter">
-                {filteredOrders.map((order) => {
+                {paginatedOrders.map((order) => {
                   const status = getStatusBadge(order.payment_status);
                   const StatusIcon = status.icon;
 
@@ -501,6 +515,19 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
           </div>
         )}
       </div>
+
+      {/* Pagination Bar */}
+      {filteredOrders.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredOrders.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 20, 50]}
+          itemName="orders"
+        />
+      )}
     </div>
   );
 };

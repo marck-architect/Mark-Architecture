@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Users,
   Search,
@@ -18,6 +18,7 @@ import {
   Save,
 } from "lucide-react";
 import type { AdminClient, ConsultationRecord, OrderRecord } from "@/types";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 interface ClientsManagerProps {
   consultations: ConsultationRecord[];
@@ -33,6 +34,14 @@ export const ClientsManager: React.FC<ClientsManagerProps> = ({
   const [selectedClient, setSelectedClient] = useState<AdminClient | null>(
     null,
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const [isAddingClient, setIsAddingClient] = useState(false);
   const [newClient, setNewClient] = useState({
     name: "",
@@ -73,6 +82,11 @@ export const ClientsManager: React.FC<ClientsManagerProps> = ({
         (c.company && c.company.toLowerCase().includes(query)),
     );
   }, [clients, searchTerm]);
+
+  const paginatedClients = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredClients.slice(start, start + pageSize);
+  }, [filteredClients, currentPage, pageSize]);
 
   // Open client details
   const handleOpenClient = (client: AdminClient) => {
@@ -263,7 +277,7 @@ export const ClientsManager: React.FC<ClientsManagerProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
-              {filteredClients.map((client) => {
+              {paginatedClients.map((client) => {
                 const initials = client.name
                   .split(" ")
                   .map((n) => n[0])
@@ -345,6 +359,19 @@ export const ClientsManager: React.FC<ClientsManagerProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Pagination Bar */}
+      {filteredClients.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredClients.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 25, 50]}
+          itemName="clients"
+        />
+      )}
 
       {/* Client Detail Modal */}
       {selectedClient && (

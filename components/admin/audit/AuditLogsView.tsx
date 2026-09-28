@@ -3,12 +3,20 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Search, X, FileCode } from "lucide-react";
 import type { AuditLogEntry } from "@/types";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 export const AuditLogsView: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, actionFilter]);
 
   // Fetch live logs if available
   useEffect(() => {
@@ -40,6 +48,11 @@ export const AuditLogsView: React.FC = () => {
       return true;
     });
   }, [logs, actionFilter, searchTerm]);
+
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   const actions = useMemo(() => {
     const set = new Set<string>();
@@ -125,7 +138,7 @@ export const AuditLogsView: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 text-[11px]">
-              {filtered.map((log) => (
+              {paginatedLogs.map((log) => (
                 <tr
                   key={log.id}
                   className="hover:bg-stone-50/70 transition-colors"
@@ -185,6 +198,15 @@ export const AuditLogsView: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[15, 30, 60]}
+          itemName="audit logs"
+        />
       </div>
 
       {/* Forensic Payload Modal */}

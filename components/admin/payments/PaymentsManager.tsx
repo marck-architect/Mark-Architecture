@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   CreditCard,
   Search,
@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import type { ConsultationRecord, OrderRecord } from "@/types";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 interface PaymentsManagerProps {
   consultations: ConsultationRecord[];
@@ -44,6 +45,13 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
   const [typeFilter, setTypeFilter] = useState("all");
   const [selectedTx, setSelectedTx] = useState<UnifiedTransaction | null>(null);
   const [copiedTracker, setCopiedTracker] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, typeFilter]);
 
   // Normalize into unified transactions
   const transactions: UnifiedTransaction[] = useMemo(() => {
@@ -148,6 +156,11 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
       return true;
     });
   }, [transactions, typeFilter, statusFilter, searchTerm]);
+
+  const paginatedTransactions = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   const handleCopyTracker = (tracker: string) => {
     navigator.clipboard.writeText(tracker);
@@ -346,7 +359,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
-              {filtered.map((tx) => {
+              {paginatedTransactions.map((tx) => {
                 const isPaid = ["paid", "advance_paid", "fully_paid"].includes(
                   tx.paymentStatus,
                 );
@@ -454,6 +467,19 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Pagination Bar */}
+      {filtered.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 25, 50]}
+          itemName="transactions"
+        />
+      )}
 
       {/* Transaction Details Modal */}
       {selectedTx && (

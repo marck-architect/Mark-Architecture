@@ -52,14 +52,33 @@ export async function POST(req: NextRequest) {
             await import("@/lib/server/consultationWorkflow");
           await processPaidConsultation(consultation.id, tracker);
         } else {
-          // Attempt updating order
+          // Attempt updating order by tracker or metadata order_id
+          const orderRef =
+            ((data?.metadata as Record<string, string>)?.order_id as string) ||
+            "";
+          const query = orderRef
+            ? `safepay_tracker.eq.${tracker},id.eq.${orderRef},order_number.eq.${orderRef}`
+            : `safepay_tracker.eq.${tracker}`;
+
+          const { data: order } = await supabaseAdmin
+            .from("orders")
+            .select("id, payment_type")
+            .or(query)
+            .maybeSingle();
+
+          const newStatus =
+            order?.payment_type === "50_percent_advance"
+              ? "advance_paid"
+              : "paid";
+
           await supabaseAdmin
             .from("orders")
             .update({
-              payment_status: "advance_paid",
+              payment_status: newStatus,
+              safepay_tracker: tracker,
               updated_at: new Date().toISOString(),
             })
-            .eq("safepay_tracker", tracker);
+            .or(query);
         }
       } catch (err) {
         console.warn("Could not process webhook event:", err);

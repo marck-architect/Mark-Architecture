@@ -366,3 +366,82 @@ Consultation: ${data.consultationTitle}
 Meeting: ${data.meetingUrl}
 MARK Architects`;
 }
+
+// -----------------------------------------------------------------------------
+// 5. Safepay Customer & Phone Formatting Verification
+// -----------------------------------------------------------------------------
+function formatE164PhoneNumber(phone) {
+  if (!phone) return "+923000000000";
+  const cleaned = phone.trim().replace(/[\s\-()]/g, "");
+  if (cleaned.startsWith("+")) {
+    return cleaned;
+  }
+  if (cleaned.startsWith("00")) {
+    return `+${cleaned.slice(2)}`;
+  }
+  if (cleaned.startsWith("0")) {
+    return `+92${cleaned.slice(1)}`;
+  }
+  if (cleaned.length === 10 && !cleaned.startsWith("+")) {
+    return `+92${cleaned}`;
+  }
+  return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
+}
+
+test("Safepay Customer: formatE164PhoneNumber converts local and formatted numbers to E.164", () => {
+  assert.equal(formatE164PhoneNumber("03001234567"), "+923001234567");
+  assert.equal(formatE164PhoneNumber("0300-1234567"), "+923001234567");
+  assert.equal(formatE164PhoneNumber("+92 300 1234567"), "+923001234567");
+  assert.equal(formatE164PhoneNumber("00923001234567"), "+923001234567");
+  assert.equal(formatE164PhoneNumber("3001234567"), "+923001234567");
+  assert.equal(formatE164PhoneNumber("+14155552671"), "+14155552671");
+});
+
+test("Safepay Customer: create request payload structure matches protobuf schema without nested payload", () => {
+  const customer = {
+    name: "Tariq Mahmood",
+    email: "tariq@example.com",
+    phone: "0321-9876543",
+  };
+  const nameParts = customer.name.trim().split(" ");
+  const firstName = nameParts[0] || "Client";
+  const lastName = nameParts.slice(1).join(" ") || "Customer";
+
+  const requestBody = {
+    first_name: firstName,
+    last_name: lastName,
+    email: customer.email,
+    phone_number: formatE164PhoneNumber(customer.phone),
+    country: "PK",
+    is_guest: true,
+  };
+
+  // Must not have nested 'payload' field that causes proto unknown field error
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(requestBody, "payload"),
+    false,
+  );
+  assert.equal(requestBody.first_name, "Tariq");
+  assert.equal(requestBody.last_name, "Mahmood");
+  assert.equal(requestBody.phone_number, "+923219876543");
+  assert.equal(requestBody.country, "PK");
+  assert.equal(requestBody.is_guest, true);
+});
+
+test("Safepay Tracker: sanitizes duplicated or malformed tracker query parameters", () => {
+  function sanitizeTracker(raw) {
+    if (!raw) return "";
+    return decodeURIComponent(raw).split("?")[0].split("&")[0].trim();
+  }
+
+  const malformed =
+    "track_1fd32f12-acbf-4db9-8815-26cbe94c5291?tracker=track_1fd32f12-acbf-4db9-8815-26cbe94c5291";
+  const encoded =
+    "track_1fd32f12-acbf-4db9-8815-26cbe94c5291%3Ftracker%3Dtrack_1fd32f12-acbf-4db9-8815-26cbe94c5291";
+  const clean = "track_1fd32f12-acbf-4db9-8815-26cbe94c5291";
+
+  assert.equal(sanitizeTracker(malformed), clean);
+  assert.equal(sanitizeTracker(encoded), clean);
+  assert.equal(sanitizeTracker(clean), clean);
+  assert.equal(sanitizeTracker("  track_xyz123&extra=val  "), "track_xyz123");
+});

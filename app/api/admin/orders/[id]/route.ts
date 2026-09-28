@@ -85,6 +85,7 @@ export async function PATCH(
     const body = await request.json();
     const {
       payment_status,
+      safepay_tracker,
       notes,
       remaining_balance_pkr,
       advance_amount_pkr,
@@ -97,6 +98,8 @@ export async function PATCH(
     };
 
     if (payment_status !== undefined) updates.payment_status = payment_status;
+    if (safepay_tracker !== undefined)
+      updates.safepay_tracker = safepay_tracker;
     if (notes !== undefined) updates.notes = notes;
     if (remaining_balance_pkr !== undefined)
       updates.remaining_balance_pkr = Number(remaining_balance_pkr);
@@ -106,13 +109,13 @@ export async function PATCH(
     if (covered_area_sqft !== undefined)
       updates.covered_area_sqft = Number(covered_area_sqft);
 
-    // 3. Update Order in Supabase
+    // 3. Update Order in Supabase (matches either UUID or order_number)
     const { data, error } = await supabase
       .from("orders")
       .update(updates)
-      .eq("id", id)
+      .or(`id.eq.${id},order_number.eq.${id}`)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw error;

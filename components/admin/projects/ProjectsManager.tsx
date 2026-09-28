@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import {
   Plus,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { AdminProject } from "@/types";
 import { ImageUploadField } from "@/components/admin/ui/ImageUploadField";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 interface ProjectsManagerProps {
   projects: AdminProject[];
@@ -36,10 +37,16 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
 
   const handleOpenCreate = () => {
     setEditingProject({
@@ -115,17 +122,24 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
     }
   };
 
-  const filteredProjects = projects.filter((proj) => {
-    const matchesSearch =
-      !searchTerm ||
-      proj.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      proj.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      proj.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCat =
-      selectedCategory === "all" ||
-      proj.category.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCat;
-  });
+  const filteredProjects = useMemo(() => {
+    return projects.filter((proj) => {
+      const matchesSearch =
+        !searchTerm ||
+        proj.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        proj.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        proj.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCat =
+        selectedCategory === "all" ||
+        proj.category.toLowerCase() === selectedCategory.toLowerCase();
+      return matchesSearch && matchesCat;
+    });
+  }, [projects, searchTerm, selectedCategory]);
+
+  const paginatedProjects = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredProjects.slice(start, start + pageSize);
+  }, [filteredProjects, currentPage, pageSize]);
 
   return (
     <div className="space-y-6 font-inter">
@@ -235,7 +249,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredProjects.map((proj) => (
+          {paginatedProjects.map((proj) => (
             <div
               key={proj.id}
               className="bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-xs flex flex-col justify-between hover:border-[#7E5714]/50 transition-all"
@@ -332,6 +346,17 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
           ))}
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <AdminPagination
+        currentPage={currentPage}
+        totalItems={filteredProjects.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[9, 18, 27]}
+        itemName="projects"
+      />
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (

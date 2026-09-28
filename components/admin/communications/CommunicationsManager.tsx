@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
   CheckCircle2,
@@ -10,6 +10,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { CommunicationLog } from "@/types";
+import { AdminPagination } from "@/components/admin/ui/AdminPagination";
 
 export const CommunicationsManager: React.FC = () => {
   const [logs, setLogs] = useState<CommunicationLog[]>([]);
@@ -18,6 +19,12 @@ export const CommunicationsManager: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [resendSuccess, setResendSuccess] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter]);
 
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
@@ -33,6 +40,11 @@ export const CommunicationsManager: React.FC = () => {
       return true;
     });
   }, [logs, typeFilter, searchTerm]);
+
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredLogs.slice(start, start + pageSize);
+  }, [filteredLogs, currentPage, pageSize]);
 
   const handleCopyLink = (id: string, url: string) => {
     navigator.clipboard.writeText(url);
@@ -109,7 +121,7 @@ export const CommunicationsManager: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-mono text-[11px]">
-              {filteredLogs.map((log) => (
+              {paginatedLogs.map((log) => (
                 <tr
                   key={log.id}
                   className="hover:bg-stone-50/70 transition-colors"
@@ -205,6 +217,15 @@ export const CommunicationsManager: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredLogs.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 20, 50]}
+          itemName="logs"
+        />
       </div>
     </div>
   );

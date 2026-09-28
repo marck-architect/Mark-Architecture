@@ -51,44 +51,9 @@ export async function POST(req: NextRequest) {
     const remainingBalancePkr = calculatedTotalPkr - advancePkr;
 
     const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
-
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-
-    let orderId = orderNumber;
-
-    try {
-      const { data, error } = await supabase
-        .from("orders")
-        .insert({
-          order_number: orderNumber,
-          client_name: customer.name,
-          client_email: customer.email,
-          client_phone: customer.phone,
-          covered_area_sqft: coveredAreaSqft || null,
-          selected_disciplines: selectedDisciplines || null,
-          total_amount_pkr: calculatedTotalPkr,
-          advance_amount_pkr: advancePkr,
-          remaining_balance_pkr: remainingBalancePkr,
-          payment_type: paymentType,
-          payment_status: "pending",
-          attachment_urls: attachmentUrls || [],
-          notes: notes || null,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.warn("Supabase orders insert warning:", error.message);
-      } else if (data?.id) {
-        orderId = data.id;
-      }
-    } catch (dbErr) {
-      console.warn("Database storage deferred:", dbErr);
-    }
+    const orderId = crypto.randomUUID();
 
     const appUrl = getAppOrigin(req);
-
     const redirectUrl = `${appUrl}/payment/callback?orderId=${orderId}&type=order`;
     const cancelUrl = `${appUrl}/collection?canceled=true`;
 
@@ -104,16 +69,41 @@ export async function POST(req: NextRequest) {
       cancelUrl,
       metadata: {
         order_id: String(orderId),
+        order_number: orderNumber,
       },
     });
 
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
     try {
-      await supabase
+      const { data, error } = await supabase
         .from("orders")
-        .update({ safepay_tracker: safepayResult.tracker })
-        .eq("id", orderId);
-    } catch {
-      // Non-blocking if table is waiting for migration
+        .insert({
+          id: orderId,
+          order_number: orderNumber,
+          client_name: customer.name,
+          client_email: customer.email,
+          client_phone: customer.phone,
+          covered_area_sqft: coveredAreaSqft || null,
+          selected_disciplines: selectedDisciplines || null,
+          total_amount_pkr: calculatedTotalPkr,
+          advance_amount_pkr: advancePkr,
+          remaining_balance_pkr: remainingBalancePkr,
+          payment_type: paymentType,
+          payment_status: "pending",
+          safepay_tracker: safepayResult.tracker,
+          attachment_urls: attachmentUrls || [],
+          notes: notes || null,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.warn("Supabase orders insert warning:", error.message);
+      }
+    } catch (dbErr) {
+      console.warn("Database storage deferred:", dbErr);
     }
 
     return NextResponse.json({

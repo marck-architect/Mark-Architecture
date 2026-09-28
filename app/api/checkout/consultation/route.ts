@@ -47,42 +47,10 @@ export async function POST(req: NextRequest) {
     const pricePkr = pricing[callTier] || pricing["Basic Call"];
     const tierName = pricing[callTier] ? callTier : "Basic Call";
 
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-
-    let consultationId = `cons_${Date.now()}`;
-
-    // Try saving record to Supabase
-    try {
-      const { data, error } = await supabase
-        .from("consultations")
-        .insert({
-          client_name: name,
-          client_email: email,
-          client_phone: phone,
-          tier_name: tierName,
-          price_pkr: pricePkr,
-          booking_date: bookingDate,
-          booking_time: bookingTime,
-          attachment_urls: attachmentUrls || [],
-          notes: message || null,
-          payment_status: "pending",
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.warn("Supabase consultation insert warning:", error.message);
-      } else if (data?.id) {
-        consultationId = data.id;
-      }
-    } catch (dbErr) {
-      console.warn("Database storage deferred:", dbErr);
-    }
+    const consultationId = crypto.randomUUID();
 
     // Generate Safepay Session
     const appUrl = getAppOrigin(req);
-
     const redirectUrl = `${appUrl}/payment/callback?orderId=${consultationId}&type=consultation`;
     const cancelUrl = `${appUrl}/consultation?canceled=true`;
 
@@ -97,17 +65,36 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Update record with tracker if possible
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    // Save record to Supabase with tracker already attached
     try {
-      await supabase
+      const { data, error } = await supabase
         .from("consultations")
-        .update({
+        .insert({
+          id: consultationId,
+          client_name: name,
+          client_email: email,
+          client_phone: phone,
+          tier_name: tierName,
+          price_pkr: pricePkr,
+          booking_date: bookingDate,
+          booking_time: bookingTime,
+          attachment_urls: attachmentUrls || [],
+          notes: message || null,
+          payment_status: "pending",
           safepay_tracker: safepayResult.tracker,
           safepay_token: safepayResult.token,
         })
-        .eq("id", consultationId);
-    } catch {
-      // Non-blocking if table is waiting for migration
+        .select()
+        .single();
+
+      if (error) {
+        console.warn("Supabase consultation insert warning:", error.message);
+      }
+    } catch (dbErr) {
+      console.warn("Database storage deferred:", dbErr);
     }
 
     return NextResponse.json({

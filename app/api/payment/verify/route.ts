@@ -7,7 +7,11 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    let tracker = searchParams.get("tracker") || searchParams.get("beacon");
+    let rawTracker =
+      searchParams.get("tracker") || searchParams.get("beacon") || "";
+    let tracker = rawTracker
+      ? decodeURIComponent(rawTracker).split("?")[0].split("&")[0].trim()
+      : "";
     const orderId =
       searchParams.get("orderId") || searchParams.get("reference");
     const type = searchParams.get("type") || "consultation"; // 'consultation' or 'order'
@@ -141,13 +145,30 @@ export async function GET(req: NextRequest) {
         }
       } else {
         try {
+          // Fetch existing order to inspect payment_type
+          const { data: existingOrder } = await supabaseAdmin
+            .from("orders")
+            .select("id, payment_type, payment_status")
+            .or(
+              `id.eq.${orderId},order_number.eq.${orderId},safepay_tracker.eq.${tracker}`,
+            )
+            .maybeSingle();
+
+          const targetStatus =
+            existingOrder?.payment_type === "50_percent_advance"
+              ? "advance_paid"
+              : "paid";
+
           const { error: orderErr } = await supabaseAdmin
             .from("orders")
             .update({
-              payment_status: "advance_paid",
+              payment_status: targetStatus,
               safepay_tracker: tracker,
+              updated_at: new Date().toISOString(),
             })
-            .eq("id", orderId);
+            .or(
+              `id.eq.${orderId},order_number.eq.${orderId},safepay_tracker.eq.${tracker}`,
+            );
 
           if (orderErr) {
             console.error(
@@ -170,7 +191,7 @@ export async function GET(req: NextRequest) {
           .select(
             "id, client_name, client_email, client_phone, tier_name, price_pkr, booking_date, booking_time, meeting_url, payment_status, created_at",
           )
-          .eq("id", orderId)
+          .or(`id.eq.${orderId},safepay_tracker.eq.${tracker}`)
           .maybeSingle();
 
         if (c) {
@@ -197,7 +218,9 @@ export async function GET(req: NextRequest) {
           .select(
             "id, order_number, client_name, client_email, client_phone, total_amount_pkr, advance_amount_pkr, payment_status, payment_type, created_at",
           )
-          .eq("id", orderId)
+          .or(
+            `id.eq.${orderId},order_number.eq.${orderId},safepay_tracker.eq.${tracker}`,
+          )
           .maybeSingle();
 
         if (o) {

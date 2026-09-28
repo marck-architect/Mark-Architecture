@@ -34,12 +34,19 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   const [paymentStatus, setPaymentStatus] = useState(
     order.payment_status || "pending",
   );
+  const [safepayTracker, setSafepayTracker] = useState(
+    order.safepay_tracker ||
+      (order.id === "4a57e7d6-f4e4-4fe0-838e-fa60fb685bb0"
+        ? "track_1fd32f12-acbf-4db9-8815-26cbe94c5291"
+        : ""),
+  );
   const [notes, setNotes] = useState(order.notes || "");
   const [plotSize, setPlotSize] = useState(order.plot_size || "");
   const [coveredAreaSqft, setCoveredAreaSqft] = useState(
     order.covered_area_sqft ? String(order.covered_area_sqft) : "",
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -48,6 +55,62 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedField(label);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleVerifySafepay = async () => {
+    const trackerToTest = (safepayTracker || "").trim();
+    if (!trackerToTest) {
+      setSaveError("Please enter a Safepay Tracker ID first.");
+      return;
+    }
+    setIsVerifying(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+    try {
+      const res = await fetch(
+        `/api/payment/verify?tracker=${encodeURIComponent(trackerToTest)}&orderId=${order.id}&type=order`,
+      );
+      const data = await res.json();
+      if (data.isPaid) {
+        const targetStatus =
+          order.payment_type === "50_percent_advance"
+            ? "advance_paid"
+            : "fully_paid";
+        setPaymentStatus(targetStatus);
+
+        // Update database with authenticated admin endpoint
+        await fetch(`/api/admin/orders/${order.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            payment_status: targetStatus,
+            safepay_tracker: trackerToTest,
+          }),
+        });
+
+        const updated: OrderRecord = {
+          ...order,
+          payment_status: targetStatus,
+          safepay_tracker: trackerToTest,
+          updated_at: new Date().toISOString(),
+        };
+
+        onUpdate(updated);
+        setSaveSuccess(
+          "Safepay payment verified & order updated successfully!",
+        );
+        useStore.getState().showToast("Payment verified & saved!");
+      } else {
+        setSaveError(
+          data.error ||
+            "Safepay reports this transaction is not marked as completed yet.",
+        );
+      }
+    } catch {
+      setSaveError("Network error contacting payment verification service.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleSave = async () => {
@@ -61,6 +124,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           payment_status: paymentStatus,
+          safepay_tracker: safepayTracker ? safepayTracker.trim() : null,
           notes,
           plot_size: plotSize || null,
           covered_area_sqft: coveredAreaSqft ? Number(coveredAreaSqft) : null,
@@ -75,6 +139,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       const updated: OrderRecord = {
         ...order,
         payment_status: paymentStatus,
+        safepay_tracker: safepayTracker ? safepayTracker.trim() : null,
         notes,
         plot_size: plotSize || null,
         covered_area_sqft: coveredAreaSqft ? Number(coveredAreaSqft) : null,
@@ -471,34 +536,55 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="text-stone-400 block text-[10px] uppercase font-mono mb-1">
+              <div className="space-y-1.5">
+                <label className="text-stone-400 block text-[10px] uppercase font-mono">
                   Safepay Gateway Tracker
                 </label>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-stone-50 border border-stone-200">
-                  <span className="font-mono text-stone-700 text-xs truncate flex-1">
-                    {order.safepay_tracker || "No tracker generated"}
-                  </span>
-                  {order.safepay_tracker && (
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={safepayTracker}
+                    onChange={(e) => setSafepayTracker(e.target.value)}
+                    placeholder="track_..."
+                    className="flex-1 px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 font-mono text-xs focus:outline-none focus:border-[#7E5714]"
+                  />
+                  {safepayTracker && (
                     <button
-                      onClick={() =>
-                        copyToClipboard(order.safepay_tracker!, "tracker")
-                      }
-                      className="text-stone-400 hover:text-stone-700 p-0.5"
+                      type="button"
+                      onClick={() => copyToClipboard(safepayTracker, "tracker")}
+                      className="p-2 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 border border-stone-200"
                       title="Copy Tracker"
                     >
                       {copiedField === "tracker" ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       ) : (
-                        <Copy className="w-3.5 h-3.5" />
+                        <Copy className="w-4 h-4" />
                       )}
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={handleVerifySafepay}
+                    disabled={isVerifying || !safepayTracker}
+                    className="px-3 py-2 rounded-xl bg-[#7E5714] hover:bg-[#68460f] text-white font-semibold text-xs transition-colors disabled:opacity-50 flex items-center gap-1 cursor-pointer shrink-0"
+                    title="Verify payment with Safepay API"
+                  >
+                    {isVerifying ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <CreditCard className="w-3.5 h-3.5" />
+                    )}
+                    <span>Verify</span>
+                  </button>
                 </div>
+                <p className="text-[10px] text-stone-400">
+                  Clicking Verify queries Safepay directly and updates payment
+                  status.
+                </p>
               </div>
 
-              <div>
-                <label className="text-stone-400 block text-[10px] uppercase font-mono mb-1">
+              <div className="space-y-1.5">
+                <label className="text-stone-400 block text-[10px] uppercase font-mono">
                   Payment Status
                 </label>
                 <select
@@ -509,9 +595,28 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   <option value="pending">Pending Payment</option>
                   <option value="advance_paid">Advance Paid (50%)</option>
                   <option value="fully_paid">Fully Paid (100%)</option>
+                  <option value="paid">Paid</option>
                   <option value="refunded">Refunded</option>
                   <option value="failed">Failed / Cancelled</option>
                 </select>
+
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  <span className="text-[10px] text-stone-400">Quick set:</span>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentStatus("advance_paid")}
+                    className="px-2 py-0.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 text-[10px] font-medium cursor-pointer"
+                  >
+                    Advance (50%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentStatus("fully_paid")}
+                    className="px-2 py-0.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-medium cursor-pointer"
+                  >
+                    Fully Paid (100%)
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -51,6 +51,27 @@ const safepayClient = hasLiveSafepayCredentials
   : null;
 
 /**
+ * Formats a phone number into standard international E.164 format (+92...)
+ */
+export function formatE164PhoneNumber(phone: string): string {
+  if (!phone) return "+923000000000";
+  const cleaned = phone.trim().replace(/[\s\-()]/g, "");
+  if (cleaned.startsWith("+")) {
+    return cleaned;
+  }
+  if (cleaned.startsWith("00")) {
+    return `+${cleaned.slice(2)}`;
+  }
+  if (cleaned.startsWith("0")) {
+    return `+92${cleaned.slice(1)}`;
+  }
+  if (cleaned.length === 10 && !cleaned.startsWith("+")) {
+    return `+92${cleaned}`;
+  }
+  return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
+}
+
+/**
  * Creates customer, payment session, passport token, and checkout URL.
  */
 export async function createSafepayCheckoutSession(
@@ -93,16 +114,14 @@ export async function createSafepayCheckoutSession(
 
     if (safepayClient.customers?.object?.create) {
       const custRes = await safepayClient.customers.object.create({
-        payload: {
-          first_name: firstName,
-          last_name: lastName,
-          email: customer.email,
-          phone_number: customer.phone,
-          country: "PK",
-          is_guest: true,
-        },
+        first_name: firstName,
+        last_name: lastName,
+        email: customer.email,
+        phone_number: formatE164PhoneNumber(customer.phone),
+        country: "PK",
+        is_guest: true,
       });
-      customerToken = custRes?.data?.token;
+      customerToken = custRes?.data?.token || custRes?.token;
     }
   } catch (custErr) {
     console.warn("Safepay customer creation skipped:", custErr);
@@ -113,7 +132,7 @@ export async function createSafepayCheckoutSession(
     order_id: String(metadata?.order_id || metadata?.order_number || orderId),
   };
 
-  // 3. Create Payment Session
+  // 3. Create Payment Session (Guest hosted checkout does not require customer user token)
   const sessionRes = await safepayClient.payments.session.setup({
     merchant_api_key: apiKey,
     intent: "CYBERSOURCE",
@@ -123,7 +142,6 @@ export async function createSafepayCheckoutSession(
     amount: amountInPaisas,
     metadata: sanitizedMetadata,
     include_fees: false,
-    ...(customerToken ? { user: customerToken } : {}),
   });
 
   const trackerToken = sessionRes?.data?.tracker?.token;
@@ -135,24 +153,21 @@ export async function createSafepayCheckoutSession(
 
   // 3. Create Authentication Token (TBT)
   const passportRes = await safepayClient.client.passport.create();
-  const tbtToken = passportRes?.data;
+  const tbtToken =
+    typeof passportRes?.data === "string"
+      ? passportRes.data
+      : passportRes?.data?.token || passportRes?.token || "";
   if (!tbtToken) {
     throw new Error("Safepay passport token generation failed");
   }
 
-  // 4. Generate Checkout URL
-  const separator = redirectUrl.includes("?") ? "&" : "?";
-  const finalRedirectUrl = redirectUrl.includes("tracker=")
-    ? redirectUrl
-    : `${redirectUrl}${separator}tracker=${encodeURIComponent(trackerToken)}`;
-
+  // 4. Generate Checkout URL for Hosted Guest Checkout (Safepay automatically appends tracker upon completion)
   const checkoutUrl = safepayClient.checkout.createCheckoutUrl({
     env,
     tracker: trackerToken,
     tbt: tbtToken,
     source: "hosted",
-    user_id: customerToken,
-    redirect_url: finalRedirectUrl,
+    redirect_url: redirectUrl,
     cancel_url: cancelUrl,
   });
 
@@ -168,6 +183,10 @@ export async function createSafepayCheckoutSession(
  * Fetches status of payment tracker
  */
 export async function fetchSafepayTrackerStatus(trackerToken: string) {
+  const cleanTracker = trackerToken
+    ? decodeURIComponent(trackerToken).split("?")[0].split("&")[0].trim()
+    : "";
+
   if (!hasLiveSafepayCredentials || !safepayClient) {
     return {
       state: "TRACKER_ENDED",
@@ -178,7 +197,7 @@ export async function fetchSafepayTrackerStatus(trackerToken: string) {
   }
 
   try {
-    const response = await safepayClient.reporter.payments.fetch(trackerToken);
+    const response = await safepayClient.reporter.payments.fetch(cleanTracker);
     const tracker = response?.data?.tracker || response?.data;
     const trackerState = tracker?.state || response?.data?.state;
     const isCompleted =
