@@ -65,16 +65,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
-  const [isPaused, setIsPaused] = useState(false);
 
+  // Auto-advance testimonials every 5 seconds continuously
   useEffect(() => {
-    if (testimonials.length <= 1 || isPaused) return;
+    if (testimonials.length <= 1) return;
     const interval = setInterval(() => {
       setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [testimonials.length, isPaused, currentIndex]);
+  }, [testimonials.length, currentIndex]);
 
   useEffect(() => {
     if (currentIndex >= testimonials.length && testimonials.length > 0) {
@@ -135,26 +135,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
       {/* Testimonials Carousel Section (Interactive Architectural Carousel - Text Only, No Image) */}
       {testimonials.length > 0 && currentTestimonial && (
-        <section
-          className="relative overflow-hidden bg-[#292722] px-4 py-24 text-white md:px-margin-desktop md:py-32"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-        >
+        <section className="relative overflow-hidden bg-[#292722] px-4 pt-10 pb-16 text-white md:px-margin-desktop md:pt-14 md:pb-20">
           {/* Subtle architectural background geometry */}
           <div className="pointer-events-none absolute -right-24 top-0 h-96 w-96 rounded-full border border-[#c9a86e]/15" />
           <div className="pointer-events-none absolute -right-8 top-8 h-80 w-80 rounded-full border border-[#c9a86e]/10" />
           <div className="pointer-events-none absolute -left-20 bottom-0 h-72 w-72 rounded-full border border-[#c9a86e]/10" />
 
-          <div className="max-w-4xl mx-auto relative z-10">
+          <div className="max-w-3xl mx-auto relative z-10">
             {/* Eyebrow and Section Header */}
-            <div className="text-center mb-10 md:mb-14">
+            <div className="text-center mb-6 md:mb-8">
               <ScrollReveal>
                 <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#c9a86e]">
                   Client Testimonials &amp; Endorsements
                 </span>
-                <h2 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-normal text-white mt-2">
+                <h2 className="font-playfair text-2xl sm:text-3xl md:text-4xl font-normal text-white mt-1.5">
                   Trusted by Homeowners and Developers
                 </h2>
               </ScrollReveal>
@@ -162,15 +156,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             {/* Testimonial Carousel Card */}
             <ScrollReveal delay={0.1}>
-              <div
-                className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xs p-6 sm:p-10 md:p-14 shadow-2xl transition-all duration-500 overflow-hidden"
-                onMouseEnter={() => setIsPaused(true)}
-                onMouseLeave={() => setIsPaused(false)}
-                onTouchStart={() => setIsPaused(true)}
-                onTouchEnd={() => setIsPaused(false)}
-              >
+              <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xs p-5 sm:p-7 md:p-8 shadow-xl transition-all duration-500 overflow-hidden">
                 {/* Auto-advance subtle progress indicator */}
-                {testimonials.length > 1 && !isPaused && (
+                {testimonials.length > 1 && (
                   <motion.div
                     key={currentIndex}
                     initial={{ width: "0%" }}
@@ -191,14 +179,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
                   >
                     {/* Top Row: Rating, Featured Badge & Linked Project */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
+                      <div className="flex items-center gap-2.5">
                         {/* Rating Stars */}
                         <div className="flex items-center gap-1">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                                 i < (currentTestimonial.rating || 5)
                                   ? "fill-[#e8c889] text-[#e8c889]"
                                   : "text-white/20"
@@ -207,34 +195,38 @@ export const HomeView: React.FC<HomeViewProps> = ({
                           ))}
                         </div>
                         {currentTestimonial.is_featured && (
-                          <span className="px-2.5 py-0.5 bg-[#e8c889]/20 border border-[#e8c889]/40 text-[#e8c889] text-[10px] font-mono uppercase tracking-widest rounded-full">
+                          <span className="px-2 py-0.5 bg-[#e8c889]/20 border border-[#e8c889]/40 text-[#e8c889] text-[9px] sm:text-[10px] font-mono uppercase tracking-widest rounded-full">
                             Featured
                           </span>
                         )}
                       </div>
 
                       {currentTestimonial.project_title && (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] font-mono text-[#e8c889]">
-                          <Award className="w-3.5 h-3.5 text-[#e8c889]" />
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/5 border border-white/10 rounded-full text-[10px] sm:text-[11px] font-mono text-[#e8c889]">
+                          <Award className="w-3 h-3 text-[#e8c889]" />
                           <span>{currentTestimonial.project_title}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Quote Content */}
-                    <div className="py-8 sm:py-10 min-h-[170px] sm:min-h-[150px] flex flex-col justify-center">
-                      <span className="block font-playfair text-6xl sm:text-7xl leading-none text-[#e8c889]/30 select-none mb-2">
+                    <div className="py-4 sm:py-5 min-h-[90px] sm:min-h-[100px] flex flex-col justify-center">
+                      <span className="block font-playfair text-3xl sm:text-4xl leading-none text-[#e8c889]/30 select-none mb-1">
                         “
                       </span>
-                      <blockquote className="font-playfair text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light leading-relaxed text-[#f7f4ef]">
-                        &ldquo;{currentTestimonial.review}&rdquo;
+                      <blockquote className="font-playfair text-base sm:text-lg md:text-xl font-light leading-relaxed text-[#f7f4ef]">
+                        &ldquo;
+                        {currentTestimonial.review ||
+                          (currentTestimonial as Record<string, any>).quote ||
+                          ""}
+                        &rdquo;
                       </blockquote>
                     </div>
                   </motion.div>
                 </AnimatePresence>
 
                 {/* Author Info & Carousel Controls */}
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-6 border-t border-white/10">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-4 sm:pt-5 border-t border-white/10">
                   <div className="min-w-0 flex-1">
                     <AnimatePresence mode="wait" custom={direction}>
                       <motion.div
@@ -245,14 +237,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
                         exit={{ opacity: 0, y: -6 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <h3 className="font-playfair text-xl sm:text-2xl font-bold text-[#e8c889]">
+                        <h3 className="font-playfair text-base sm:text-lg font-bold text-[#e8c889]">
                           {currentTestimonial.client_name}
                         </h3>
                         {(currentTestimonial.position ||
+                          (currentTestimonial as Record<string, any>)
+                            .client_role ||
                           currentTestimonial.company) && (
-                          <p className="font-inter text-xs sm:text-sm font-medium text-white/60 uppercase tracking-widest mt-1">
+                          <p className="font-inter text-[11px] sm:text-xs font-medium text-white/60 uppercase tracking-widest mt-0.5">
                             {[
-                              currentTestimonial.position,
+                              currentTestimonial.position ||
+                                (currentTestimonial as Record<string, any>)
+                                  .client_role,
                               currentTestimonial.company,
                             ]
                               .filter(Boolean)
@@ -265,24 +261,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
                   {/* Carousel Controls */}
                   {testimonials.length > 1 && (
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="font-mono text-xs text-white/50 tracking-widest mr-2">
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className="font-mono text-[11px] text-white/50 tracking-widest mr-1">
                         {String(currentIndex + 1).padStart(2, "0")} /{" "}
                         {String(testimonials.length).padStart(2, "0")}
                       </span>
                       <button
                         onClick={handlePrev}
                         aria-label="Previous Testimonial"
-                        className="p-2.5 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-[#e8c889] hover:bg-[#e8c889]/10 transition-colors"
+                        className="p-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-[#e8c889] hover:bg-[#e8c889]/10 transition-colors"
                       >
-                        <ChevronLeft className="w-4 h-4" />
+                        <ChevronLeft className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={handleNext}
                         aria-label="Next Testimonial"
-                        className="p-2.5 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-[#e8c889] hover:bg-[#e8c889]/10 transition-colors"
+                        className="p-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-[#e8c889] hover:bg-[#e8c889]/10 transition-colors"
                       >
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   )}
@@ -291,37 +287,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
               {/* Dots indicator for multiple testimonials */}
               {testimonials.length > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-6">
+                <div className="flex items-center justify-center gap-2 mt-4 sm:mt-5">
                   {testimonials.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleSelect(idx)}
                       aria-label={`Go to testimonial ${idx + 1}`}
-                      className={`h-2 rounded-full transition-all duration-300 ${
+                      className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
                         idx === currentIndex
-                          ? "w-8 bg-[#e8c889]"
-                          : "w-2 bg-white/30 hover:bg-white/50"
+                          ? "w-6 sm:w-8 bg-[#e8c889]"
+                          : "w-1.5 sm:w-2 bg-white/30 hover:bg-white/50"
                       }`}
                     />
                   ))}
                 </div>
               )}
-
-              {/* Trust Badges */}
-              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-10 text-xs text-white/60">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#e8c889] shrink-0" />
-                  <span>PCATP Registered Firm</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#e8c889] shrink-0" />
-                  <span>PDA Peshawar Code Compliant</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#e8c889] shrink-0" />
-                  <span>CDA Islamabad Approved</span>
-                </span>
-              </div>
             </ScrollReveal>
           </div>
         </section>
