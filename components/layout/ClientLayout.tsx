@@ -3,6 +3,10 @@
 import React, { useEffect, Suspense } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 import { Header } from "@/components/navigation/Header";
 import { MobileMenu } from "@/components/navigation/MobileMenu";
 import { Footer } from "@/components/footer/Footer";
@@ -64,16 +68,17 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
 
     (window as unknown as { lenis?: Lenis }).lenis = lenis;
 
-    let rafId: number;
-    const raf = (time: number) => {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    };
-
-    rafId = requestAnimationFrame(raf);
+    // Drive Lenis off GSAP's own ticker instead of a second, independent
+    // requestAnimationFrame loop — two unsynced render loops fighting over
+    // the same scroll position is what causes scroll-linked GSAP animations
+    // (every hero's ScrollTrigger) to stutter against Lenis's smoothing.
+    lenis.on("scroll", ScrollTrigger.update);
+    const lenisTick = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(lenisTick);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      gsap.ticker.remove(lenisTick);
       lenis.destroy();
       delete (window as unknown as { lenis?: Lenis }).lenis;
     };

@@ -19,8 +19,12 @@ export interface PricingCategory {
   title: string;
   subtitle: string;
   icon?: string;
+  /** Wide client-provided photo shown as a banner above the category detail. */
+  image?: string;
   badge?: string;
   description: string;
+  /** Short elaboration points shown under the description to fill the column beside the banner image. */
+  detailPoints?: string[];
   clientRequirementNote?: string;
   /** Tiers are priced per plot size (5 Marla / 10 Marla / 1 Kanal); show the size switcher. */
   sized?: boolean;
@@ -65,9 +69,16 @@ export const pricingMenuCategories: PricingCategory[] = [
     title: "Online Consultation (Video/Call)",
     subtitle: "Direct 1-on-1 Strategy Call with Principal Architect",
     icon: "/images/pricing/consult.png",
+    image: "/images/For Call.png",
     badge: "Direct Advisory",
     description:
       "Connect directly with a licensed architect via Zoom video session for instant layout diagnosis, structural feasibility, and budget strategy.",
+    detailPoints: [
+      "Speak directly with a licensed principal architect, not a sales representative",
+      "Get honest layout, structural, and budget feedback in real time",
+      "Walk away with a clear, actionable next step for your project",
+      "A practical starting point before committing to a full design package",
+    ],
     clientRequirementNote:
       "Client must share layout plan, plot size, or site photos before the call for pre-session diagnosis.",
     tiers: [
@@ -115,9 +126,16 @@ export const pricingMenuCategories: PricingCategory[] = [
     title: "House Plan Review",
     subtitle: "Fast Architectural Audit to Spot Flaws Before Construction",
     icon: "/images/pricing/review.png",
+    image: "/images/House Plan review.png",
     badge: "High Demand • Fast 24–48h",
     description:
       "Catch circulation bottlenecks, missing sunlight shafts, structural clashes, and municipal compliance errors before you break ground.",
+    detailPoints: [
+      "An independent second opinion before you approve any drawing",
+      "Flags circulation, ventilation, and code-compliance issues early",
+      "Delivered as a clearly marked-up, easy-to-follow PDF report",
+      "Saves costly on-site corrections once construction has started",
+    ],
     tiers: [
       {
         id: "review-basic",
@@ -175,9 +193,16 @@ export const pricingMenuCategories: PricingCategory[] = [
     title: "Plan Redesign / Correction",
     subtitle: "Turn Flawed Contractor Drawings into an Elegant Modern Home",
     icon: "/images/pricing/correction.png",
+    image: "/images/House Plan Correction.png",
     badge: "Top Seller",
     description:
       "Transform cramped, inefficient, or unapproved architectural drawings into an optimized layout tailored to Pakistani society regulations and modern lifestyles.",
+    detailPoints: [
+      "Reworks flawed contractor drawings into an efficient, modern layout",
+      "Multiple design options to compare before you commit to one",
+      "Full furniture layout and daylight/ventilation strategy included",
+      "Priced by plot size, from 5 Marla up to 1 Kanal",
+    ],
     sized: true,
     tiers: [
       {
@@ -240,9 +265,16 @@ export const pricingMenuCategories: PricingCategory[] = [
     title: "Front Elevation 3D (Exterior Render)",
     subtitle: "Photorealistic 3D Facade Concepts & Material Specs",
     icon: "/images/pricing/elevation.png",
+    image: "/images/Front Elevation 3D (Exterior Render).png",
     badge: "Exterior 3D",
     description:
       "Visualize your home's exterior with photorealistic 3D elevations featuring modern grooved textures, fluted tiles, warm evening lighting, and louvers.",
+    detailPoints: [
+      "Photorealistic renders so you see the facade before construction begins",
+      "Material, color, and lighting choices finalized upfront",
+      "Day and cinematic night views available on higher tiers",
+      "Priced by plot size, from 5 Marla up to 1 Kanal",
+    ],
     sized: true,
     tiers: [
       {
@@ -305,9 +337,16 @@ export const pricingMenuCategories: PricingCategory[] = [
     title: "Interior Room Makeover",
     subtitle: "Bespoke Room Styling, Moodboards & 3D Visualizations",
     icon: "/images/pricing/interior.png",
+    image: "/images/Interior Room Makeover.png",
     badge: "Fast Selling",
     description:
       "Reimagine your master bedroom, living lounge, dining area, or drawing room with tailored color tones, custom ceiling patterns, and ambient lighting design.",
+    detailPoints: [
+      "Tailored to one room at a time — bedroom, lounge, or dining area",
+      "Moodboard, furniture layout, and ceiling/lighting design included",
+      "Photorealistic 3D render available on the premium tier",
+      "Practical, shoppable recommendations, not just concept art",
+    ],
     tiers: [
       {
         id: "interior-basic",
@@ -365,9 +404,16 @@ export const pricingMenuCategories: PricingCategory[] = [
     title: "Construction Cost Estimate",
     subtitle: "Grey Structure & Finishing Bill of Quantities (BOQ)",
     icon: "/images/pricing/estimate.png",
+    image: "/images/Construction Cost Estimate.png",
     badge: "Financial Control",
     description:
       "Avoid cost overruns and builder inflation. Receive an honest, detailed quantity assessment based on prevailing material and labor rates in Pakistan.",
+    detailPoints: [
+      "An independent check against builder and contractor quotes",
+      "Covers grey structure, and finishing on the detailed tier",
+      "Based on current material and labor rates across Pakistan",
+      "Priced by plot size, from 5 Marla up to 1 Kanal",
+    ],
     sized: true,
     tiers: [
       {
@@ -412,9 +458,16 @@ export const pricingMenuCategories: PricingCategory[] = [
     title: "Full House Design Package",
     subtitle: "End-to-End Architectural Blueprint & Submission Drawings",
     icon: "/images/pricing/full-design.png",
+    image: "/images/Full House Design Package.png",
     badge: "High Ticket • Turnkey Blueprint",
     description:
       "From bare plot to complete construction-ready blueprint set, priced per sq. ft. of covered area across five engineering disciplines. Engineered to pass municipal authority approvals (CDA, LDA, DHA, Bahria, RDA, KDA, PDA).",
+    detailPoints: [
+      "End-to-end blueprint set from bare plot to construction-ready",
+      "Priced transparently per sq. ft. across five engineering disciplines",
+      "Engineered to pass municipal authority approvals",
+      "50% advance to start, balance due on delivery",
+    ],
     isCalculator: true,
     tiers: [],
   },

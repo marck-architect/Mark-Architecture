@@ -554,8 +554,12 @@ export interface PricingCategoryData {
   title: string;
   subtitle: string;
   icon?: string;
+  /** Wide client-provided photo shown as a banner above the category detail. */
+  image?: string;
   badge?: string;
   description: string;
+  /** Short elaboration points shown under the description to fill the column beside the banner image. */
+  detailPoints?: string[];
   clientRequirementNote?: string;
   /** Tiers are priced per plot size (5 Marla / 10 Marla / 1 Kanal); show the size switcher. */
   sized?: boolean;

@@ -1,17 +1,10 @@
 "use client";
 
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { cn } from "@/lib/utils";
 import {
   VillaOrbitViewer,
   type SourceKey,
@@ -19,18 +12,63 @@ import {
 import balconyZoomManifest from "@/data/balconyZoomManifest.json";
 
 type TierKey = "lg" | "sm";
-type Fit = {
-  containerW: number;
-  containerH: number;
-  cellW: number;
-  cellH: number;
-};
 
 // Extra scroll distance (desktop only) that drives the push-in past the
 // initial view, as a fraction of viewport height. Below md, no ScrollTrigger
 // instance is created at all — the mobile/tablet hero stays exactly as it
 // was, with its own separately-tuned layout, untouched by any of this.
-const ZOOM_RUNWAY_VH_FRACTION = 1.4;
+const ZOOM_RUNWAY_VH_FRACTION = 0.8;
+
+// The atlas is a single 8000x5400 sprite sheet (120 frames @ 800x450 each).
+// Animating it via CSS background-position/background-size forces the
+// browser to repaint that whole multi-megapixel region on every scroll
+// tick — visibly laggy regardless of how cheaply the frame index itself is
+// computed. Canvas + drawImage (GSAP's own documented pattern for
+// scroll-scrubbed image sequences: gsap.com/docs/v3/HelperFunctions/
+// helpers/imageSequenceScrub) blits only the current frame's native-res
+// cell straight into the compositor, which is what actually fixes it.
+function drawBalconyFrame(
+  canvas: HTMLCanvasElement,
+  img: HTMLImageElement,
+  col: number,
+  row: number,
+  nativeCellW: number,
+  nativeCellH: number,
+) {
+  if (!img.complete || img.naturalWidth === 0) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  // Cap DPR at 2: canvas pixel area (and therefore draw cost) scales with
+  // the square of this, and the source cells are already well below 3x
+  // display size on typical screens, so anything past 2x buys no visible
+  // sharpness for real per-frame cost.
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cssW = canvas.clientWidth;
+  const cssH = canvas.clientHeight;
+  if (!cssW || !cssH) return;
+  const pixelW = Math.round(cssW * dpr);
+  const pixelH = Math.round(cssH * dpr);
+  if (canvas.width !== pixelW || canvas.height !== pixelH) {
+    canvas.width = pixelW;
+    canvas.height = pixelH;
+  }
+
+  // "cover" crop: the sub-rect of this one native-resolution cell that
+  // matches the canvas's aspect ratio, centered — same framing the old
+  // background-position offsetX/offsetY math produced.
+  const cellAspect = nativeCellW / nativeCellH;
+  const canvasAspect = pixelW / pixelH;
+  const srcW = canvasAspect > cellAspect ? nativeCellW : nativeCellH * canvasAspect;
+  const srcH = canvasAspect > cellAspect ? nativeCellW / canvasAspect : nativeCellH;
+  const srcX = col * nativeCellW + (nativeCellW - srcW) / 2;
+  const srcY = row * nativeCellH + (nativeCellH - srcH) / 2;
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.clearRect(0, 0, pixelW, pixelH);
+  ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, pixelW, pixelH);
+}
 
 export const HeroCinematic: React.FC = () => {
   const { frameCount, cols, rows, tiers } = balconyZoomManifest;
@@ -46,22 +84,31 @@ export const HeroCinematic: React.FC = () => {
   >;
 
   const heroRef = useRef<HTMLElement>(null);
+  const balconyCanvasRef = useRef<HTMLCanvasElement>(null);
+  const balconyImgRef = useRef<HTMLImageElement | null>(null);
+  // Last frame actually drawn, so a pure resize (no scroll) can redraw at
+  // the new canvas size without waiting for the next ScrollTrigger tick.
+  const lastFrameRef = useRef({ col: 0, row: 0 });
 
   const [tier, setTier] = useState<TierKey>("lg");
-  const [zoomProgress, setZoomProgress] = useState(0);
   // The balcony footage is a continuation of source "1"'s specific villa —
   // showing it while source "2" (a different building) is selected would be
   // an obvious mismatch, so the scroll push-in only exists for source "1".
   const [activeSource, setActiveSource] = useState<SourceKey>("1");
   const src = tierData[tier].src;
 
-  // Reset zoomProgress at the point of the actual source-change event
+  // Reset the overlay at the point of the actual source-change event
   // (rather than as an effect reacting to it) so the balcony overlay can't
   // stay stuck visible from a prior scroll state when switching away from
   // source "1".
+  const [overlayVisible, setOverlayVisible] = useState(false);
+  const overlayVisibleRef = useRef(false);
   const handleSourceChange = (next: SourceKey) => {
     setActiveSource(next);
-    if (next !== "1") setZoomProgress(0);
+    if (next !== "1") {
+      overlayVisibleRef.current = false;
+      setOverlayVisible(false);
+    }
   };
 
   useLayoutEffect(() => {
@@ -76,12 +123,39 @@ export const HeroCinematic: React.FC = () => {
   // "sm" below the same 768px breakpoint the GSAP effect below is gated on,
   // and the sequence is source-"1"-only. Preloading it unconditionally was
   // wasting real mobile bandwidth (a full atlas sheet) on a viewer that
-  // never runs the scroll effect that would show it.
+  // never runs the scroll effect that would show it. The loaded element
+  // itself is kept (not just fired-and-forgotten) since it's the drawImage
+  // source for every canvas draw below.
   useEffect(() => {
     if (tier !== "lg" || activeSource !== "1") return;
     const img = new window.Image();
+    img.onload = () => {
+      balconyImgRef.current = img;
+      const canvas = balconyCanvasRef.current;
+      if (canvas) {
+        const { col, row } = lastFrameRef.current;
+        drawBalconyFrame(canvas, img, col, row, tierData[tier].cellW, tierData[tier].cellH);
+      }
+    };
     img.src = src;
-  }, [src, tier, activeSource]);
+  }, [src, tier, activeSource, tierData]);
+
+  // Redraws the last known frame when the hero resizes without a scroll
+  // event happening (e.g. rotating a tablet, or a window resize) — the
+  // canvas's pixel buffer is sized off clientWidth/clientHeight at draw
+  // time, so it goes stale otherwise.
+  useEffect(() => {
+    const canvas = balconyCanvasRef.current;
+    if (!canvas) return;
+    const ro = new ResizeObserver(() => {
+      const img = balconyImgRef.current;
+      if (!img) return;
+      const { col, row } = lastFrameRef.current;
+      drawBalconyFrame(canvas, img, col, row, tierData[tier].cellW, tierData[tier].cellH);
+    });
+    ro.observe(canvas);
+    return () => ro.disconnect();
+  }, [tier, tierData]);
 
   // Pin the hero and scrub `zoomProgress` 0->1 across an extra scroll
   // runway, desktop only. ScrollTrigger owns the pin/spacer sizing itself
@@ -91,11 +165,18 @@ export const HeroCinematic: React.FC = () => {
   // (competing sm:/md: height classes produced a stale spacer height and a
   // dead black gap once the pin released). matchMedia handles create/revert
   // itself when crossing the breakpoint, so no manual cleanup juggling.
+  // Hard swap, not a crossfade: blending opacity between the orbit viewer
+  // and the balcony sequence means showing two unrelated photos at once at
+  // every mid-opacity point — a literal double-exposure ghost, not a
+  // cinematic effect. A small dead zone at the very top lets the orbit
+  // viewer still read as interactive before scroll takes over, then it's an
+  // instant, clean toggle straight into the balcony sequence.
+  const SWAP_AT = 0.04;
+
   useEffect(() => {
     // Balcony push-in only exists for source "1" — see activeSource's own
-    // comment. Switching away kills any existing trigger (React runs the
-    // previous effect's cleanup first); zoomProgress is reset at the
-    // handler above, not here.
+    // comment. Switching away kills any existing trigger (the overlay is
+    // reset at the handler above, not here).
     if (activeSource !== "1") return;
     gsap.registerPlugin(ScrollTrigger);
     const mm = gsap.matchMedia();
@@ -109,67 +190,48 @@ export const HeroCinematic: React.FC = () => {
         // toward the scroll position over that many seconds, which on
         // reversal shows a lagging blend of frames instead of jumping
         // straight to the exact frame for the current scroll position.
-        // `true` ties zoomProgress to the scrollbar with zero lag either
+        // `true` ties progress to the scrollbar with zero lag either
         // direction.
         scrub: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
-        onUpdate: (self) => setZoomProgress(self.progress),
+        // Writes the sprite frame straight to the DOM via refs instead of
+        // React state — calling setState here would force a full component
+        // re-render on every scroll tick (~60/sec during the scrub), which
+        // is what was causing the stutter. `overlayVisible` is still real
+        // React state, but it's only committed on the rare tick where it
+        // actually flips, not continuously.
+        onUpdate: (self) => {
+          const progress = self.progress;
+          const visible = progress > SWAP_AT;
+          if (visible !== overlayVisibleRef.current) {
+            overlayVisibleRef.current = visible;
+            setOverlayVisible(visible);
+          }
+          const canvas = balconyCanvasRef.current;
+          const img = balconyImgRef.current;
+          if (visible && canvas && img) {
+            const balconyProgress = Math.max(
+              0,
+              Math.min(1, (progress - SWAP_AT) / (1 - SWAP_AT)),
+            );
+            const frameIndex = Math.round(balconyProgress * (frameCount - 1));
+            const col = frameIndex % cols;
+            const row = Math.floor(frameIndex / cols);
+            lastFrameRef.current = { col, row };
+            drawBalconyFrame(canvas, img, col, row, tierData[tier].cellW, tierData[tier].cellH);
+          }
+        },
       });
       return () => trigger.kill();
     });
     return () => mm.revert();
-  }, [activeSource]);
-
-  // Hard swap, not a crossfade: blending opacity between the orbit viewer
-  // and the balcony sequence means showing two unrelated photos at once at
-  // every mid-opacity point — a literal double-exposure ghost, not a
-  // cinematic effect. A small dead zone at the very top lets the orbit
-  // viewer still read as interactive before scroll takes over, then it's an
-  // instant, clean toggle straight into the balcony sequence.
-  const SWAP_AT = 0.04;
-  const overlayVisible = zoomProgress > SWAP_AT;
-  const balconyProgress = Math.max(
-    0,
-    Math.min(1, (zoomProgress - SWAP_AT) / (1 - SWAP_AT)),
-  );
-
-  const frameIndex = Math.round(balconyProgress * (frameCount - 1));
-  const col = frameIndex % cols;
-  const row = Math.floor(frameIndex / cols);
-
-  const [fit, setFit] = useState<Fit | null>(null);
-  useLayoutEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-    const cellAspect = tierData[tier].cellW / tierData[tier].cellH;
-    const compute = () => {
-      const rect = el.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const containerAspect = rect.width / rect.height;
-      const cellW =
-        containerAspect > cellAspect ? rect.width : rect.height * cellAspect;
-      const cellH =
-        containerAspect > cellAspect ? rect.width / cellAspect : rect.height;
-      setFit({ containerW: rect.width, containerH: rect.height, cellW, cellH });
-    };
-    compute();
-    const ro = new ResizeObserver(compute);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [tier, tierData]);
-
-  const balconyBgStyle = useMemo<React.CSSProperties | undefined>(() => {
-    if (!fit) return undefined;
-    const offsetX = (fit.containerW - fit.cellW) / 2;
-    const offsetY = (fit.containerH - fit.cellH) / 2;
-    return {
-      backgroundImage: `url(${src})`,
-      backgroundRepeat: "no-repeat",
-      backgroundSize: `${fit.cellW * cols}px ${fit.cellH * rows}px`,
-      backgroundPosition: `${offsetX - col * fit.cellW}px ${offsetY - row * fit.cellH}px`,
-    };
-  }, [fit, col, row, cols, rows, src]);
+    // cols/frameCount/rows come from the static balconyZoomManifest import —
+    // stable across the component's lifetime. tier/tierData are included
+    // because onUpdate reads tierData[tier] directly (a real, if rare,
+    // dependency — tier can change on a breakpoint cross independently of
+    // activeSource).
+  }, [activeSource, cols, frameCount, rows, tier, tierData]);
 
   return (
     <section
@@ -198,12 +260,9 @@ export const HeroCinematic: React.FC = () => {
           only while visible so it isn't sitting there invisible-but-present. */}
       {overlayVisible && (
         <div className="absolute inset-0 z-30 pointer-events-none hidden md:block">
-          <div
-            className={cn(
-              "absolute inset-0",
-              balconyBgStyle && "brightness-[0.85]",
-            )}
-            style={balconyBgStyle}
+          <canvas
+            ref={balconyCanvasRef}
+            className="absolute inset-0 h-full w-full brightness-[0.85]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/40" />
         </div>
