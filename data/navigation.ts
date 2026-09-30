@@ -8,6 +8,7 @@ export const navLinks: NavLink[] = [
   { label: "Portfolio", href: "/portfolio" },
   { label: "Pricing", href: "/pricing" },
   { label: "Consultation", href: "/consultation" },
+  { label: "FAQs", href: "/faqs" },
 ];
 
 export const mobileMenuLinks: NavLink[] = [
