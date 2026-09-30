@@ -772,10 +772,11 @@ export const CartDrawer: React.FC = () => {
                       </div>
                       <button
                         onClick={() => removeFromCart(index)}
-                        className="absolute top-2 right-2 text-outline-variant hover:text-red-700 transition-colors p-1 cursor-pointer"
+                        className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 border border-outline-variant/50 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:bg-red-50 hover:border-red-300 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:border-red-500/40 dark:hover:text-red-400 shadow-sm transition-colors cursor-pointer"
+                        title="Remove from cart"
                         aria-label="Remove Item"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))

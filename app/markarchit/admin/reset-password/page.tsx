@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   },
 };
 
+// Never statically prerender the auth screen — it eagerly creates a
+// Supabase browser client on render, which needs runtime env vars.
+export const dynamic = "force-dynamic";
+
 export default function AdminResetPasswordPage() {
   return <AdminResetPasswordView />;
 }

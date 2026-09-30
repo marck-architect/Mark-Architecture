@@ -538,6 +538,8 @@ export interface PricingTierData {
   name: string;
   pricePKR: number | string;
   priceFormatted: string;
+  /** Set only on tiers under a `sized` category — one price per PLOT_SIZES entry. */
+  pricesBySize?: [number, number, number];
   deliveryTime?: string;
   popular?: boolean;
   tag?: string;
@@ -551,9 +553,14 @@ export interface PricingCategoryData {
   letter: string;
   title: string;
   subtitle: string;
+  icon?: string;
   badge?: string;
   description: string;
   clientRequirementNote?: string;
+  /** Tiers are priced per plot size (5 Marla / 10 Marla / 1 Kanal); show the size switcher. */
+  sized?: boolean;
+  /** Render the live per-sq-ft FullHouseCalculator instead of tier cards. */
+  isCalculator?: boolean;
   tiers: PricingTierData[];
 }
 

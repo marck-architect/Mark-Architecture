@@ -3,6 +3,8 @@ export interface PricingTier {
   name: string;
   pricePKR: number | string;
   priceFormatted: string;
+  /** Set only on tiers under a `sized` category — one price per PLOT_SIZES entry. */
+  pricesBySize?: [number, number, number];
   deliveryTime?: string;
   popular?: boolean;
   tag?: string;
@@ -16,11 +18,18 @@ export interface PricingCategory {
   letter: string;
   title: string;
   subtitle: string;
+  icon?: string;
   badge?: string;
   description: string;
   clientRequirementNote?: string;
+  /** Tiers are priced per plot size (5 Marla / 10 Marla / 1 Kanal); show the size switcher. */
+  sized?: boolean;
+  /** Render the live per-sq-ft FullHouseCalculator instead of tier cards. */
+  isCalculator?: boolean;
   tiers: PricingTier[];
 }
+
+export const PLOT_SIZES = ["5 Marla", "10 Marla", "1 Kanal"] as const;
 
 export const paymentPolicyPoints = [
   {
@@ -55,6 +64,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "A",
     title: "Online Consultation (Video/Call)",
     subtitle: "Direct 1-on-1 Strategy Call with Principal Architect",
+    icon: "/images/pricing/consult.png",
     badge: "Direct Advisory",
     description:
       "Connect directly with a licensed architect via Zoom video session for instant layout diagnosis, structural feasibility, and budget strategy.",
@@ -104,6 +114,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "B",
     title: "House Plan Review",
     subtitle: "Fast Architectural Audit to Spot Flaws Before Construction",
+    icon: "/images/pricing/review.png",
     badge: "High Demand • Fast 24–48h",
     description:
       "Catch circulation bottlenecks, missing sunlight shafts, structural clashes, and municipal compliance errors before you break ground.",
@@ -111,8 +122,8 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "review-basic",
         name: "Basic Plan Review",
-        pricePKR: 2000,
-        priceFormatted: "PKR 2,000",
+        pricePKR: 5000,
+        priceFormatted: "PKR 5,000",
         deliveryTime: "24 Hours Delivery",
         tag: "Speed Audit",
         inclusions: [
@@ -126,8 +137,8 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "review-standard",
         name: "Standard Plan Review",
-        pricePKR: 4000,
-        priceFormatted: "PKR 4,000",
+        pricePKR: 9000,
+        priceFormatted: "PKR 9,000",
         deliveryTime: "24–48 Hours",
         popular: true,
         tag: "Most Popular",
@@ -143,8 +154,8 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "review-premium",
         name: "Premium Plan Review",
-        pricePKR: 6000,
-        priceFormatted: "PKR 6,000",
+        pricePKR: 24000,
+        priceFormatted: "PKR 24,000",
         deliveryTime: "48 Hours Delivery",
         tag: "Includes Rough Sketch",
         inclusions: [
@@ -163,15 +174,18 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "C",
     title: "Plan Redesign / Correction",
     subtitle: "Turn Flawed Contractor Drawings into an Elegant Modern Home",
+    icon: "/images/pricing/correction.png",
     badge: "Top Seller",
     description:
       "Transform cramped, inefficient, or unapproved architectural drawings into an optimized layout tailored to Pakistani society regulations and modern lifestyles.",
+    sized: true,
     tiers: [
       {
         id: "redesign-basic",
         name: "Basic Layout Correction",
-        pricePKR: 12000,
-        priceFormatted: "PKR 12,000",
+        pricePKR: 15000,
+        priceFormatted: "PKR 15,000",
+        pricesBySize: [10000, 15000, 26000],
         deliveryTime: "2–3 Days",
         tag: "Single Option",
         inclusions: [
@@ -186,8 +200,9 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "redesign-standard",
         name: "Standard Layout Redesign",
-        pricePKR: 20000,
-        priceFormatted: "PKR 20,000",
+        pricePKR: 22000,
+        priceFormatted: "PKR 22,000",
+        pricesBySize: [15000, 22000, 40000],
         deliveryTime: "3–5 Days",
         popular: true,
         tag: "Best Value",
@@ -203,8 +218,9 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "redesign-premium",
         name: "Premium Layout Redesign",
-        pricePKR: 35000,
-        priceFormatted: "PKR 35,000",
+        pricePKR: 38000,
+        priceFormatted: "PKR 38,000",
+        pricesBySize: [22000, 38000, 70000],
         deliveryTime: "5–7 Days",
         tag: "Complete Strategy",
         inclusions: [
@@ -223,15 +239,18 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "D",
     title: "Front Elevation 3D (Exterior Render)",
     subtitle: "Photorealistic 3D Facade Concepts & Material Specs",
+    icon: "/images/pricing/elevation.png",
     badge: "Exterior 3D",
     description:
       "Visualize your home's exterior with photorealistic 3D elevations featuring modern grooved textures, fluted tiles, warm evening lighting, and louvers.",
+    sized: true,
     tiers: [
       {
         id: "elevation-basic",
         name: "Basic Elevation",
-        pricePKR: 12000,
-        priceFormatted: "PKR 12,000",
+        pricePKR: 17000,
+        priceFormatted: "PKR 17,000",
+        pricesBySize: [15000, 17000, 23000],
         deliveryTime: "2–4 Days",
         tag: "Single View",
         inclusions: [
@@ -246,8 +265,9 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "elevation-standard",
         name: "Standard Elevation",
-        pricePKR: 18000,
-        priceFormatted: "PKR 18,000",
+        pricePKR: 25000,
+        priceFormatted: "PKR 25,000",
+        pricesBySize: [20000, 25000, 31900],
         deliveryTime: "3–5 Days",
         popular: true,
         tag: "Most Requested",
@@ -263,8 +283,9 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "elevation-premium",
         name: "Premium Elevation",
-        pricePKR: 28000,
-        priceFormatted: "PKR 28,000",
+        pricePKR: 29000,
+        priceFormatted: "PKR 29,000",
+        pricesBySize: [25000, 29000, 36000],
         deliveryTime: "5–7 Days",
         tag: "Day + Night Views",
         inclusions: [
@@ -283,6 +304,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "E",
     title: "Interior Room Makeover",
     subtitle: "Bespoke Room Styling, Moodboards & 3D Visualizations",
+    icon: "/images/pricing/interior.png",
     badge: "Fast Selling",
     description:
       "Reimagine your master bedroom, living lounge, dining area, or drawing room with tailored color tones, custom ceiling patterns, and ambient lighting design.",
@@ -290,8 +312,8 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "interior-basic",
         name: "Basic Moodboard",
-        pricePKR: 5000,
-        priceFormatted: "PKR 5,000",
+        pricePKR: 7000,
+        priceFormatted: "PKR 7,000",
         deliveryTime: "2 Days Delivery",
         tag: "Quick Refresh",
         inclusions: [
@@ -305,8 +327,8 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "interior-standard",
         name: "Standard Interior Concept",
-        pricePKR: 10000,
-        priceFormatted: "PKR 10,000",
+        pricePKR: 12000,
+        priceFormatted: "PKR 12,000",
         deliveryTime: "3–4 Days",
         popular: true,
         tag: "2D Layout + Ceiling",
@@ -322,8 +344,8 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "interior-premium",
         name: "Premium Interior Design",
-        pricePKR: 18000,
-        priceFormatted: "PKR 18,000",
+        pricePKR: 30000,
+        priceFormatted: "PKR 30,000",
         deliveryTime: "5–7 Days",
         tag: "Full 3D Render",
         inclusions: [
@@ -342,15 +364,18 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "F",
     title: "Construction Cost Estimate",
     subtitle: "Grey Structure & Finishing Bill of Quantities (BOQ)",
+    icon: "/images/pricing/estimate.png",
     badge: "Financial Control",
     description:
       "Avoid cost overruns and builder inflation. Receive an honest, detailed quantity assessment based on prevailing material and labor rates in Pakistan.",
+    sized: true,
     tiers: [
       {
         id: "estimate-basic",
         name: "Basic Estimate",
         pricePKR: 7000,
         priceFormatted: "PKR 7,000",
+        pricesBySize: [5000, 7000, 9000],
         deliveryTime: "2–3 Days",
         tag: "Grey Structure",
         inclusions: [
@@ -364,8 +389,9 @@ export const pricingMenuCategories: PricingCategory[] = [
       {
         id: "estimate-detailed",
         name: "Detailed Estimate",
-        pricePKR: 15000,
-        priceFormatted: "PKR 15,000",
+        pricePKR: 19000,
+        priceFormatted: "PKR 19,000",
+        pricesBySize: [16000, 19000, 30000],
         deliveryTime: "4–6 Days",
         popular: true,
         tag: "Grey + Finishing",
@@ -385,33 +411,12 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "G",
     title: "Full House Design Package",
     subtitle: "End-to-End Architectural Blueprint & Submission Drawings",
+    icon: "/images/pricing/full-design.png",
     badge: "High Ticket • Turnkey Blueprint",
     description:
-      "From bare plot to complete construction-ready blueprint set. Engineered to pass municipal authority approvals (CDA, LDA, DHA, Bahria, RDA, KDA, PDA).",
-    tiers: [
-      {
-        id: "fullhouse-standard",
-        name: "Standard Full Design",
-        pricePKR: "80,000 – 250,000",
-        priceFormatted: "PKR 80,000 – 250,000",
-        deliveryTime: "2–4 Weeks",
-        popular: true,
-        tag: "Complete Blueprints",
-        inclusions: [
-          "Complete architectural floor plans (all levels)",
-          "Front & side elevation design concepts",
-          "High-res 3D exterior visualization views",
-          "Cross-sections, staircase details & roof plan",
-          "Door, window & ventilator schedule",
-          "Electrical, plumbing & HVAC schematic routing",
-          "Authority submission drawing sheets",
-          "Direct revisions & coordination with project architect",
-        ],
-        notes:
-          "Pricing scales strictly with covered area & plot size (5 Marla: ~PKR 80k–110k, 10 Marla: ~PKR 140k–180k, 1 Kanal: ~PKR 220k–250k+).",
-        actionType: "cart",
-      },
-    ],
+      "From bare plot to complete construction-ready blueprint set, priced per sq. ft. of covered area across five engineering disciplines. Engineered to pass municipal authority approvals (CDA, LDA, DHA, Bahria, RDA, KDA, PDA).",
+    isCalculator: true,
+    tiers: [],
   },
 ];
 

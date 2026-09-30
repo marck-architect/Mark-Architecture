@@ -8,12 +8,12 @@ import {
   PhoneCall,
   Share2,
   ArrowRight,
-  ArrowDown,
   HelpCircle,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
+import { FaqsHero } from "@/components/faqs/FaqsHero";
 import { faqsData as fallbackFaqs, faqCategories } from "@/data/faqs";
 import type { AdminFaq } from "@/types";
 
@@ -167,55 +167,7 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
 
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
-      {/* Editorial Header Section - Whole-screen Architectural Hero */}
-      <header className="relative w-full min-h-[100dvh] flex items-center overflow-hidden border-b border-outline-variant/30">
-        {/* Subtle Background Architectural Grid */}
-        <div className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
-
-        {/* Large Subtle Background Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.03] dark:opacity-[0.05]">
-          <span className="font-montserrat text-[20vw] font-black tracking-tighter">
-            ANSWERS
-          </span>
-        </div>
-
-        <div className="relative z-10 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop pt-28 pb-16 sm:py-20 flex flex-col justify-center">
-          <ScrollReveal>
-            <div className="max-w-3xl space-y-5 sm:space-y-6">
-              <h1
-                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.12]"
-                style={{ fontSize: "clamp(2.25rem, 1.75rem + 2.5vw, 3.75rem)" }}
-              >
-                Got Questions? <br />
-                <span className="font-light text-tertiary">
-                  We Have Clear Answers.
-                </span>
-              </h1>
-
-              <p
-                className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed"
-                style={{
-                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
-                }}
-              >
-                Straight answers to the questions we hear most, covering design
-                fees, PDA and CDA approvals, and how our turnkey packages work.
-              </p>
-
-              {/* Action Buttons matching site header standards */}
-              <div className="pt-2 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 items-stretch sm:items-center">
-                <a
-                  href="#faq-catalog"
-                  className="w-full sm:w-auto bg-primary hover:bg-tertiary text-on-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-bold tracking-wider transition-all duration-300 shadow-md active:scale-95 text-center inline-flex items-center justify-center gap-2 font-inter text-xs uppercase cursor-pointer min-h-[48px]"
-                >
-                  <span>Explore Questions</span>
-                  <ArrowDown className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-      </header>
+      <FaqsHero />
 
       {/* Main FAQ Content Section */}
       <main

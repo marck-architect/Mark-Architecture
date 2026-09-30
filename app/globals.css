@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Instrument+Sans:wght@400;500&display=swap");
 @import "tailwindcss";
 @import "lenis/dist/lenis.css";
 
@@ -22,6 +23,17 @@ html.lenis body {
 }
 
 @theme {
+  /* Pricing page reference design tokens — namespaced (not font-sans/font-serif)
+     so they don't override the site-wide default fonts used elsewhere (e.g. admin). */
+  --color-cream: #f6f0e4;
+  --color-ink: #15191e;
+  --color-ink-soft: #2a2f35;
+  --color-gold: #9a7640;
+  --color-gold-deep: #8a6835;
+  --color-gold-line: #b89865;
+  --font-newsreader: "Newsreader", Georgia, serif;
+  --font-instrument: "Instrument Sans", system-ui, sans-serif;
+
   --color-tertiary-fixed-dim: #f2be72;
   --color-on-primary-container: #747676;
   --color-tertiary-fixed: #ffddb1;

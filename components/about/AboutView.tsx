@@ -2,10 +2,10 @@
 
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { MapPin, ShieldCheck, ArrowDown } from "lucide-react";
+import { AboutHero } from "@/components/about/AboutHero";
+import { MapPin, ShieldCheck } from "lucide-react";
 
 import {
   leaders as fallbackLeaders,
@@ -43,63 +43,7 @@ export const AboutView: React.FC<AboutViewProps> = ({
       : fallbackStudioLocations;
   return (
     <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950">
-      {/* Whole-screen Hero Section (Full Initial Page down to View Selected Works) */}
-      <header className="relative w-full min-h-[100dvh] flex items-center overflow-hidden border-b border-outline-variant/30">
-        {/* Background Architectural Drafting Grid Pattern */}
-        <div className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
-
-        {/* Large Subtle Background Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.03] dark:opacity-[0.05]">
-          <span className="font-montserrat text-[24vw] font-black tracking-tighter">
-            MARK
-          </span>
-        </div>
-
-        {/* Center Main Hero Content */}
-        <div className="relative z-10 w-full max-w-container-max mx-auto px-4 md:px-margin-desktop pt-16">
-          <ScrollReveal>
-            <div className="max-w-4xl space-y-5">
-              <h1
-                className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-[1.08] tracking-tight"
-                style={{ fontSize: "clamp(2.25rem, 1.5rem + 3vw, 4rem)" }}
-              >
-                Designing spaces with <br />
-                <span className="font-light text-tertiary">
-                  mathematical precision and soul.
-                </span>
-              </h1>
-
-              <p
-                className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-                style={{
-                  fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
-                }}
-              >
-                MARK Architects is a collaborative practice of licensed
-                architects, structural engineers, and spatial strategists. We
-                specialize in bespoke residential estates, commercial hubs, and
-                rigorous blueprint audits.
-              </p>
-
-              <div className="pt-2 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 items-stretch sm:items-center">
-                <a
-                  href="#leadership"
-                  className="w-full sm:w-auto bg-primary hover:bg-tertiary text-on-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-bold tracking-wider transition-all duration-300 shadow-md active:scale-95 text-center inline-flex items-center justify-center gap-2 font-inter text-xs uppercase cursor-pointer min-h-[48px]"
-                >
-                  <span>Meet Principal Architect</span>
-                  <ArrowDown className="w-4 h-4" />
-                </a>
-                <Link
-                  href="/portfolio"
-                  className="w-full sm:w-auto border border-outline-variant hover:border-tertiary hover:text-tertiary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-bold tracking-wider transition-all active:scale-95 text-center font-inter text-xs uppercase min-h-[48px] inline-flex items-center justify-center"
-                >
-                  View Selected Works
-                </Link>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-      </header>
+      <AboutHero />
 
       {/* Metrics, woven into a single editorial statement rather than a stat-card grid */}
       <section
