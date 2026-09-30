@@ -4,30 +4,41 @@ import assert from "node:assert/strict";
 test("Order Payment Status: resolves correct status from payment_type", () => {
   const resolveStatus = (paymentType, isPaid) => {
     if (!isPaid) return "pending";
-    return paymentType === "50_percent_advance" ? "advance_paid" : "paid";
+    return paymentType === "50_percent_advance" ? "advance_paid" : "fully_paid";
   };
 
   assert.equal(resolveStatus("50_percent_advance", true), "advance_paid");
-  assert.equal(resolveStatus("full", true), "paid");
-  assert.equal(resolveStatus(undefined, true), "paid");
+  assert.equal(resolveStatus("full", true), "fully_paid");
+  assert.equal(resolveStatus(undefined, true), "fully_paid");
   assert.equal(resolveStatus("50_percent_advance", false), "pending");
 });
 
-test("Order Identifier Query: constructs safe multi-column matchers", () => {
+test("Order Identifier Query: constructs safe multi-column matchers preventing UUID syntax errors", () => {
+  const isUuid = (val) =>
+    typeof val === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
   const buildQuery = (orderId, tracker) => {
     const parts = [];
-    if (orderId) parts.push(`id.eq.${orderId}`, `order_number.eq.${orderId}`);
+    if (isUuid(orderId)) parts.push(`id.eq.${orderId}`);
+    if (orderId) parts.push(`order_number.eq.${orderId}`);
     if (tracker) parts.push(`safepay_tracker.eq.${tracker}`);
     return parts.join(",");
   };
 
-  const query = buildQuery(
+  const uuidQuery = buildQuery(
     "4a57e7d6-f4e4-4fe0-838e-fa60fb685bb0",
     "track_1fd32f12",
   );
   assert.equal(
-    query,
+    uuidQuery,
     "id.eq.4a57e7d6-f4e4-4fe0-838e-fa60fb685bb0,order_number.eq.4a57e7d6-f4e4-4fe0-838e-fa60fb685bb0,safepay_tracker.eq.track_1fd32f12",
+  );
+
+  const orderNumQuery = buildQuery("ORD-892182-381", "track_1fd32f12");
+  assert.equal(
+    orderNumQuery,
+    "order_number.eq.ORD-892182-381,safepay_tracker.eq.track_1fd32f12",
   );
 });
 

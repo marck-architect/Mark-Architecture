@@ -98,6 +98,25 @@ test("Resend Email Template: Branded HTML contains required architectural elemen
   );
 });
 
+test("Resend Email Template: Branded HTML gracefully handles missing Google Meet URL", () => {
+  const html = renderConsultationConfirmationHtml({
+    clientName: "Ahmed Khan",
+    clientEmail: "ahmed@example.com",
+    consultationTitle: "Online Architectural Consultation (Basic Call)",
+    date: "2026-09-28",
+    startTime: "4:00 PM",
+    endTime: "4:30 PM",
+    timezone: "Pakistan Standard Time (PKT)",
+    consultationId: "cons_test_no_meet",
+  });
+
+  assert.ok(html.includes("MARK ARCHITECTS"));
+  assert.ok(html.includes("Ahmed Khan"));
+  assert.ok(html.includes("Appointment Confirmed"));
+  assert.ok(html.includes("Video Session Access"));
+  assert.ok(html.includes("WhatsApp / Phone"));
+});
+
 test("Resend Email Template: Plain text fallback includes all coordinates", () => {
   const text = renderConsultationConfirmationText({
     clientName: "Ahmed Khan",
@@ -117,7 +136,7 @@ test("Resend Email Template: Plain text fallback includes all coordinates", () =
 // -----------------------------------------------------------------------------
 // 3. Workflow Orchestration & Idempotency Logic
 // -----------------------------------------------------------------------------
-test("Workflow: Idempotency under duplicate payment callback", async () => {
+test("Workflow: Automatic confirmation and idempotency under duplicate payment callback", async () => {
   // Simulate database store
   const mockDb = {
     consultations: [
@@ -130,6 +149,8 @@ test("Workflow: Idempotency under duplicate payment callback", async () => {
         booking_date: "2026-10-05",
         booking_time: "15:00",
         payment_status: "pending",
+        consultation_status: "pending",
+        confirmed_by_admin: false,
         meeting_status: "not_created",
         email_status: "not_sent",
         meeting_url: null,
@@ -142,18 +163,21 @@ test("Workflow: Idempotency under duplicate payment callback", async () => {
   let calendarApiCalls = 0;
   let emailDispatches = 0;
 
-  // Mock Orchestrator Engine mirroring processPaidConsultation
+  // Mock Orchestrator Engine mirroring updated processPaidConsultation
   async function simulateWorkflow(consultationId, tracker) {
     const consultation = mockDb.consultations.find(
       (c) => c.id === consultationId,
     );
     if (!consultation) throw new Error("Not found");
 
-    // Step 1: Update payment
+    // Step 1: Auto-confirm upon payment
     consultation.payment_status = "paid";
+    consultation.consultation_status = "confirmed";
+    consultation.confirmed_by_admin = true;
+    consultation.confirmed_at = new Date().toISOString();
     consultation.safepay_tracker = tracker;
 
-    // Step 2: Idempotent meeting creation
+    // Step 2: Idempotent meeting creation (optional integration)
     const existingMeeting = mockDb.meetings.find(
       (m) => m.consultation_id === consultationId && m.status === "scheduled",
     );
@@ -173,12 +197,12 @@ test("Workflow: Idempotency under duplicate payment callback", async () => {
       consultation.meeting_url = meetingUrl;
     }
 
-    // Step 3: Idempotent email dispatch
+    // Step 3: Idempotent email dispatch - NOT gated on meetingUrl presence
     const existingNotif = mockDb.notifications.find(
       (n) => n.consultation_id === consultationId && n.status === "sent",
     );
 
-    if (!existingNotif && meetingUrl) {
+    if (!existingNotif) {
       emailDispatches++;
       mockDb.notifications.push({
         consultation_id: consultationId,
@@ -191,6 +215,8 @@ test("Workflow: Idempotency under duplicate payment callback", async () => {
 
     return {
       paymentStatus: consultation.payment_status,
+      consultationStatus: consultation.consultation_status,
+      confirmedByAdmin: consultation.confirmed_by_admin,
       meetingStatus: consultation.meeting_status,
       emailStatus: consultation.email_status,
       meetingUrl,
@@ -200,6 +226,8 @@ test("Workflow: Idempotency under duplicate payment callback", async () => {
   // First callback
   const firstRun = await simulateWorkflow("cons_idem_001", "trk_12345");
   assert.equal(firstRun.paymentStatus, "paid");
+  assert.equal(firstRun.consultationStatus, "confirmed");
+  assert.equal(firstRun.confirmedByAdmin, true);
   assert.equal(firstRun.meetingStatus, "scheduled");
   assert.equal(firstRun.emailStatus, "sent");
   assert.equal(calendarApiCalls, 1, "Calendar API must be called exactly once");
@@ -208,6 +236,8 @@ test("Workflow: Idempotency under duplicate payment callback", async () => {
   // Duplicate callback arrives (same webhook sent twice by Safepay)
   const secondRun = await simulateWorkflow("cons_idem_001", "trk_12345");
   assert.equal(secondRun.paymentStatus, "paid");
+  assert.equal(secondRun.consultationStatus, "confirmed");
+  assert.equal(secondRun.confirmedByAdmin, true);
   assert.equal(secondRun.meetingStatus, "scheduled");
   assert.equal(secondRun.emailStatus, "sent");
   assert.equal(calendarApiCalls, 1, "Calendar API MUST NOT be called again");
@@ -219,46 +249,51 @@ test("Workflow: Idempotency under duplicate payment callback", async () => {
   assert.equal(emailDispatches, 1, "Zero duplicate emails on third callback");
 });
 
-test("Workflow: Failure isolation - Google failure keeps payment paid and allows admin retry", async () => {
+test("Workflow: Google failure does NOT block auto-confirmation or email dispatch", async () => {
   const consultation = {
     id: "cons_fail_google",
     payment_status: "pending",
+    consultation_status: "pending",
+    confirmed_by_admin: false,
     meeting_status: "not_created",
     email_status: "not_sent",
     meeting_url: null,
   };
 
-  // Simulate Google API failing
+  // 1. Payment received -> auto confirm booking
   consultation.payment_status = "paid";
-  const googleFailed = true;
+  consultation.consultation_status = "confirmed";
+  consultation.confirmed_by_admin = true;
 
+  // 2. Google API fails or is not connected
+  const googleFailed = true;
   if (googleFailed) {
     consultation.meeting_status = "failed";
-    // Email is postponed until meeting is ready
-    consultation.email_status = "not_sent";
   }
 
-  // Assert payment is STILL paid!
-  assert.equal(
-    consultation.payment_status,
-    "paid",
-    "Payment must NOT be failed because Google failed",
-  );
-  assert.equal(consultation.meeting_status, "failed");
-  assert.equal(consultation.email_status, "not_sent");
+  // 3. Email is DISPATCHED immediately regardless of Google failure
+  consultation.email_status = "sent";
 
-  // Admin triggers [Retry Meeting Creation]
+  // Assertions
+  assert.equal(consultation.payment_status, "paid", "Payment must be paid");
+  assert.equal(consultation.consultation_status, "confirmed", "Booking must be auto-confirmed");
+  assert.equal(consultation.confirmed_by_admin, true, "Admin confirmation flag is true immediately");
+  assert.equal(consultation.meeting_status, "failed", "Meeting marked failed for admin retry");
+  assert.equal(consultation.email_status, "sent", "Email is NOT held back by Google failure");
+
+  // Admin later can retry meeting creation
   consultation.meeting_status = "scheduled";
   consultation.meeting_url = "https://meet.google.com/retried-ok";
-
   assert.equal(consultation.meeting_status, "scheduled");
   assert.ok(consultation.meeting_url);
 });
 
-test("Workflow: Failure isolation - Email failure keeps meeting and payment intact", async () => {
+test("Workflow: Failure isolation - Email failure keeps meeting, payment, and confirmation intact", async () => {
   const consultation = {
     id: "cons_fail_email",
     payment_status: "paid",
+    consultation_status: "confirmed",
+    confirmed_by_admin: true,
     meeting_status: "scheduled",
     meeting_url: "https://meet.google.com/valid-meeting",
     email_status: "not_sent",
@@ -271,6 +306,8 @@ test("Workflow: Failure isolation - Email failure keeps meeting and payment inta
   }
 
   assert.equal(consultation.payment_status, "paid", "Payment intact");
+  assert.equal(consultation.consultation_status, "confirmed", "Confirmation intact");
+  assert.equal(consultation.confirmed_by_admin, true, "Confirmed flag intact");
   assert.equal(consultation.meeting_status, "scheduled", "Meeting intact");
   assert.equal(
     consultation.email_status,
@@ -346,14 +383,19 @@ function renderConsultationConfirmationHtml(data) {
     ? `${data.startTime} - ${data.endTime} ${tz}`
     : `${data.startTime} ${tz}`;
 
+  const meetingSection = data.meetingUrl
+    ? `<div><a href="${data.meetingUrl}">Join Google Meet</a></div>
+       <div>Meeting link: ${data.meetingUrl}</div>`
+    : `<div><strong>Video Session Access:</strong> Your direct session link will be sent to your email shortly before the appointment, or our principal architect will connect with you directly via WhatsApp / Phone at your scheduled time.</div>`;
+
   return `<html><body>
     <div>MARK ARCHITECTS</div>
+    <div>Appointment Confirmed</div>
     <div>Hello ${data.clientName}</div>
     <div>${data.consultationTitle}</div>
     <div>${formattedDate}</div>
     <div>${timeDisplay}</div>
-    <div><a href="${data.meetingUrl}">Join Google Meet</a></div>
-    <div>Meeting link: ${data.meetingUrl}</div>
+    ${meetingSection}
     <div>The consultation has also been added to your calendar</div>
     <div>Muhammad Arsalan</div>
   </body></html>`;
@@ -444,4 +486,41 @@ test("Safepay Tracker: sanitizes duplicated or malformed tracker query parameter
   assert.equal(sanitizeTracker(encoded), clean);
   assert.equal(sanitizeTracker(clean), clean);
   assert.equal(sanitizeTracker("  track_xyz123&extra=val  "), "track_xyz123");
+});
+
+test("Safepay Simulation: simulated tracker tokens evaluate cleanly as completed", () => {
+  const simulatedTracker = "track_sim_1727678901234_abc123";
+  const cleanTracker = decodeURIComponent(simulatedTracker).split("?")[0].split("&")[0].trim();
+  const isSimulated = cleanTracker.startsWith("track_sim_");
+
+  assert.equal(isSimulated, true);
+  const status = isSimulated
+    ? { state: "TRACKER_ENDED", isCompleted: true, isSimulated: true, success: true }
+    : { state: "PENDING", isCompleted: false };
+
+  assert.equal(status.isCompleted, true);
+  assert.equal(status.state, "TRACKER_ENDED");
+  assert.equal(status.isSimulated, true);
+});
+
+test("Safepay Tracker: Network error returns graceful status without throwing", () => {
+  function handleSafepayError(err, cleanTracker) {
+    const message = err instanceof Error ? err.message : String(err);
+    const isNetworkError =
+      message.includes("no response was received") ||
+      message.includes("ENOTFOUND") ||
+      message.includes("ETIMEDOUT") ||
+      message.includes("ECONNREFUSED") ||
+      message.includes("network error") ||
+      message.includes("fetch failed");
+
+    return { error: message, isCompleted: false, isNetworkError };
+  }
+
+  const networkErr = new Error("The request was made but no response was received");
+  const result = handleSafepayError(networkErr, "track_1fd32f12-acbf-4db9-8815-26cbe94c5291");
+
+  assert.equal(result.isCompleted, false);
+  assert.equal(result.isNetworkError, true);
+  assert.ok(result.error.includes("no response was received"));
 });

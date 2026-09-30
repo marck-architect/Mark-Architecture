@@ -7,7 +7,8 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { FullHouseCalculator } from "@/components/calculator/FullHouseCalculator";
 import { useStore } from "@/hooks/useStore";
 import { SafepayService } from "@/lib/safepay";
-import { Clock, CheckCircle2, ArrowRight, X, Send } from "lucide-react";
+import { Clock, CheckCircle2, ArrowRight, X, Send, Briefcase, PhoneCall, Sparkles, Video } from "lucide-react";
+import { ServicesHero } from "@/components/services/ServicesHero";
 import type { AdminService, PricingSettingsContent } from "@/types";
 
 type PlotSize = "5 Marla" | "10 Marla" | "1 Kanal";
@@ -49,30 +50,43 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
       return fallbackServiceCatalog;
     }
 
-    return initialServices.map((s: any) => {
+    return initialServices.map((s: any, sIdx: number) => {
       if (s.shortDesc && s.tiers) return s as ServiceData;
 
+      const serviceId = s.slug || s.id || `service-${sIdx}`;
       return {
-        id: s.slug || s.id,
-        slug: s.slug,
-        title: s.title,
+        id: serviceId,
+        slug: s.slug || serviceId,
+        title: s.title || "Architectural Service",
         category: s.category || "Architectural Service",
         popularityRank: s.popularity_rank || 99,
         shortDesc: s.short_description || s.shortDesc || "",
         image:
           s.image_url || s.image || "/images/Full House Design Package.png",
-        pricingType: s.pricing_model || s.pricingType || "flat",
+        pricingType: s.pricing_type || s.pricing_model || s.pricingType || "flat",
         tiers:
           s.tiers && s.tiers.length > 0
-            ? s.tiers.map((t: any) => ({
-                name: t.name,
-                deliveryTime: t.delivery_days
-                  ? `${t.delivery_days} Days`
-                  : t.deliveryTime || "Prompt",
+            ? s.tiers.map((t: any, tIdx: number) => ({
+                name: t.tier_name || t.name || `Tier ${tIdx + 1}`,
+                deliveryTime:
+                  t.delivery_time ||
+                  (t.delivery_days ? `${t.delivery_days} Days` : undefined) ||
+                  t.deliveryTime ||
+                  "Prompt",
                 details: t.description || t.details || "",
                 deliverables: t.deliverables || [],
-                pricePKR: Number(t.base_price_pkr ?? t.pricePKR) || undefined,
-                priceByPlot: t.priceByPlot,
+                pricePKR:
+                  t.pricing_rules?.find((r: any) => r.plot_size === "Any")
+                    ?.price_pkr ||
+                  Number(t.base_price_pkr ?? t.pricePKR) ||
+                  undefined,
+                priceByPlot:
+                  t.pricing_rules?.reduce((acc: any, r: any) => {
+                    if (r.plot_size !== "Any") {
+                      acc[r.plot_size] = r.price_pkr;
+                    }
+                    return acc;
+                  }, t.priceByPlot || {}) || t.priceByPlot,
               }))
             : undefined,
       };
@@ -164,37 +178,12 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
   };
 
   return (
-    <div className="relative overflow-x-hidden min-h-screen pt-20 bg-surface dark:bg-zinc-950">
-      {/* Page Header */}
-      <header className="px-4 md:px-margin-desktop max-w-container-max mx-auto py-16 md:py-24 border-b border-outline-variant/30">
-        <ScrollReveal>
-          <div className="max-w-4xl space-y-4">
-            <span className="font-inter text-xs md:text-sm font-bold text-tertiary uppercase tracking-widest block">
-              Our Services
-            </span>
-            <h1
-              className="font-playfair text-on-surface dark:text-zinc-100 font-normal leading-tight"
-              style={{ fontSize: "clamp(2.25rem, 1.75rem + 2.5vw, 3.75rem)" }}
-            >
-              Everything We Offer, <br />
-              <span className="italic font-light">In One Place.</span>
-            </h1>
-            <p
-              className="font-inter text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed max-w-3xl"
-              style={{
-                fontSize: "clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem)",
-              }}
-            >
-              Clear pricing for every service we offer, for projects in Pakistan
-              and abroad. All prices are in PKR, and checkout is secure through
-              Safepay.
-            </p>
-          </div>
-        </ScrollReveal>
-      </header>
+    <div className="relative overflow-x-hidden min-h-screen bg-surface dark:bg-zinc-950 font-inter">
+      {/* Editorial Page Header */}
+      <ServicesHero />
 
       {/* Flagship Quote Calculator (Service G) Highlight Banner */}
-      <section className="px-4 md:px-margin-desktop max-w-container-max mx-auto py-16">
+      <section id="full-house-calculator" className="scroll-mt-20 px-4 md:px-margin-desktop max-w-container-max mx-auto py-16">
         <ScrollReveal>
           <div className="mb-8">
             <span className="font-inter text-xs font-bold text-tertiary uppercase tracking-widest block mb-2">
@@ -213,7 +202,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
       </section>
 
       {/* Services Catalog Grid (Services A - F) */}
-      <section className="px-4 md:px-margin-desktop max-w-container-max mx-auto py-16 border-t border-outline-variant/20">
+      <section id="services-catalog" className="scroll-mt-20 px-4 md:px-margin-desktop max-w-container-max mx-auto py-16 border-t border-outline-variant/20">
         <ScrollReveal>
           <div className="space-y-3 mb-16">
             <span className="font-inter text-xs font-bold text-tertiary uppercase tracking-widest block">
@@ -263,7 +252,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
                 }
 
                 return (
-                  <ScrollReveal key={service.id} delay={0.08 * idx}>
+                  <ScrollReveal key={service.id || `service-${idx}`} delay={0.08 * idx}>
                     <div className="bg-surface-container-low dark:bg-zinc-900/60 border border-outline-variant/30 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col lg:flex-row">
                       {/* Left: Service Image & Badges */}
                       <div className="lg:w-2/5 relative min-h-[300px] lg:min-h-auto bg-zinc-900 overflow-hidden group">
@@ -276,9 +265,10 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                        <div className="absolute top-6 left-6 flex items-center gap-2">
-                          <span className="bg-black/60 backdrop-blur-md text-tertiary text-[10px] font-inter font-bold tracking-widest uppercase px-3 py-1.5 rounded-full border border-tertiary/30">
-                            Priority #{service.popularityRank}
+                        <div className="absolute top-6 left-6 flex flex-wrap items-center gap-2">
+                          <span className="bg-[#1C1B1B]/85 backdrop-blur-md text-[#e8c889] text-[10px] font-inter font-bold tracking-widest uppercase px-3 py-1.5 rounded-full border border-[#e8c889]/30 flex items-center gap-1.5 shadow-xs">
+                            <Briefcase className="w-3 h-3 text-[#e8c889]" />
+                            <span>Bespoke Service</span>
                           </span>
                           <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-inter font-semibold uppercase px-3 py-1.5 rounded-full">
                             {service.category}
@@ -313,7 +303,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
                                   ] as PlotSize[]
                                 ).map((plot) => (
                                   <button
-                                    key={plot}
+                                    key={`${service.id}-plot-${plot}`}
                                     type="button"
                                     onClick={() =>
                                       handlePlotChange(service.id, plot)
@@ -340,7 +330,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
                               <div className="flex flex-wrap gap-2">
                                 {service.tiers.map((tier, tIdx) => (
                                   <button
-                                    key={tier.name}
+                                    key={`${service.id}-tier-${tIdx}-${tier.name}`}
                                     type="button"
                                     onClick={() =>
                                       handleTierChange(service.id, tIdx)
@@ -382,7 +372,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
                               <div className="space-y-1.5 pt-1">
                                 {currentTier.deliverables.map((d, dIdx) => (
                                   <div
-                                    key={dIdx}
+                                    key={`${service.id}-deliv-${dIdx}`}
                                     className="flex items-center gap-2 text-xs text-on-surface dark:text-zinc-300"
                                   >
                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -441,6 +431,61 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
               })
           )}
         </div>
+      </section>
+
+      {/* 1-on-1 Consultation Strategy Call Gateway */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <ScrollReveal>
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 border border-tertiary/20 p-8 sm:p-12 shadow-2xl">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-tertiary/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              <div className="max-w-2xl space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary/10 border border-tertiary/20 text-tertiary text-xs font-semibold uppercase tracking-wider">
+                  <Video className="w-3.5 h-3.5" />
+                  <span>Unsure Which Service You Need?</span>
+                </div>
+                <h3 className="font-playfair text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                  Book a 1-on-1 Video Consultation with Our Principal Architect
+                </h3>
+                <p className="font-inter text-sm sm:text-base text-zinc-300 font-light leading-relaxed">
+                  Before committing to a full bespoke package, schedule a live 30 or 60-minute strategy session. We review your site drawings, audit circulation flow, and provide municipal zoning clarity.
+                </p>
+                <div className="flex flex-wrap items-center gap-4 pt-1 text-xs text-zinc-400 font-inter">
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-tertiary" />
+                    Live Google Meet Screen-Share
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-tertiary" />
+                    Starting from PKR 3,000
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-tertiary" />
+                    Same-Day Calendar Slot Booking
+                  </span>
+                </div>
+              </div>
+
+              <div className="shrink-0 flex flex-col sm:flex-row lg:flex-col gap-3">
+                <Link
+                  href="/consultation"
+                  className="inline-flex items-center justify-center gap-2.5 bg-tertiary hover:bg-tertiary/90 text-primary px-8 py-4 rounded-2xl font-inter font-bold text-sm tracking-wider uppercase transition-all shadow-lg active:scale-95 text-center"
+                >
+                  <Video className="w-4 h-4" />
+                  <span>Schedule Consultation</span>
+                </Link>
+                <Link
+                  href="/consultation"
+                  className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 px-6 py-3.5 rounded-2xl font-inter text-xs font-semibold tracking-wider uppercase transition-all text-center"
+                >
+                  <span>View Available Slots</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* Tailored Service Inquiry Modal */}

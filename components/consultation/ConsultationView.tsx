@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import Image from "next/image";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { AnimatePresence, motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,74 +25,34 @@ import {
   Lock,
   PhoneCall,
   ArrowUpRight,
-  Layers,
+  Briefcase,
 } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { cn } from "@/lib/utils";
 import { SafepayService } from "@/lib/safepay";
-import { ServiceDetailModal } from "@/components/consultation/ServiceDetailModal";
 import { ConsultationHero } from "@/components/consultation/ConsultationHero";
 import type {
-  ServiceData,
-  Tier,
-  PlotSize,
   AttachedFile,
   BriefFormValues,
   PricingSettingsContent,
   CallTierOption,
-  AdminService,
 } from "@/types";
 import {
   briefFormSchema,
   consultationMonths as months,
   consultationTimeSlots as timeSlots,
   callTiers,
-  getStartingPriceText,
 } from "@/data/services";
 
 interface ConsultationViewProps {
   initialPricing?: PricingSettingsContent;
-  initialServices?: (AdminService | ServiceData)[];
+  initialServices?: unknown;
 }
 
 export const ConsultationView: React.FC<ConsultationViewProps> = ({
   initialPricing,
-  initialServices,
 }) => {
-  const servicesList: ServiceData[] = useMemo(() => {
-    if (!initialServices || initialServices.length === 0) return [];
-    return initialServices.map((s: any) => {
-      if (s.shortDesc && s.tiers) return s as ServiceData;
-      return {
-        id: s.slug || s.id,
-        slug: s.slug,
-        title: s.title,
-        category: s.category || "Architectural Service",
-        popularityRank: s.popularity_rank || 99,
-        shortDesc: s.short_description || s.shortDesc || "",
-        image:
-          s.image_url || s.image || "/images/Full House Design Package.png",
-        pricingType: s.pricing_type || s.pricingType || "flat",
-        tiers:
-          s.tiers?.map((t: any) => ({
-            name: t.tier_name || t.name,
-            deliveryTime: t.delivery_time || t.deliveryTime || "Prompt",
-            details: t.description || t.details || "",
-            deliverables: t.deliverables || [],
-            pricePKR:
-              t.pricing_rules?.find((r: any) => r.plot_size === "Any")
-                ?.price_pkr || t.pricePKR,
-            priceByPlot: t.pricing_rules?.reduce((acc: any, r: any) => {
-              if (r.plot_size !== "Any") {
-                acc[r.plot_size] = r.price_pkr;
-              }
-              return acc;
-            }, t.priceByPlot || {}),
-          })) || [],
-      };
-    });
-  }, [initialServices]);
   const dynamicCallTiers: CallTierOption[] = useMemo(() => {
     if (!initialPricing?.consultationCalls) return callTiers;
     const {
@@ -140,25 +100,12 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
   } = useStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const servicesDropdownRef = useRef<HTMLDivElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   // Packages start collapsed to a compact price preview (not fully hidden —
   // both prices are visible immediately) and expand to the full cards once
   // the visitor asks for them, either via the hero CTA or the preview's own
   // expand button.
   const [packagesExpanded, setPackagesExpanded] = useState(false);
-
-  // Modal & Services Dropdown State
-  const [selectedServiceModal, setSelectedServiceModal] =
-    useState<ServiceData | null>(null);
-  const [isServiceModalOpen, setIsServiceModalOpen] = useState<boolean>(false);
-  const [isServicesDropdownOpen, setIsServicesDropdownOpen] =
-    useState<boolean>(false);
-  // Starts unselected on purpose: showing a full preview (image, price,
-  // description, two buttons) for a service nobody picked yet made this
-  // "lighter, secondary" panel just as heavy as the main booking flow.
-  const [activeSidebarService, setActiveSidebarService] =
-    useState<ServiceData | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
@@ -408,48 +355,6 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
   const selectedTierData =
     dynamicCallTiers.find((t) => t.name === booking.callTier) ||
     dynamicCallTiers[0];
-
-  // Close services dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        servicesDropdownRef.current &&
-        !servicesDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsServicesDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleSelectServiceFromDropdown = (service: ServiceData) => {
-    setActiveSidebarService(service);
-    setSelectedServiceModal(service);
-    setIsServiceModalOpen(true);
-    setIsServicesDropdownOpen(false);
-  };
-
-  const handleApplyServiceToBrief = (
-    service: ServiceData,
-    tier?: Tier,
-    selectedPlot?: PlotSize,
-  ) => {
-    let addMessage = `Interested in Service: ${service.title}`;
-    if (tier) addMessage += ` (${tier.name} Tier)`;
-    if (selectedPlot) addMessage += ` for plot size: ${selectedPlot}`;
-
-    setValue("message", `${getValues("message") || ""}\n${addMessage}`.trim());
-    showToast(
-      `Added "${service.title}" requirements to your brief!`,
-      "success",
-    );
-
-    const formEl = document.getElementById("consultation-contact-section");
-    if (formEl) {
-      formEl.scrollIntoView({ behavior: "smooth" });
-    }
-  };
 
   const handleViewPackages = () => {
     setPackagesExpanded(true);
@@ -1240,180 +1145,111 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
             </form>
           </div>
 
-          {/* Right Column (4 cols): Services Dropdown & Catalog.
-              Follows normal source order (after the Step 1/2/3 form) on
-              every breakpoint, so the primary booking flow stays the first
-              thing a mobile visitor sees, with the "skip the call"
-              alternative offered right after it. */}
+          {/* Right Column (4 cols): Consultation Inclusions, Full Services Gateway & Hotline */}
           <aside className="lg:col-span-4 lg:sticky lg:top-28 space-y-6">
-            {/* Services Dropdown Card */}
+            {/* Consultation Overview & Inclusions Card */}
             <div className="bg-surface-container-low dark:bg-zinc-900/80 p-6 rounded-3xl border border-outline-variant/30 dark:border-zinc-800 shadow-sm space-y-5">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="p-1.5 rounded-lg bg-tertiary/10 text-tertiary">
-                    <Sparkles className="w-4 h-4" />
+                    <Video className="w-4 h-4" />
                   </span>
                   <span className="font-inter text-[11px] font-bold text-tertiary uppercase tracking-widest">
-                    Already Know What You Need?
+                    Consultation Inclusions
                   </span>
                 </div>
                 <h3 className="font-playfair text-xl md:text-2xl font-bold text-on-surface dark:text-zinc-100">
-                  Skip the Call. Book a Service Directly.
+                  What to Expect on Your Call
                 </h3>
                 <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                  We offer {servicesList.length} design services, like plan
-                  reviews, 3D renders, and full house design. Each one shows you
-                  exactly what you get and what it costs. Pick one below.
+                  Your strategy session is conducted directly with our principal architect over Google Meet to provide actionable clarity before you build.
                 </p>
               </div>
 
-              {/* Custom Services Dropdown */}
-              <div ref={servicesDropdownRef} className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsServicesDropdownOpen((prev) => !prev)}
-                  className="w-full bg-white dark:bg-zinc-950 border border-outline-variant/60 hover:border-tertiary rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3 text-left transition-all shadow-xs cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center shrink-0">
-                      <Layers className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-tertiary block">
-                        Select Service
-                      </span>
-                      <span className="font-playfair text-sm font-bold text-on-surface dark:text-zinc-100 block leading-snug">
-                        {activeSidebarService?.title || "Choose a Service"}
-                      </span>
-                    </div>
+              <div className="space-y-3 pt-2 border-t border-outline-variant/20">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-tertiary/15 text-tertiary flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                   </div>
-                  <ChevronDown
-                    className={cn(
-                      "w-4 h-4 text-zinc-400 transition-transform duration-200 shrink-0",
-                      isServicesDropdownOpen && "rotate-180 text-tertiary",
-                    )}
-                  />
-                </button>
-
-                {/* Floating Dropdown Menu */}
-                {isServicesDropdownOpen && (
-                  <div
-                    data-lenis-prevent
-                    onWheel={(e) => e.stopPropagation()}
-                    className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-zinc-900 border border-outline-variant/40 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 space-y-1 max-h-[min(70vh,34rem)] overflow-y-auto overscroll-contain touch-pan-y backdrop-blur-xl"
-                  >
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-outline-variant/20 mb-1">
-                      Available Services ({servicesList.length})
-                    </div>
-                    {servicesList.map((service) => {
-                      const isSelected =
-                        activeSidebarService?.id === service.id;
-                      return (
-                        <div
-                          key={service.id}
-                          onClick={() =>
-                            handleSelectServiceFromDropdown(service)
-                          }
-                          className={cn(
-                            "flex items-center gap-3 p-2.5 rounded-xl transition-all cursor-pointer group",
-                            isSelected
-                              ? "bg-tertiary/10 border border-tertiary/30 text-tertiary"
-                              : "hover:bg-surface-container dark:hover:bg-zinc-800/80 text-on-surface dark:text-zinc-200",
-                          )}
-                        >
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-zinc-950 shrink-0 border border-outline-variant/20">
-                            <Image
-                              src={service.image}
-                              alt={service.title}
-                              fill
-                              className="object-cover"
-                              sizes="48px"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="text-[9px] font-bold uppercase tracking-wider text-tertiary truncate">
-                                {service.category}
-                              </span>
-                              <span className="text-[10px] font-bold text-secondary dark:text-zinc-300 shrink-0">
-                                {getStartingPriceText(service)}
-                              </span>
-                            </div>
-                            <p className="font-playfair text-xs font-bold truncate group-hover:text-tertiary transition-colors">
-                              {service.title}
-                            </p>
-                            <span className="text-[10px] text-zinc-400 flex items-center gap-0.5 mt-0.5 group-hover:text-tertiary transition-colors">
-                              <span>Open Service</span>
-                              <ArrowUpRight className="w-2.5 h-2.5" />
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Active Service Card Preview — only appears once the visitor
-                  has actually picked something from the dropdown above. */}
-              {!activeSidebarService && (
-                <p className="pt-2 border-t border-outline-variant/20 font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
-                  Pick a service above to see what it includes and what it
-                  costs.
-                </p>
-              )}
-              {activeSidebarService && (
-                <div className="pt-2 border-t border-outline-variant/20 space-y-3">
-                  <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-zinc-950 border border-outline-variant/20 shadow-xs">
-                    <Image
-                      src={activeSidebarService.image}
-                      alt={activeSidebarService.title}
-                      fill
-                      className="object-cover"
-                      sizes="320px"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-tertiary text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border border-tertiary/30">
-                      {activeSidebarService.category}
-                    </span>
-                    <span className="absolute bottom-3 right-3 text-white font-montserrat text-xs font-bold">
-                      {getStartingPriceText(activeSidebarService)}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <h4 className="font-playfair text-base font-bold text-on-surface dark:text-zinc-100">
-                      {activeSidebarService.title}
-                    </h4>
-                    <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed line-clamp-2">
-                      {activeSidebarService.shortDesc}
+                  <div>
+                    <h5 className="font-inter text-xs font-semibold text-on-surface dark:text-zinc-200">
+                      Live Architectural Plan Audit
+                    </h5>
+                    <p className="font-inter text-[11px] text-on-surface-variant dark:text-zinc-400 font-light">
+                      Screen-share layout reviews, circulation flow critique, and structural space optimization.
                     </p>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedServiceModal(activeSidebarService);
-                        setIsServiceModalOpen(true);
-                      }}
-                      className="w-full bg-primary hover:bg-tertiary text-on-primary py-2.5 px-3 rounded-xl font-inter text-xs font-bold uppercase tracking-wider transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-                    >
-                      <span>Open Service</span>
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleApplyServiceToBrief(activeSidebarService)
-                      }
-                      className="w-full border border-outline-variant hover:border-tertiary hover:text-tertiary py-2.5 px-3 rounded-xl font-inter text-xs font-bold uppercase tracking-wider transition-all text-center cursor-pointer active:scale-95"
-                    >
-                      <span>Add to Brief</span>
-                    </button>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-tertiary/15 text-tertiary flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h5 className="font-inter text-xs font-semibold text-on-surface dark:text-zinc-200">
+                      Bylaw &amp; Setback Compliance
+                    </h5>
+                    <p className="font-inter text-[11px] text-on-surface-variant dark:text-zinc-400 font-light">
+                      Direct verification against DHA, CDA, LDA, and municipal society building codes.
+                    </p>
                   </div>
                 </div>
-              )}
+
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-tertiary/15 text-tertiary flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h5 className="font-inter text-xs font-semibold text-on-surface dark:text-zinc-200">
+                      Budget &amp; Material Realism
+                    </h5>
+                    <p className="font-inter text-[11px] text-on-surface-variant dark:text-zinc-400 font-light">
+                      Real-time market estimation for grey structure, finishes, and contractor vetting.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-tertiary/15 text-tertiary flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h5 className="font-inter text-xs font-semibold text-on-surface dark:text-zinc-200">
+                      Instant Video Link &amp; Recording
+                    </h5>
+                    <p className="font-inter text-[11px] text-on-surface-variant dark:text-zinc-400 font-light">
+                      Automated Google Meet calendar invitation sent to your email immediately upon booking.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dedicated Gateway to Full Architectural Services */}
+            <div className="p-6 rounded-3xl bg-surface-container-low dark:bg-zinc-900/80 border border-outline-variant/30 dark:border-zinc-800 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-tertiary/10 text-tertiary">
+                  <Briefcase className="w-4 h-4" />
+                </span>
+                <span className="font-inter text-[11px] font-bold text-tertiary uppercase tracking-widest">
+                  Need Full Design Packages?
+                </span>
+              </div>
+              <div>
+                <h4 className="font-playfair text-lg font-bold text-on-surface dark:text-zinc-100 mb-1.5">
+                  Bespoke Architectural Services
+                </h4>
+                <p className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                  Looking for complete turnkey blueprints, 3D photorealistic elevations, interior remodeling, or structural MEP sets? Explore our full services catalog.
+                </p>
+              </div>
+              <Link
+                href="/services"
+                className="w-full inline-flex items-center justify-center gap-2 bg-primary hover:bg-tertiary text-on-primary py-3 px-4 rounded-xl font-inter text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95 text-center"
+              >
+                <span>Explore Architectural Services</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </Link>
             </div>
 
             {/* Direct Studio Hotline Banner */}
@@ -1459,15 +1295,6 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
           </aside>
         </div>
       </main>
-
-      {/* Interactive Service Detail Modal */}
-      <ServiceDetailModal
-        key={selectedServiceModal?.id || "empty"}
-        isOpen={isServiceModalOpen}
-        onClose={() => setIsServiceModalOpen(false)}
-        service={selectedServiceModal}
-        onApplyToBrief={handleApplyServiceToBrief}
-      />
     </div>
   );
 };

@@ -73,37 +73,52 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    // Build item summary if client notes are omitted
+    const itemSummary =
+      Array.isArray(items) && items.length > 0
+        ? items
+            .map(
+              (i: { title?: string; name?: string; tier?: string; quantity?: number }) =>
+                `${i.title || i.name || "Design Item"}${i.tier ? ` (${i.tier})` : ""}${Number(i.quantity) > 1 ? ` x${i.quantity}` : ""}`,
+            )
+            .join("; ")
+        : null;
+
+    const orderPayload = {
+      id: orderId,
+      order_number: orderNumber,
+      client_name: customer.name,
+      client_email: customer.email,
+      client_phone: customer.phone,
+      covered_area_sqft: coveredAreaSqft ? Number(coveredAreaSqft) : null,
+      selected_disciplines: selectedDisciplines || items || null,
+      total_amount_pkr: calculatedTotalPkr,
+      advance_amount_pkr: advancePkr,
+      remaining_balance_pkr: remainingBalancePkr,
+      payment_type: paymentType,
+      payment_status: "pending",
+      safepay_tracker: safepayResult.tracker,
+      attachment_urls: attachmentUrls || [],
+      notes: notes || itemSummary || null,
+    };
 
     try {
-      const { data, error } = await supabase
-        .from("orders")
-        .insert({
-          id: orderId,
-          order_number: orderNumber,
-          client_name: customer.name,
-          client_email: customer.email,
-          client_phone: customer.phone,
-          covered_area_sqft: coveredAreaSqft || null,
-          selected_disciplines: selectedDisciplines || null,
-          total_amount_pkr: calculatedTotalPkr,
-          advance_amount_pkr: advancePkr,
-          remaining_balance_pkr: remainingBalancePkr,
-          payment_type: paymentType,
-          payment_status: "pending",
-          safepay_tracker: safepayResult.tracker,
-          attachment_urls: attachmentUrls || [],
-          notes: notes || null,
-        })
-        .select()
-        .single();
+      const { getSupabaseAdminClient } = await import("@/lib/server/supabaseAdmin");
+      const supabaseAdmin = getSupabaseAdminClient();
+      const { error } = await supabaseAdmin.from("orders").insert(orderPayload);
 
       if (error) {
-        console.warn("Supabase orders insert warning:", error.message);
+        console.warn("[Orders Checkout] Primary admin insert notice:", error.message);
+        // Fallback to cookie client
+        const cookieStore = await cookies();
+        const supabase = createClient(cookieStore);
+        const { error: cookieErr } = await supabase.from("orders").insert(orderPayload);
+        if (cookieErr) {
+          console.warn("[Orders Checkout] Fallback client insert notice:", cookieErr.message);
+        }
       }
     } catch (dbErr) {
-      console.warn("Database storage deferred:", dbErr);
+      console.warn("[Orders Checkout] Database storage notice:", dbErr);
     }
 
     return NextResponse.json({

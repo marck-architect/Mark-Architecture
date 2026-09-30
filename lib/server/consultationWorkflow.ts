@@ -50,9 +50,12 @@ export async function processPaidConsultation(
     throw new Error(`Consultation ${consultationId} not found in database.`);
   }
 
-  // 2. Mark payment_status = 'paid'
+  // 2. Mark payment_status = 'paid' and auto-confirm booking
   const paymentUpdates: Record<string, unknown> = {
     payment_status: "paid",
+    consultation_status: "confirmed",
+    confirmed_by_admin: true,
+    confirmed_at: nowIso,
     updated_at: nowIso,
   };
   if (safepayTracker && !consultation.safepay_tracker) {
@@ -67,13 +70,13 @@ export async function processPaidConsultation(
 
     if (updateErr) {
       console.error(
-        `[Workflow] Error updating payment_status for ${consultationId}:`,
+        `[Workflow] Error updating payment and confirmation status for ${consultationId}:`,
         updateErr.message,
       );
     }
   } catch (err) {
     console.warn(
-      `[Workflow] Non-fatal: could not update payment_status for ${consultationId}:`,
+      `[Workflow] Non-fatal: could not update payment status for ${consultationId}:`,
       err,
     );
   }
@@ -117,42 +120,35 @@ export async function processPaidConsultation(
     );
   }
 
-  // 4. Send or skip confirmation email via Resend
+  // 4. Send confirmation email via Resend immediately upon payment
   let emailStatus: "sent" | "failed" | "skipped" | "not_sent" = "not_sent";
   let emailError: string | undefined;
 
-  // Only dispatch email if meeting URL is available (either just created or already existed)
-  if (activeMeetingUrl) {
-    try {
-      const emailResult = await sendConsultationConfirmation({
-        consultationId: consultation.id,
-        clientName: consultation.client_name,
-        clientEmail: consultation.client_email,
-        consultationTitle:
-          consultation.tier_name || "Online Architectural Consultation",
-        date: consultation.booking_date,
-        startTime: consultation.booking_time,
-        timezone: consultation.timezone || "Pakistan Standard Time (PKT)",
-        meetingUrl: activeMeetingUrl,
-        calendarEventId: activeCalendarEventId,
-        forceResend: false, // Idempotent!
-      });
+  try {
+    const emailResult = await sendConsultationConfirmation({
+      consultationId: consultation.id,
+      clientName: consultation.client_name,
+      clientEmail: consultation.client_email,
+      consultationTitle:
+        consultation.tier_name || "Online Architectural Consultation",
+      date: consultation.booking_date,
+      startTime: consultation.booking_time,
+      timezone: consultation.timezone || "Pakistan Standard Time (PKT)",
+      meetingUrl: activeMeetingUrl,
+      calendarEventId: activeCalendarEventId,
+      forceResend: false, // Idempotent!
+    });
 
-      emailStatus = emailResult.status;
-      if (!emailResult.success && emailResult.error) {
-        emailError = emailResult.error;
-      }
-    } catch (err: unknown) {
-      emailError = err instanceof Error ? err.message : String(err);
-      emailStatus = "failed";
-      console.error(
-        `[Workflow] Unexpected failure during email dispatch for ${consultationId}:`,
-        emailError,
-      );
+    emailStatus = emailResult.status;
+    if (!emailResult.success && emailResult.error) {
+      emailError = emailResult.error;
     }
-  } else {
-    console.warn(
-      `[Workflow] Skipping confirmation email for ${consultationId} because meeting URL is not available yet. Meeting status is ${meetingStatus}.`,
+  } catch (err: unknown) {
+    emailError = err instanceof Error ? err.message : String(err);
+    emailStatus = "failed";
+    console.error(
+      `[Workflow] Unexpected failure during email dispatch for ${consultationId}:`,
+      emailError,
     );
   }
 

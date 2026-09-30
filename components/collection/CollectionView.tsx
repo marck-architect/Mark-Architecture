@@ -56,14 +56,14 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
           <div className="flex items-center justify-between border-b border-outline-variant/30 pb-6 flex-wrap gap-4">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-tertiary block">
-                Standardized Architecture
+                Turnkey Blueprints &amp; Fixed-Price Packages
               </span>
               <h2 className="font-playfair text-2xl md:text-3xl font-bold text-secondary dark:text-zinc-100 mt-1">
-                Design and Review Packages
+                Architectural Products Catalog
               </h2>
             </div>
             <span className="text-xs font-inter text-zinc-500 font-medium">
-              {packages.length} Ready Packages Available
+              {packages.length} Ready Products Available
             </span>
           </div>
         </div>
@@ -74,7 +74,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
             {packages.length === 0 ? (
               <div className="col-span-full py-20 text-center border border-dashed border-outline-variant/30 rounded-3xl p-8 bg-surface-container-low/40 dark:bg-zinc-900/30">
                 <p className="font-playfair text-2xl text-on-surface dark:text-zinc-200">
-                  No standardized packages published yet
+                  No standardized products published yet
                 </p>
                 <p className="font-inter text-sm text-zinc-500 mt-2 max-w-md mx-auto">
                   Ready architectural packages will appear here once configured
@@ -83,7 +83,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
               </div>
             ) : (
               packages.map((pkg, idx) => (
-                <ScrollReveal key={pkg.id} delay={0.06 * idx}>
+                <ScrollReveal key={pkg.id || `pkg-${idx}`} delay={0.06 * idx}>
                   <div
                     id={`pkg-${pkg.id}`}
                     className={`scroll-mt-28 bg-surface-container-low dark:bg-zinc-900 border rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col justify-between h-full group ${
@@ -103,12 +103,16 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
                           className="object-cover group-hover:scale-105 transition-transform duration-700"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                        <div className="absolute top-4 left-4 flex gap-2">
-                          <span className="bg-black/60 backdrop-blur-md text-tertiary text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-tertiary/30">
+                        <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
+                          <span className="bg-[#1C1B1B]/85 backdrop-blur-md text-[#e8c889] text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border border-[#e8c889]/30 flex items-center gap-1 shadow-xs">
+                            <ShoppingBag className="w-3 h-3 text-[#e8c889]" />
+                            <span>Product</span>
+                          </span>
+                          <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold uppercase px-2.5 py-1 rounded-full border border-white/20">
                             {pkg.tier}
                           </span>
                           {pkg.plotSize && (
-                            <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold uppercase px-3 py-1 rounded-full">
+                            <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold uppercase px-2.5 py-1 rounded-full">
                               {pkg.plotSize}
                             </span>
                           )}
@@ -135,7 +139,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
                           </span>
                           {pkg.inclusions.map((item, iIdx) => (
                             <div
-                              key={iIdx}
+                              key={`${pkg.id}-inc-${iIdx}`}
                               className="flex items-center gap-2 text-xs text-on-surface dark:text-zinc-300"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />

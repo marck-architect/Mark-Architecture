@@ -17,28 +17,51 @@ export async function GET(
       data: { user },
     } = await supabase.auth.getUser();
 
+    const { GATEKEEPER_COOKIE_NAME, isValidGatekeeperToken } = await import(
+      "@/lib/server/adminGatekeeper"
+    );
+    const gatekeeperCookie = cookieStore.get(GATEKEEPER_COOKIE_NAME)?.value;
+    const isGatekeeper = isValidGatekeeperToken(gatekeeperCookie);
+
     const adminEmail =
       process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
-    if (!user) {
+    if (!user && !isGatekeeper) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (adminEmail && user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
+    if (user && adminEmail && user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
       return NextResponse.json(
         { error: "Forbidden: Not an authorized administrator" },
         { status: 403 },
       );
     }
 
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { getSupabaseAdminClient } = await import("@/lib/server/supabaseAdmin");
+    const supabaseAdmin = getSupabaseAdminClient();
 
-    if (error) {
-      throw error;
+    const isUuid = (val: string) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
+    let query = supabaseAdmin.from("orders").select("*");
+    if (isUuid(id)) {
+      query = query.or(`id.eq.${id},order_number.eq.${id}`);
+    } else {
+      query = query.eq("order_number", id);
+    }
+
+    let { data, error } = await query.maybeSingle();
+
+    if (error || !data) {
+      let fbQuery = supabase.from("orders").select("*");
+      if (isUuid(id)) {
+        fbQuery = fbQuery.or(`id.eq.${id},order_number.eq.${id}`);
+      } else {
+        fbQuery = fbQuery.eq("order_number", id);
+      }
+      const fbResult = await fbQuery.maybeSingle();
+      if (fbResult.error) throw fbResult.error;
+      data = fbResult.data;
     }
 
     return NextResponse.json({ success: true, data });
@@ -62,19 +85,25 @@ export async function PATCH(
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    // 1. Verify User Session & Single-Email Admin Authority
+    // 1. Verify User Session & Single-Email Admin Authority (or Gatekeeper cookie)
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
+    const { GATEKEEPER_COOKIE_NAME, isValidGatekeeperToken } = await import(
+      "@/lib/server/adminGatekeeper"
+    );
+    const gatekeeperCookie = cookieStore.get(GATEKEEPER_COOKIE_NAME)?.value;
+    const isGatekeeper = isValidGatekeeperToken(gatekeeperCookie);
+
     const adminEmail =
       process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
-    if (!user) {
+    if (!user && !isGatekeeper) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (adminEmail && user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
+    if (user && adminEmail && user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
       return NextResponse.json(
         { error: "Forbidden: Not an authorized administrator" },
         { status: 403 },
@@ -97,7 +126,10 @@ export async function PATCH(
       updated_at: new Date().toISOString(),
     };
 
-    if (payment_status !== undefined) updates.payment_status = payment_status;
+    if (payment_status !== undefined) {
+      // Normalize 'paid' to 'fully_paid' to satisfy Postgres CHECK constraint
+      updates.payment_status = payment_status === "paid" ? "fully_paid" : payment_status;
+    }
     if (safepay_tracker !== undefined)
       updates.safepay_tracker = safepay_tracker;
     if (notes !== undefined) updates.notes = notes;
@@ -109,16 +141,33 @@ export async function PATCH(
     if (covered_area_sqft !== undefined)
       updates.covered_area_sqft = Number(covered_area_sqft);
 
-    // 3. Update Order in Supabase (matches either UUID or order_number)
-    const { data, error } = await supabase
-      .from("orders")
-      .update(updates)
-      .or(`id.eq.${id},order_number.eq.${id}`)
-      .select()
-      .maybeSingle();
+    // 3. Update Order in Supabase
+    const { getSupabaseAdminClient } = await import("@/lib/server/supabaseAdmin");
+    const supabaseAdmin = getSupabaseAdminClient();
+
+    const isUuid = (val: string) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
+    let updateQuery = supabaseAdmin.from("orders").update(updates);
+    if (isUuid(id)) {
+      updateQuery = updateQuery.or(`id.eq.${id},order_number.eq.${id}`);
+    } else {
+      updateQuery = updateQuery.eq("order_number", id);
+    }
+
+    let { data, error } = await updateQuery.select().maybeSingle();
 
     if (error) {
-      throw error;
+      // Fallback to cookie client
+      let fallbackQuery = supabase.from("orders").update(updates);
+      if (isUuid(id)) {
+        fallbackQuery = fallbackQuery.or(`id.eq.${id},order_number.eq.${id}`);
+      } else {
+        fallbackQuery = fallbackQuery.eq("order_number", id);
+      }
+      const fbResult = await fallbackQuery.select().maybeSingle();
+      if (fbResult.error) throw fbResult.error;
+      data = fbResult.data;
     }
 
     return NextResponse.json({ success: true, data });

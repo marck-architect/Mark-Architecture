@@ -42,6 +42,16 @@ function PaymentCallbackContent() {
   );
   const [copied, setCopied] = useState(false);
 
+  interface ConsultationDetails {
+    title?: string;
+    scheduledDate?: string;
+    scheduledTime?: string;
+    clientName?: string;
+    meetingUrl?: string;
+  }
+
+  const [details, setDetails] = useState<ConsultationDetails | null>(null);
+
   useEffect(() => {
     if (!trackerParam && !orderId) return;
 
@@ -65,6 +75,9 @@ function PaymentCallbackContent() {
             const activeTrk = data.tracker || trackerParam;
             if (activeTrk) {
               setTracker(activeTrk);
+            }
+            if (data.details) {
+              setDetails(data.details);
             }
 
             // Persist confirmed order into store & localStorage
@@ -161,7 +174,9 @@ function PaymentCallbackContent() {
                 {isVerifying
                   ? "Verifying Safepay Transaction..."
                   : isSuccess
-                    ? "Payment Successfully Processed"
+                    ? type === "consultation"
+                      ? "Consultation Confirmed & Scheduled"
+                      : "Order Confirmed & Paid"
                     : "Payment Attention Required"}
               </h1>
             </div>
@@ -170,7 +185,9 @@ function PaymentCallbackContent() {
               {isVerifying
                 ? "Connecting with Safepay gateway to confirm cryptographic transaction receipt..."
                 : isSuccess
-                  ? "Your transaction has been authenticated by Safepay. A confirmation email and project intake receipt have been generated."
+                  ? type === "consultation"
+                    ? "Your consultation appointment has been automatically confirmed and booked in our studio calendar. A confirmation email with full session details has been dispatched."
+                    : "Your transaction has been authenticated by Safepay. A confirmation email and project intake receipt have been generated."
                   : errorMsg}
             </p>
           </div>
@@ -178,7 +195,7 @@ function PaymentCallbackContent() {
           {/* Details Box */}
           <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-5 space-y-3 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-zinc-800/60">
-              <span className="text-zinc-500">Transaction Status</span>
+              <span className="text-zinc-500">Booking Status</span>
               <span
                 className={`font-semibold px-2 py-0.5 rounded-full ${
                   isSuccess
@@ -189,10 +206,28 @@ function PaymentCallbackContent() {
                 {isVerifying
                   ? "Verifying"
                   : isSuccess
-                    ? "Completed"
+                    ? "Confirmed & Paid"
                     : "Pending"}
               </span>
             </div>
+
+            {details?.title ? (
+              <div className="flex justify-between items-center pb-2 border-b border-zinc-800/60">
+                <span className="text-zinc-500">Service / Tier</span>
+                <span className="font-medium text-zinc-200">
+                  {details.title}
+                </span>
+              </div>
+            ) : null}
+
+            {details?.scheduledDate ? (
+              <div className="flex justify-between items-center pb-2 border-b border-zinc-800/60">
+                <span className="text-zinc-500">Appointment</span>
+                <span className="font-medium text-tertiary">
+                  {details.scheduledDate} at {details.scheduledTime || ""} PKT
+                </span>
+              </div>
+            ) : null}
 
             {orderId && (
               <div className="flex justify-between items-center pb-2 border-b border-zinc-800/60">

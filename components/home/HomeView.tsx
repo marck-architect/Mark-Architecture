@@ -352,10 +352,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
               className="w-full sm:w-auto"
             >
               <Link
-                href="/consultation"
+                href="/services"
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-[#c9c0b2] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-[#5f5951] transition-all hover:border-[#8a6125] hover:text-[#8a6125] active:scale-95 text-center min-h-[48px]"
               >
-                Explore All Packages
+                Explore All Services
               </Link>
             </ScrollReveal>
           </div>

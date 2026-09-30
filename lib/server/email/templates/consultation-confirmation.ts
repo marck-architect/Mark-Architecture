@@ -8,7 +8,7 @@ export interface ConsultationEmailData {
   startTime: string;
   endTime?: string;
   timezone?: string;
-  meetingUrl: string;
+  meetingUrl?: string;
   calendarEventId?: string;
   consultationId: string;
 }
@@ -248,10 +248,13 @@ export function renderConsultationConfirmationHtml(
           </div>
           <div class="row">
             <span class="label">Platform</span>
-            <span class="value">Google Meet (Live HD Video)</span>
+            <span class="value">${data.meetingUrl ? "Google Meet (Live HD Video)" : "Google Meet / WhatsApp Video"}</span>
           </div>
         </div>
 
+        ${
+          data.meetingUrl
+            ? `
         <div class="button-container">
           <a href="${data.meetingUrl}" target="_blank" class="btn">Join Google Meet</a>
         </div>
@@ -259,9 +262,16 @@ export function renderConsultationConfirmationHtml(
         <div class="fallback-box">
           <strong>Meeting link:</strong> <a href="${data.meetingUrl}" target="_blank">${data.meetingUrl}</a>
         </div>
+        `
+            : `
+        <div class="fallback-box" style="background-color: #fdfaf3; border: 1px solid #fed7aa; color: #9a3412;">
+          <strong>Video Session Access:</strong> Your direct session link will be sent to your email shortly before the appointment, or our principal architect will connect with you directly via WhatsApp / Phone at your scheduled time.
+        </div>
+        `
+        }
 
         <div class="calendar-notice">
-          The consultation has also been added to your calendar and an invitation has been dispatched to ${data.clientEmail}.
+          The consultation appointment has been recorded in our studio diary and confirmed for ${data.clientEmail}.
         </div>
 
         <p style="margin-top: 28px; font-size: 13px; color: #78716c;">
@@ -298,6 +308,10 @@ export function renderConsultationConfirmationText(
     ? `${data.startTime} - ${data.endTime} ${tz}`
     : `${data.startTime} ${tz}`;
 
+  const meetingLine = data.meetingUrl
+    ? `Meeting: Join Google Meet\nMeeting link: ${data.meetingUrl}`
+    : `Meeting: Google Meet / WhatsApp Video (Direct room link or architect call will connect at your scheduled time)`;
+
   return `Your Architecture Consultation is Confirmed
 
 Hello ${data.clientName},
@@ -307,10 +321,9 @@ Your consultation has been successfully confirmed.
 Consultation: ${data.consultationTitle}
 Date: ${formattedDate}
 Time: ${timeDisplay}
-Meeting: Join Google Meet
-Meeting link: ${data.meetingUrl}
+${meetingLine}
 
-The consultation has also been added to your calendar.
+The consultation has also been confirmed in our atelier calendar.
 
 If you have architectural drawings, site contour surveys, or plot photos ready, please have them available during the video session.
 

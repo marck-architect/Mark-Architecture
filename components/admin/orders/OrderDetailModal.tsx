@@ -170,10 +170,31 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       ? `92${cleanPhone.slice(1)}`
       : `92${cleanPhone}`;
 
-  // Parse disciplines if available
+  // Parse disciplines or ordered items if available
   let disciplinesList: string[] = [];
   if (Array.isArray(order.selected_disciplines)) {
-    disciplinesList = order.selected_disciplines.map(String);
+    disciplinesList = order.selected_disciplines.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") {
+        const itemObj = item as {
+          title?: string;
+          name?: string;
+          tier?: string;
+          plotSize?: string;
+          quantity?: number;
+        };
+        const title = itemObj.title || itemObj.name || "Item";
+        const meta = [
+          itemObj.tier,
+          itemObj.plotSize,
+          itemObj.quantity && itemObj.quantity > 1 ? `x${itemObj.quantity}` : null,
+        ]
+          .filter(Boolean)
+          .join(" • ");
+        return meta ? `${title} (${meta})` : title;
+      }
+      return String(item);
+    });
   } else if (
     order.selected_disciplines &&
     typeof order.selected_disciplines === "object"

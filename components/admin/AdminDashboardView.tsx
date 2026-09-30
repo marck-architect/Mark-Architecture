@@ -367,10 +367,10 @@ function AdminDashboardInner({
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
   };
 
-  // Pending Count for badges
+  // Pending Count for badges (bookings awaiting payment or manual review)
   const pendingCount = useMemo(() => {
     return consultations.filter(
-      (c) => c.payment_status === "pending" || !c.confirmed_by_admin,
+      (c) => c.payment_status === "pending" && !c.confirmed_by_admin,
     ).length;
   }, [consultations]);
 

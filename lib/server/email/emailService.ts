@@ -72,6 +72,7 @@ export async function sendConsultationConfirmation(
       const { data, error } = await resend.emails.send({
         from: EMAIL_CONFIG.formattedFrom,
         to: [clientEmail],
+        replyTo: EMAIL_CONFIG.replyTo,
         subject,
         html,
         text,
@@ -186,12 +187,6 @@ export async function retryConsultationConfirmation(
     );
   }
 
-  if (!consultation.meeting_url) {
-    throw new Error(
-      "Cannot send confirmation email: Consultation does not have a Google Meet URL.",
-    );
-  }
-
   return sendConsultationConfirmation({
     consultationId: consultation.id,
     clientName: consultation.client_name,
@@ -201,7 +196,7 @@ export async function retryConsultationConfirmation(
     date: consultation.booking_date,
     startTime: consultation.booking_time,
     timezone: consultation.timezone || "Pakistan Standard Time (PKT)",
-    meetingUrl: consultation.meeting_url,
+    meetingUrl: consultation.meeting_url || undefined,
     calendarEventId: consultation.calendar_event_id || undefined,
     forceResend: force,
   });

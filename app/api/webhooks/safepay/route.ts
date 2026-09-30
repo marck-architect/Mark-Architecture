@@ -56,9 +56,16 @@ export async function POST(req: NextRequest) {
           const orderRef =
             ((data?.metadata as Record<string, string>)?.order_id as string) ||
             "";
-          const query = orderRef
-            ? `safepay_tracker.eq.${tracker},id.eq.${orderRef},order_number.eq.${orderRef}`
-            : `safepay_tracker.eq.${tracker}`;
+
+          const isUuid = (val?: string | null): boolean =>
+            typeof val === "string" &&
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
+          const queryParts: string[] = [];
+          if (tracker) queryParts.push(`safepay_tracker.eq.${tracker}`);
+          if (isUuid(orderRef)) queryParts.push(`id.eq.${orderRef}`);
+          if (orderRef) queryParts.push(`order_number.eq.${orderRef}`);
+          const query = queryParts.join(",");
 
           const { data: order } = await supabaseAdmin
             .from("orders")
@@ -69,7 +76,7 @@ export async function POST(req: NextRequest) {
           const newStatus =
             order?.payment_type === "50_percent_advance"
               ? "advance_paid"
-              : "paid";
+              : "fully_paid";
 
           await supabaseAdmin
             .from("orders")
