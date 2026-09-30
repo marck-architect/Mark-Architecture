@@ -185,7 +185,7 @@ export async function getPublicProjects(): Promise<AdminProject[]> {
 }
 
 /**
- * Public Services for /services and /services/[slug]
+ * Public Services (consumed by the homepage and /consultation)
  */
 export async function getPublicServices(): Promise<AdminService[]> {
   try {

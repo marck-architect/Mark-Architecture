@@ -269,7 +269,6 @@ export async function PUT(request: NextRequest) {
     // 4. Invalidate cached pages using pricing
     try {
       revalidatePath("/pricing");
-      revalidatePath("/services");
       revalidatePath("/consultation");
       revalidatePath("/");
     } catch {

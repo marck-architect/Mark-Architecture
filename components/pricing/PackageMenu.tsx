@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { gsap } from "gsap";
@@ -66,7 +67,11 @@ export const PackageMenu: React.FC<PackageMenuProps> = ({ categories, calculator
         gsap.utils.toArray<HTMLElement>("[data-tile]").forEach((el, i) =>
           gsap.fromTo(el, { clipPath: "inset(0 100% 0 0)", y: 24, opacity: 0.3 }, {
             clipPath: "inset(0 0% 0 0)", y: 0, opacity: 1, ease: "power2.out",
-            scrollTrigger: { trigger: el, start: `top+=${(i % 3) * 50} bottom`, end: "top 65%", scrub: 0.6 },
+            // Offset increases monotonically with DOM order (row-major, matching the
+            // grid's left-to-right/top-to-bottom layout) instead of a fixed column
+            // modulo, so cards always reveal in visual order top-to-bottom, and
+            // reverse in that same order when scrolling back up.
+            scrollTrigger: { trigger: el, start: `top+=${Math.min(i * 30, 240)} bottom`, end: "top 65%", scrub: 0.6 },
           }));
         gsap.fromTo(ghost.current, { y: 110 }, {
           y: -110, ease: "none",
@@ -205,10 +210,9 @@ interface CategoryDetailProps {
 function CategoryDetail({ cat, sizeIndex, setSizeIndex, selection, onSelect, calculatorSettings }: CategoryDetailProps) {
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
-        <div className="flex max-w-[720px] flex-col gap-3.5">
-          <div className="flex items-center gap-4">
-            <span className="grid size-[52px] flex-none place-items-center rounded-[10px] bg-gold text-2xl font-semibold text-[#FBF7EF]">{cat.letter}</span>
+      <div className={cat.image ? "grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-start" : undefined}>
+        <div className="flex flex-col gap-3.5">
+          <div className="flex flex-wrap items-center gap-4">
             <AnimatePresence mode="wait">
               <motion.h3
                 key={cat.id}
@@ -221,36 +225,67 @@ function CategoryDetail({ cat, sizeIndex, setSizeIndex, selection, onSelect, cal
                 {cat.title}
               </motion.h3>
             </AnimatePresence>
-            {cat.badge && (
-              <span className="whitespace-nowrap rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold uppercase tracking-[.1em] text-[#7A5B2C]">{cat.badge}</span>
-            )}
           </div>
           <p className="text-[clamp(16px,1.3vw,18px)] leading-relaxed text-[#4A4236] text-pretty">{cat.description}</p>
+
+          {cat.detailPoints && cat.detailPoints.length > 0 && (
+            <ul className="flex flex-col gap-3 border-t border-gold/20 pt-5">
+              {cat.detailPoints.map((point) => (
+                <li key={point} className="flex items-start gap-3 text-[15px] leading-relaxed text-ink-soft">
+                  <span className="mt-[9px] size-1.5 flex-none rounded-full bg-gold-line" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {cat.sized && (
+            <div role="tablist" aria-label="House size" className="flex self-start rounded-full border border-gold-line bg-[#FFFDF8]/70 p-1">
+              {PLOT_SIZES.map((s, i) => (
+                <button
+                  key={s}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === sizeIndex}
+                  onClick={() => setSizeIndex(i)}
+                  className={`relative min-h-11 rounded-full px-[18px] text-[15px] font-medium transition-colors cursor-pointer ${i === sizeIndex ? "text-[#FBF7EF]" : "text-[#7A5B2C]"}`}
+                >
+                  {i === sizeIndex && <motion.span layoutId="size-pill" className="absolute inset-0 rounded-full bg-gold" transition={{ type: "spring", stiffness: 400, damping: 34 }} />}
+                  <span className="relative">{s}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {cat.clientRequirementNote && (
+            <p className="flex items-start gap-2.5 rounded-xl bg-gold/10 px-[18px] py-3.5 text-[15px] leading-normal text-[#5E4722]">
+              <Paperclip size={18} className="mt-0.5 flex-none" />{cat.clientRequirementNote}
+            </p>
+          )}
         </div>
-        {cat.sized && (
-          <div role="tablist" aria-label="House size" className="flex rounded-full border border-gold-line bg-[#FFFDF8]/70 p-1">
-            {PLOT_SIZES.map((s, i) => (
-              <button
-                key={s}
-                type="button"
-                role="tab"
-                aria-selected={i === sizeIndex}
-                onClick={() => setSizeIndex(i)}
-                className={`relative min-h-11 rounded-full px-[18px] text-[15px] font-medium transition-colors cursor-pointer ${i === sizeIndex ? "text-[#FBF7EF]" : "text-[#7A5B2C]"}`}
-              >
-                {i === sizeIndex && <motion.span layoutId="size-pill" className="absolute inset-0 rounded-full bg-gold" transition={{ type: "spring", stiffness: 400, damping: 34 }} />}
-                <span className="relative">{s}</span>
-              </button>
-            ))}
-          </div>
+
+        {cat.image && (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={cat.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35 }}
+              className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] bg-[#FFFDF8] lg:order-last"
+            >
+              <Image
+                src={cat.image}
+                alt={cat.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+                priority={false}
+              />
+            </motion.div>
+          </AnimatePresence>
         )}
       </div>
-
-      {cat.clientRequirementNote && (
-        <p className="mt-6 flex max-w-[720px] items-start gap-2.5 rounded-xl bg-gold/10 px-[18px] py-3.5 text-[15px] leading-normal text-[#5E4722]">
-          <Paperclip size={18} className="mt-0.5 flex-none" />{cat.clientRequirementNote}
-        </p>
-      )}
 
       <AnimatePresence mode="wait">
         <motion.div
