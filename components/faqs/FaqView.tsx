@@ -23,16 +23,46 @@ interface FaqViewProps {
 
 export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
   const { showToast } = useStore();
+  const [faqsList, setFaqsList] = useState<(AdminFaq | any)[]>(
+    initialFaqs && initialFaqs.length > 0 ? initialFaqs : [],
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
+
+  useEffect(() => {
+    if (initialFaqs && initialFaqs.length > 0) {
+      setFaqsList(initialFaqs);
+    }
+  }, [initialFaqs]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function refreshFaqs() {
+      try {
+        const res = await fetch("/api/faqs", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (isMounted && json?.data && Array.isArray(json.data) && json.data.length > 0) {
+            setFaqsList(json.data);
+          }
+        }
+      } catch (err) {
+        console.warn("Client FAQs refresh notice:", err);
+      }
+    }
+    refreshFaqs();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const categoriesList = useMemo(() => {
     const list: { key: string; label: string; description?: string }[] = [
       ...faqCategories,
     ];
 
-    if (initialFaqs && Array.isArray(initialFaqs)) {
-      initialFaqs.forEach((f: any) => {
+    if (faqsList && Array.isArray(faqsList)) {
+      faqsList.forEach((f: any) => {
         if (!f.category) return;
         const cat = String(f.category).trim();
         const exists = list.some(
@@ -51,7 +81,7 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
     }
 
     return list;
-  }, [initialFaqs]);
+  }, [faqsList]);
 
   const isCategoryMatch = (itemCat: string, targetKey: string) => {
     if (targetKey === "all") return true;
@@ -91,7 +121,7 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
 
   const faqsData = useMemo(() => {
     const source =
-      initialFaqs && initialFaqs.length > 0 ? initialFaqs : fallbackFaqs;
+      faqsList && faqsList.length > 0 ? faqsList : fallbackFaqs;
     return source.map((f: any, idx: number) => ({
       id: f.id || `faq-${idx}`,
       category: f.category || "general",
@@ -106,7 +136,7 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
         : ["architecture", "mark-architects"],
       relatedLinks: f.relatedLinks || [],
     }));
-  }, [initialFaqs]);
+  }, [faqsList]);
 
   // Single-open accordion: only one answer expanded at a time, so a
   // non-technical visitor is never scanning several long answer blocks at

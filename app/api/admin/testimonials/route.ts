@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import fs from "fs";
 import path from "path";
 import { requireAdminAuth } from "@/lib/server/adminAuth";
@@ -21,7 +22,12 @@ export function readLocalTestimonials(): AdminTestimonial[] {
       const content = fs.readFileSync(LOCAL_TESTIMONIALS_FILE, "utf8");
       const parsed = JSON.parse(content);
       if (Array.isArray(parsed)) {
-        return parsed;
+        return parsed.map((t: any) => ({
+          ...t,
+          review: t.review || t.quote || "",
+          position: t.position || t.client_role || null,
+          photo_url: t.photo_url || t.avatar_url || null,
+        }));
       }
     }
   } catch (err) {
@@ -59,7 +65,21 @@ export async function GET() {
         .order("display_order", { ascending: true });
 
       if (!error && data && data.length > 0) {
-        return NextResponse.json({ success: true, data });
+        const normalized: AdminTestimonial[] = data.map((t: any) => ({
+          id: String(t.id),
+          client_name: t.client_name,
+          company: t.company || null,
+          position: t.position || t.client_role || null,
+          review: t.review || t.quote || "",
+          rating: Number(t.rating) || 5,
+          photo_url: t.photo_url || t.avatar_url || null,
+          project_title: t.project_title || null,
+          is_featured: Boolean(t.is_featured),
+          is_published: t.is_published !== false,
+          display_order: Number(t.display_order) || 0,
+          created_at: t.created_at,
+        }));
+        return NextResponse.json({ success: true, data: normalized });
       }
     } catch {
       // Fallback
@@ -99,7 +119,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newTestimonial: Omit<AdminTestimonial, "id"> = {
+    let created: AdminTestimonial = {
+      id: `test_${Date.now()}`,
       client_name,
       company: company || undefined,
       position: position || undefined,
@@ -113,19 +134,67 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
     };
 
-    let created: AdminTestimonial = {
-      id: `test_${Date.now()}`,
-      ...newTestimonial,
+    // Support both Supabase table column naming conventions
+    const dbPayloadQuote = {
+      client_name,
+      company: company || null,
+      client_role: position || null,
+      quote: review,
+      rating: Number(rating) || 5,
+      avatar_url: photo_url || null,
+      project_title: project_title || null,
+      is_featured: Boolean(is_featured),
+      is_published: is_published !== undefined ? Boolean(is_published) : true,
+      display_order: Number(display_order) || 99,
+    };
+
+    const dbPayloadReview = {
+      client_name,
+      company: company || null,
+      position: position || null,
+      review: review,
+      rating: Number(rating) || 5,
+      photo_url: photo_url || null,
+      project_title: project_title || null,
+      is_featured: Boolean(is_featured),
+      is_published: is_published !== undefined ? Boolean(is_published) : true,
+      display_order: Number(display_order) || 99,
     };
 
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("testimonials")
-        .insert(newTestimonial)
+        .insert(dbPayloadQuote)
         .select()
         .single();
+
+      if (error) {
+        const retry = await supabase
+          .from("testimonials")
+          .insert(dbPayloadReview)
+          .select()
+          .single();
+        if (!retry.error && retry.data) {
+          data = retry.data;
+          error = null;
+        }
+      }
+
       if (!error && data) {
-        created = data as AdminTestimonial;
+        created = {
+          id: String(data.id),
+          client_name: data.client_name,
+          company: data.company,
+          position: data.position || data.client_role || position,
+          review: data.review || data.quote || review,
+          rating: Number(data.rating) || Number(rating) || 5,
+          photo_url: data.photo_url || data.avatar_url || photo_url,
+          project_title: data.project_title || project_title,
+          is_featured: Boolean(data.is_featured),
+          is_published: data.is_published !== false,
+          display_order: Number(data.display_order) || Number(display_order) || 99,
+          created_at: data.created_at,
+        };
       }
     } catch (dbErr) {
       console.warn("Notice: Inserting testimonial to DB fallback:", dbErr);
@@ -133,7 +202,21 @@ export async function POST(request: NextRequest) {
 
     // Persist to local JSON file
     const current = readLocalTestimonials();
-    writeLocalTestimonials([created, ...current]);
+    const updatedList = [created, ...current];
+    writeLocalTestimonials(updatedList);
+
+    // Also sync to Supabase site_content for complete database consistency
+    try {
+      await supabase.from("site_content").upsert(
+        {
+          section_key: "testimonials",
+          content: updatedList,
+        },
+        { onConflict: "section_key" },
+      );
+    } catch (scErr) {
+      console.warn("Notice: Updating site_content testimonials:", scErr);
+    }
 
     await logAdminAction({
       adminEmail: user.email,
@@ -142,6 +225,13 @@ export async function POST(request: NextRequest) {
       entityId: created.id,
       metadata: { client_name },
     });
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin/testimonials");
+    } catch (revalErr) {
+      console.warn("revalidatePath error:", revalErr);
+    }
 
     return NextResponse.json({ success: true, data: created });
   } catch (err: unknown) {

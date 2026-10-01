@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -45,12 +45,48 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
   initialServices,
   initialPricing,
 }) => {
+  const [servicesList, setServicesList] = useState<(AdminService | any)[]>(
+    initialServices && initialServices.length > 0 ? initialServices : [],
+  );
+
+  useEffect(() => {
+    if (initialServices && initialServices.length > 0) {
+      setServicesList(initialServices);
+    }
+  }, [initialServices]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function refreshServices() {
+      try {
+        const res = await fetch("/api/services", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (
+            isMounted &&
+            json?.data &&
+            Array.isArray(json.data) &&
+            json.data.length > 0
+          ) {
+            setServicesList(json.data);
+          }
+        }
+      } catch (err) {
+        console.warn("Client services refresh notice:", err);
+      }
+    }
+    refreshServices();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const serviceCatalog = useMemo<ServiceData[]>(() => {
-    if (!initialServices || initialServices.length === 0) {
+    if (!servicesList || servicesList.length === 0) {
       return fallbackServiceCatalog;
     }
 
-    return initialServices.map((s: any, sIdx: number) => {
+    return servicesList.map((s: any, sIdx: number) => {
       if (s.shortDesc && s.tiers) return s as ServiceData;
 
       const serviceId = s.slug || s.id || `service-${sIdx}`;
@@ -91,7 +127,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
             : undefined,
       };
     });
-  }, [initialServices]);
+  }, [servicesList]);
 
   const { addToCart, setCartDrawerOpen, showToast } = useStore();
 

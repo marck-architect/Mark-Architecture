@@ -11,6 +11,7 @@ import {
   studioLocations as fallbackStudioLocations,
 } from "@/data/about";
 import { faqsData as fallbackFaqs } from "@/data/faqs";
+import { fallbackTestimonials } from "@/data/home";
 
 import type {
   AdminProject,
@@ -107,28 +108,10 @@ function mapFallbackServices(): AdminService[] {
  * Public Projects for /portfolio and Homepage Featured Section
  */
 export async function getPublicProjects(): Promise<AdminProject[]> {
-  // 1. Try Supabase DB
+  // 1. Try dedicated 'projects' table in Supabase
   try {
     const supabase = getPublicSupabaseClient();
     if (supabase) {
-      // 1a. Try 'site_content' table first (contains full rich payload including aspectClass & price)
-      const { data: contentData } = await supabase
-        .from("site_content")
-        .select("content")
-        .eq("section_key", "projects")
-        .single();
-
-      if (
-        contentData?.content &&
-        Array.isArray(contentData.content) &&
-        contentData.content.length > 0
-      ) {
-        return contentData.content.filter(
-          (p: AdminProject) => p.is_published !== false,
-        );
-      }
-
-      // 1b. Try dedicated 'projects' table
       const { data, error } = await supabase
         .from("projects")
         .select("*")
@@ -137,7 +120,6 @@ export async function getPublicProjects(): Promise<AdminProject[]> {
         .order("created_at", { ascending: false });
 
       if (!error && data && data.length > 0) {
-        // Read local projects to fill in aspectClass & price if needed
         let localProjects: AdminProject[] = [];
         try {
           const localFile = path.join(process.cwd(), "data", "projects.json");
@@ -163,10 +145,10 @@ export async function getPublicProjects(): Promise<AdminProject[]> {
       }
     }
   } catch (err) {
-    console.warn("Notice: Fetching projects from Supabase:", err);
+    console.warn("Notice: Fetching projects from Supabase table:", err);
   }
 
-  // 2. Fallback to local data/projects.json
+  // 2. Check local data/projects.json (maintained by admin dashboard)
   try {
     const localFile = path.join(process.cwd(), "data", "projects.json");
     if (fs.existsSync(localFile)) {
@@ -180,7 +162,31 @@ export async function getPublicProjects(): Promise<AdminProject[]> {
     console.warn("Notice: Reading local projects file:", err);
   }
 
-  // 3. Static fallback
+  // 3. Fallback to 'site_content' table
+  try {
+    const supabase = getPublicSupabaseClient();
+    if (supabase) {
+      const { data: contentData } = await supabase
+        .from("site_content")
+        .select("content")
+        .eq("section_key", "projects")
+        .single();
+
+      if (
+        contentData?.content &&
+        Array.isArray(contentData.content) &&
+        contentData.content.length > 0
+      ) {
+        return contentData.content.filter(
+          (p: AdminProject) => p.is_published !== false,
+        );
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Fetching projects from site_content:", err);
+  }
+
+  // 4. Static fallback
   return mapFallbackProjects();
 }
 
@@ -188,10 +194,10 @@ export async function getPublicProjects(): Promise<AdminProject[]> {
  * Public Services for /services and /services/[slug]
  */
 export async function getPublicServices(): Promise<AdminService[]> {
+  // 1. Try dedicated 'services' table in Supabase
   try {
     const supabase = getPublicSupabaseClient();
     if (supabase) {
-      // 1a. Try dedicated 'services' table
       const { data: services, error } = await supabase
         .from("services")
         .select(
@@ -209,8 +215,29 @@ export async function getPublicServices(): Promise<AdminService[]> {
       if (!error && services && services.length > 0) {
         return services as AdminService[];
       }
+    }
+  } catch (err) {
+    console.warn("Notice: Fetching services from Supabase table:", err);
+  }
 
-      // 1b. Try 'site_content' table
+  // 2. Check local data/services.json
+  try {
+    const localServicesFile = path.join(process.cwd(), "data", "services.json");
+    if (fs.existsSync(localServicesFile)) {
+      const content = fs.readFileSync(localServicesFile, "utf8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.filter((s: AdminService) => s.is_active !== false);
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Reading local services file:", err);
+  }
+
+  // 3. Fallback to 'site_content' table
+  try {
+    const supabase = getPublicSupabaseClient();
+    if (supabase) {
       const { data: contentData } = await supabase
         .from("site_content")
         .select("content")
@@ -228,7 +255,7 @@ export async function getPublicServices(): Promise<AdminService[]> {
       }
     }
   } catch (err) {
-    console.warn("Notice: Fetching services from Supabase:", err);
+    console.warn("Notice: Fetching services from site_content:", err);
   }
 
   return mapFallbackServices();
@@ -238,10 +265,68 @@ export async function getPublicServices(): Promise<AdminService[]> {
  * Public Collection Packages for /collection
  */
 export async function getPublicCollection(): Promise<ArchitecturalPackage[]> {
+  // 1. Try dedicated 'collection_packages' table in Supabase
   try {
     const supabase = getPublicSupabaseClient();
     if (supabase) {
-      // 1a. Try 'site_content' table first (guaranteed to match latest admin edits)
+      const { data, error } = await supabase
+        .from("collection_packages")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        return data.map((item) => ({
+          id: item.slug || item.id,
+          title: item.name,
+          tier: item.tag || "Standard Package",
+          pricePKR: Number(item.price_pkr) || 9000,
+          deliveryTime: item.turnaround_weeks || "3-5 Days",
+          image: item.cover_image || "/images/Full House Design Package.png",
+          plotSize: item.plot_dimensions || "Standard",
+          inclusions: item.deliverables || [],
+          description: item.subtitle || "",
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Fetching collection from dedicated table:", err);
+  }
+
+  // 2. Check local data/collection.json (maintained by admin dashboard)
+  try {
+    const localFile = path.join(process.cwd(), "data", "collection.json");
+    if (fs.existsSync(localFile)) {
+      const content = fs.readFileSync(localFile, "utf8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+          .filter((item: any) => item.is_published !== false)
+          .map((item: any) => ({
+            id: item.slug || item.id,
+            title: item.name || item.title,
+            tier: item.tag || item.tier || "Standard Package",
+            pricePKR: Number(item.price_pkr || item.pricePKR) || 9000,
+            deliveryTime:
+              item.turnaround_weeks || item.deliveryTime || "3-5 Days",
+            image:
+              item.cover_image ||
+              item.image ||
+              "/images/Full House Design Package.png",
+            plotSize: item.plot_dimensions || item.plotSize || "Standard",
+            inclusions: item.deliverables || item.inclusions || [],
+            description: item.subtitle || item.description || "",
+          }));
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Reading local collection file:", err);
+  }
+
+  // 3. Fallback to 'site_content' table
+  try {
+    const supabase = getPublicSupabaseClient();
+    if (supabase) {
       const { data: contentData } = await supabase
         .from("site_content")
         .select("content")
@@ -271,60 +356,9 @@ export async function getPublicCollection(): Promise<ArchitecturalPackage[]> {
             description: item.subtitle || item.description || "",
           }));
       }
-
-      // 1b. Try dedicated 'collection_packages' table
-      const { data, error } = await supabase
-        .from("collection_packages")
-        .select("*")
-        .eq("is_published", true)
-        .order("display_order", { ascending: true });
-
-      if (!error && data && data.length > 0) {
-        return data.map((item) => ({
-          id: item.slug || item.id,
-          title: item.name,
-          tier: item.tag || "Standard Package",
-          pricePKR: Number(item.price_pkr) || 9000,
-          deliveryTime: item.turnaround_weeks || "3-5 Days",
-          image: item.cover_image || "/images/Full House Design Package.png",
-          plotSize: item.plot_dimensions || "Standard",
-          inclusions: item.deliverables || [],
-          description: item.subtitle || "",
-        }));
-      }
     }
   } catch (err) {
-    console.warn("Notice: Fetching collection from Supabase:", err);
-  }
-
-  // 2. Fallback to local data/collection.json
-  try {
-    const localFile = path.join(process.cwd(), "data", "collection.json");
-    if (fs.existsSync(localFile)) {
-      const content = fs.readFileSync(localFile, "utf8");
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed
-          .filter((item: any) => item.is_published !== false)
-          .map((item: any) => ({
-            id: item.slug || item.id,
-            title: item.name || item.title,
-            tier: item.tag || item.tier || "Standard Package",
-            pricePKR: Number(item.price_pkr || item.pricePKR) || 9000,
-            deliveryTime:
-              item.turnaround_weeks || item.deliveryTime || "3-5 Days",
-            image:
-              item.cover_image ||
-              item.image ||
-              "/images/Full House Design Package.png",
-            plotSize: item.plot_dimensions || item.plotSize || "Standard",
-            inclusions: item.deliverables || item.inclusions || [],
-            description: item.subtitle || item.description || "",
-          }));
-      }
-    }
-  } catch (err) {
-    console.warn("Notice: Reading local collection file:", err);
+    console.warn("Notice: Fetching collection from site_content:", err);
   }
 
   return fallbackCollection;
@@ -365,36 +399,64 @@ export async function getPublicTeam(): Promise<{
             "/images/profile-removebg-preview.png",
         }));
       } else {
-        // 1b. Fallback to site_content table
+        // 1b. Check local data/team.json (maintained by admin dashboard)
         try {
-          const { data: teamContent } = await supabase
-            .from("site_content")
-            .select("content")
-            .eq("section_key", "team_members")
-            .single();
-
-          if (
-            teamContent?.content?.members &&
-            Array.isArray(teamContent.content.members) &&
-            teamContent.content.members.length > 0
-          ) {
-            leaders = teamContent.content.members
-              .filter((m: any) => m.is_active !== false)
-              .map((m: any) => ({
-                name: m.name,
-                role: m.role,
-                credentials: m.credentials || "",
-                bio: m.bio || "",
-                experience:
-                  m.experience || m.specialization || "15+ Years Practice",
-                image:
-                  m.photo_url ||
-                  m.image_url ||
-                  "/images/profile-removebg-preview.png",
-              }));
+          const localTeamFile = path.join(process.cwd(), "data", "team.json");
+          if (fs.existsSync(localTeamFile)) {
+            const parsed = JSON.parse(fs.readFileSync(localTeamFile, "utf8"));
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              leaders = parsed
+                .filter((m: any) => m.is_active !== false)
+                .map((m: any) => ({
+                  name: m.name,
+                  role: m.role,
+                  credentials: m.credentials || "",
+                  bio: m.bio || "",
+                  experience:
+                    m.experience || m.specialization || "15+ Years Practice",
+                  image:
+                    m.photo_url ||
+                    m.image_url ||
+                    "/images/profile-removebg-preview.png",
+                }));
+            }
           }
-        } catch {
-          // Ignore
+        } catch (err) {
+          console.warn("Notice: Reading local team file:", err);
+        }
+
+        // 1c. Fallback to site_content table
+        if (leaders.length === 0) {
+          try {
+            const { data: teamContent } = await supabase
+              .from("site_content")
+              .select("content")
+              .eq("section_key", "team_members")
+              .single();
+
+            if (
+              teamContent?.content?.members &&
+              Array.isArray(teamContent.content.members) &&
+              teamContent.content.members.length > 0
+            ) {
+              leaders = teamContent.content.members
+                .filter((m: any) => m.is_active !== false)
+                .map((m: any) => ({
+                  name: m.name,
+                  role: m.role,
+                  credentials: m.credentials || "",
+                  bio: m.bio || "",
+                  experience:
+                    m.experience || m.specialization || "15+ Years Practice",
+                  image:
+                    m.photo_url ||
+                    m.image_url ||
+                    "/images/profile-removebg-preview.png",
+                }));
+            }
+          } catch {
+            // Ignore
+          }
         }
       }
 
@@ -458,10 +520,10 @@ export async function getPublicTeam(): Promise<{
  * Public FAQs for /faqs
  */
 export async function getPublicFaqs(): Promise<AdminFaq[]> {
+  // 1. Try dedicated faqs table in Supabase
   try {
     const supabase = getPublicSupabaseClient();
     if (supabase) {
-      // 1a. Try faqs table
       const { data, error } = await supabase
         .from("faqs")
         .select("*")
@@ -471,8 +533,28 @@ export async function getPublicFaqs(): Promise<AdminFaq[]> {
       if (!error && data && data.length > 0) {
         return data as AdminFaq[];
       }
+    }
+  } catch (err) {
+    console.warn("Notice: Fetching faqs from Supabase table:", err);
+  }
 
-      // 1b. Try site_content table
+  // 2. Check local data/faqs.json (maintained by admin dashboard)
+  try {
+    const localFaqsFile = path.join(process.cwd(), "data", "faqs.json");
+    if (fs.existsSync(localFaqsFile)) {
+      const parsed = JSON.parse(fs.readFileSync(localFaqsFile, "utf8"));
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.filter((f: any) => f.is_published !== false);
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Reading local faqs file:", err);
+  }
+
+  // 3. Fallback to site_content table
+  try {
+    const supabase = getPublicSupabaseClient();
+    if (supabase) {
       const { data: contentData } = await supabase
         .from("site_content")
         .select("content")
@@ -490,20 +572,7 @@ export async function getPublicFaqs(): Promise<AdminFaq[]> {
       }
     }
   } catch (err) {
-    console.warn("Notice: Fetching faqs from Supabase:", err);
-  }
-
-  // 2. Local fallback
-  try {
-    const localFaqsFile = path.join(process.cwd(), "data", "faqs.json");
-    if (fs.existsSync(localFaqsFile)) {
-      const parsed = JSON.parse(fs.readFileSync(localFaqsFile, "utf8"));
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.filter((f: any) => f.is_published !== false);
-      }
-    }
-  } catch {
-    // Ignore
+    console.warn("Notice: Fetching faqs from site_content:", err);
   }
 
   return fallbackFaqs.map((f, idx) => ({
@@ -518,14 +587,31 @@ export async function getPublicFaqs(): Promise<AdminFaq[]> {
   }));
 }
 
+export function normalizeTestimonial(t: any): AdminTestimonial {
+  return {
+    id: String(t.id || `test_${Math.random().toString(36).substring(2, 9)}`),
+    client_name: t.client_name || "Client",
+    company: t.company || null,
+    position: t.position || t.client_role || null,
+    review: t.review || t.quote || "",
+    rating: Number(t.rating) || 5,
+    photo_url: t.photo_url || t.avatar_url || null,
+    project_title: t.project_title || null,
+    is_featured: Boolean(t.is_featured),
+    is_published: t.is_published !== false,
+    display_order: Number(t.display_order) || 0,
+    created_at: t.created_at || new Date().toISOString(),
+  };
+}
+
 /**
  * Public Testimonials for Homepage
  */
 export async function getPublicTestimonials(): Promise<AdminTestimonial[]> {
+  // 1. Try dedicated testimonials table in Supabase
   try {
     const supabase = getPublicSupabaseClient();
     if (supabase) {
-      // 1a. Try testimonials table
       const { data, error } = await supabase
         .from("testimonials")
         .select("*")
@@ -533,10 +619,37 @@ export async function getPublicTestimonials(): Promise<AdminTestimonial[]> {
         .order("display_order", { ascending: true });
 
       if (!error && data && data.length > 0) {
-        return data as AdminTestimonial[];
+        return data.map(normalizeTestimonial);
       }
+    }
+  } catch (err) {
+    console.warn("Notice: Fetching testimonials from Supabase table:", err);
+  }
 
-      // 1b. Try site_content table
+  // 2. Check local file (actively maintained by admin dashboard CRUD)
+  try {
+    const localTestimonialsFile = path.join(
+      process.cwd(),
+      "data",
+      "testimonials.json",
+    );
+    if (fs.existsSync(localTestimonialsFile)) {
+      const content = fs.readFileSync(localTestimonialsFile, "utf8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+          .filter((t: any) => t.is_published !== false)
+          .map(normalizeTestimonial);
+      }
+    }
+  } catch (err) {
+    console.warn("Notice: Reading local testimonials file:", err);
+  }
+
+  // 3. Fallback to site_content table
+  try {
+    const supabase = getPublicSupabaseClient();
+    if (supabase) {
       const { data: contentData } = await supabase
         .from("site_content")
         .select("content")
@@ -548,34 +661,16 @@ export async function getPublicTestimonials(): Promise<AdminTestimonial[]> {
         Array.isArray(contentData.content) &&
         contentData.content.length > 0
       ) {
-        return contentData.content.filter(
-          (t: AdminTestimonial) => t.is_published !== false,
-        );
+        return contentData.content
+          .filter((t: any) => t.is_published !== false)
+          .map(normalizeTestimonial);
       }
     }
   } catch (err) {
-    console.warn("Notice: Fetching testimonials from Supabase:", err);
+    console.warn("Notice: Fetching testimonials from site_content:", err);
   }
 
-  // 2. Local file fallback
-  try {
-    const localTestimonialsFile = path.join(
-      process.cwd(),
-      "data",
-      "testimonials.json",
-    );
-    if (fs.existsSync(localTestimonialsFile)) {
-      const content = fs.readFileSync(localTestimonialsFile, "utf8");
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.filter((t: any) => t.is_published !== false);
-      }
-    }
-  } catch (err) {
-    console.warn("Notice: Reading local testimonials file:", err);
-  }
-
-  return [];
+  return fallbackTestimonials;
 }
 
 /**

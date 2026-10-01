@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TextReveal } from "@/components/ui/TextReveal";
@@ -9,11 +10,8 @@ import { HeroCinematic } from "@/components/home/HeroCinematic";
 import { CredentialsRow } from "@/components/home/CredentialsRow";
 import {
   PhoneCall,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Star,
-  Award,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 
 import {
@@ -47,21 +45,57 @@ export const HomeView: React.FC<HomeViewProps> = ({
       ? initialCuratedProjects
       : fallbackCuratedProjects;
 
-  const testimonials = useMemo(() => {
+  const [testimonials, setTestimonials] = useState<AdminTestimonial[]>(() => {
     const published = (initialTestimonials || []).filter(
       (t) => t.is_published !== false,
     );
-    if (published.length >= 2) return published;
-    if (published.length === 1) {
-      return [
-        ...published,
-        ...fallbackTestimonials.filter(
-          (f) => f.client_name !== published[0].client_name,
-        ),
-      ];
-    }
+    if (published.length > 0) return published;
     return fallbackTestimonials;
+  });
+
+  // Keep state synchronized if initialTestimonials changes
+  useEffect(() => {
+    if (initialTestimonials && initialTestimonials.length > 0) {
+      const published = initialTestimonials.filter(
+        (t) => t.is_published !== false,
+      );
+      if (published.length > 0) {
+        setTestimonials(published);
+      }
+    }
   }, [initialTestimonials]);
+
+  // Fetch live dynamic testimonials from the database
+  useEffect(() => {
+    let isCancelled = false;
+    async function fetchDatabaseTestimonials() {
+      try {
+        const res = await fetch("/api/testimonials", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (
+            json.success &&
+            Array.isArray(json.data) &&
+            json.data.length > 0
+          ) {
+            const published = json.data.filter(
+              (t: AdminTestimonial) => t.is_published !== false,
+            );
+            if (published.length > 0 && !isCancelled) {
+              setTestimonials(published);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch live testimonials:", err);
+      }
+    }
+
+    fetchDatabaseTestimonials();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -102,7 +136,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     setCurrentIndex(idx);
   };
 
-  const currentTestimonial = testimonials[currentIndex];
+  const currentTestimonial = testimonials[currentIndex] || testimonials[0];
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#f7f4ef]">
       {/* Hero: interactive orbit viewer that crossfades into a scroll-driven
@@ -133,177 +167,125 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <CredentialsRow />
       </section>
 
-      {/* Testimonials Carousel Section (Interactive Architectural Carousel - Text Only, No Image) */}
+      {/* Testimonials Showcase Section with Architectural Background */}
       {testimonials.length > 0 && currentTestimonial && (
-        <section className="relative overflow-hidden bg-[#292722] px-4 pt-10 pb-16 text-white md:px-margin-desktop md:pt-14 md:pb-20">
-          {/* Subtle architectural background geometry */}
-          <div className="pointer-events-none absolute -right-24 top-0 h-96 w-96 rounded-full border border-[#c9a86e]/15" />
-          <div className="pointer-events-none absolute -right-8 top-8 h-80 w-80 rounded-full border border-[#c9a86e]/10" />
-          <div className="pointer-events-none absolute -left-20 bottom-0 h-72 w-72 rounded-full border border-[#c9a86e]/10" />
-
-          <div className="max-w-3xl mx-auto relative z-10">
-            {/* Eyebrow and Section Header */}
-            <div className="text-center mb-6 md:mb-8">
-              <ScrollReveal>
-                <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#c9a86e]">
-                  Client Testimonials &amp; Endorsements
-                </span>
-                <h2 className="font-playfair text-2xl sm:text-3xl md:text-4xl font-normal text-white mt-1.5">
-                  Trusted by Homeowners and Developers
-                </h2>
-              </ScrollReveal>
-            </div>
-
-            {/* Testimonial Carousel Card */}
-            <ScrollReveal delay={0.1}>
-              <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xs p-5 sm:p-7 md:p-8 shadow-xl transition-all duration-500 overflow-hidden">
-                {/* Auto-advance subtle progress indicator */}
-                {testimonials.length > 1 && (
-                  <motion.div
-                    key={currentIndex}
-                    initial={{ width: "0%" }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 5, ease: "linear" }}
-                    className="absolute top-0 left-0 h-[2px] bg-[#e8c889]/50"
-                  />
-                )}
-
-                {/* Animated Testimonial Content */}
-                <AnimatePresence mode="wait" custom={direction}>
-                  <motion.div
-                    key={currentIndex}
-                    custom={direction}
-                    initial={{ opacity: 0, x: direction * 25 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: direction * -25 }}
-                    transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
-                  >
-                    {/* Top Row: Rating, Featured Badge & Linked Project */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
-                      <div className="flex items-center gap-2.5">
-                        {/* Rating Stars */}
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                                i < (currentTestimonial.rating || 5)
-                                  ? "fill-[#e8c889] text-[#e8c889]"
-                                  : "text-white/20"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        {currentTestimonial.is_featured && (
-                          <span className="px-2 py-0.5 bg-[#e8c889]/20 border border-[#e8c889]/40 text-[#e8c889] text-[9px] sm:text-[10px] font-mono uppercase tracking-widest rounded-full">
-                            Featured
-                          </span>
-                        )}
-                      </div>
-
-                      {currentTestimonial.project_title && (
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/5 border border-white/10 rounded-full text-[10px] sm:text-[11px] font-mono text-[#e8c889]">
-                          <Award className="w-3 h-3 text-[#e8c889]" />
-                          <span>{currentTestimonial.project_title}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Quote Content */}
-                    <div className="py-4 sm:py-5 min-h-[90px] sm:min-h-[100px] flex flex-col justify-center">
-                      <span className="block font-playfair text-3xl sm:text-4xl leading-none text-[#e8c889]/30 select-none mb-1">
-                        “
-                      </span>
-                      <blockquote className="font-playfair text-base sm:text-lg md:text-xl font-light leading-relaxed text-[#f7f4ef]">
-                        &ldquo;
-                        {currentTestimonial.review ||
-                          (currentTestimonial as Record<string, any>).quote ||
-                          ""}
-                        &rdquo;
-                      </blockquote>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Author Info & Carousel Controls */}
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-4 sm:pt-5 border-t border-white/10">
-                  <div className="min-w-0 flex-1">
-                    <AnimatePresence mode="wait" custom={direction}>
-                      <motion.div
-                        key={currentIndex}
-                        custom={direction}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -6 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <h3 className="font-playfair text-base sm:text-lg font-bold text-[#e8c889]">
-                          {currentTestimonial.client_name}
-                        </h3>
-                        {(currentTestimonial.position ||
-                          (currentTestimonial as Record<string, any>)
-                            .client_role ||
-                          currentTestimonial.company) && (
-                          <p className="font-inter text-[11px] sm:text-xs font-medium text-white/60 uppercase tracking-widest mt-0.5">
-                            {[
-                              currentTestimonial.position ||
-                                (currentTestimonial as Record<string, any>)
-                                  .client_role,
-                              currentTestimonial.company,
-                            ]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </p>
-                        )}
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Carousel Controls */}
-                  {testimonials.length > 1 && (
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <span className="font-mono text-[11px] text-white/50 tracking-widest mr-1">
-                        {String(currentIndex + 1).padStart(2, "0")} /{" "}
-                        {String(testimonials.length).padStart(2, "0")}
-                      </span>
-                      <button
-                        onClick={handlePrev}
-                        aria-label="Previous Testimonial"
-                        className="p-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-[#e8c889] hover:bg-[#e8c889]/10 transition-colors"
-                      >
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={handleNext}
-                        aria-label="Next Testimonial"
-                        className="p-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-[#e8c889] hover:bg-[#e8c889]/10 transition-colors"
-                      >
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Dots indicator for multiple testimonials */}
-              {testimonials.length > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-4 sm:mt-5">
-                  {testimonials.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleSelect(idx)}
-                      aria-label={`Go to testimonial ${idx + 1}`}
-                      className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
-                        idx === currentIndex
-                          ? "w-6 sm:w-8 bg-[#e8c889]"
-                          : "w-1.5 sm:w-2 bg-white/30 hover:bg-white/50"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </ScrollReveal>
+        <section className="relative overflow-hidden w-full bg-[#121212] min-h-[580px] sm:min-h-[620px] lg:min-h-[680px] xl:min-h-[720px] flex items-center">
+          {/* Background Photography & Lighting Scrims */}
+          <div className="absolute inset-0 z-0 select-none">
+            <Image
+              src="/images/testimonial-background.png"
+              alt="MARK Architects architectural villa showcase"
+              fill
+              priority={false}
+              className="object-cover object-center"
+              sizes="100vw"
+              quality={90}
+            />
+            {/* Dark gradient overlay on the left for text contrast, fading across to reveal the lit modern villa on the right */}
+            <div className="absolute inset-0 bg-black/60 sm:bg-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 sm:via-black/80 via-45% to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
           </div>
+
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-14 lg:px-20 py-20 sm:py-24 md:py-28 lg:py-32">
+            <div className="max-w-xl md:max-w-2xl">
+              {/* Eyebrow */}
+              <ScrollReveal>
+                <span className="font-inter text-xs sm:text-[13px] font-medium tracking-[0.25em] uppercase text-[#c9a86e]">
+                  Client Stories
+                </span>
+              </ScrollReveal>
+
+              {/* Animated Testimonial Content */}
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={currentIndex}
+                  custom={direction}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+                  className="mt-5 sm:mt-7"
+                >
+                  <blockquote className="font-playfair text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-normal leading-[1.22] text-white tracking-tight">
+                    {currentTestimonial.review ||
+                      (currentTestimonial as Record<string, any>).quote ||
+                      ""}
+                  </blockquote>
+
+                  {/* Gold Divider Line */}
+                  <div className="w-14 sm:w-16 h-[1.5px] bg-[#c9a86e] mt-6 sm:mt-8 mb-5 sm:mb-6" />
+
+                  {/* Author Name & Role */}
+                  <div>
+                    <h3 className="font-inter font-medium text-base sm:text-lg text-white">
+                      {currentTestimonial.client_name}
+                    </h3>
+                    {(currentTestimonial.position ||
+                      (currentTestimonial as Record<string, any>).client_role ||
+                      currentTestimonial.company) && (
+                      <p className="font-inter text-xs sm:text-sm text-white/60 font-light mt-1">
+                        {[
+                          currentTestimonial.position ||
+                            (currentTestimonial as Record<string, any>)
+                              .client_role,
+                          currentTestimonial.company,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* CTA Button */}
+              <div className="mt-8 sm:mt-10">
+                <Link
+                  href="/consultation"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-md border border-[#c9a86e]/80 text-[#dfc38c] font-inter text-xs sm:text-sm font-medium tracking-wide transition-all duration-300 hover:border-[#dfc38c] hover:bg-[#c9a86e]/15 hover:text-white group"
+                >
+                  <span>Book a Drawing Review</span>
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">
+                    &rarr;
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Right Carousel Controls */}
+          {testimonials.length > 1 && (
+            <div className="absolute bottom-8 right-6 sm:bottom-10 sm:right-10 md:bottom-12 md:right-14 lg:bottom-14 lg:right-20 z-20 flex items-center gap-3 sm:gap-4 select-none">
+              <button
+                onClick={handlePrev}
+                aria-label="Previous Testimonial"
+                className="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center text-white/80 hover:text-white hover:border-white/60 hover:bg-white/10 transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleNext}
+                aria-label="Next Testimonial"
+                className="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center text-white/80 hover:text-white hover:border-white/60 hover:bg-white/10 transition-colors"
+              >
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Gold Progress/Divider Line */}
+              <div className="w-12 sm:w-16 h-[1.5px] bg-[#c9a86e]" />
+
+              {/* Counter: e.g. 01 / 02 */}
+              <div className="flex items-center gap-1 font-mono text-xs sm:text-sm">
+                <span className="text-white font-medium">
+                  {String(currentIndex + 1).padStart(2, "0")}
+                </span>
+                <span className="text-white/40 font-light">
+                  / {String(testimonials.length).padStart(2, "0")}
+                </span>
+              </div>
+            </div>
+          )}
         </section>
       )}
 

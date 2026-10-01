@@ -21,7 +21,7 @@ export const fallbackTestimonials: AdminTestimonial[] = [
     is_published: true,
     display_order: 1,
     review:
-      "MARK Architects spotted three critical structural clashes and a missing sunlight shaft in our contractor's drawings in under 48 hours. Saved us millions before pouring concrete.",
+      "MARK Architects caught three critical structural clashes in under 48 hours. Saved us millions before pouring concrete.",
   },
   {
     id: "test_2",
