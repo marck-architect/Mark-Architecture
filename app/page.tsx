@@ -84,7 +84,7 @@ export default async function HomePage() {
       duration: durationStr,
       desc: s.short_description || "",
       image: s.image_url || "/images/For Call.png",
-      href: "/services",
+      href: "/pricing",
     };
   });
 
