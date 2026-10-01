@@ -8,11 +8,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TextReveal } from "@/components/ui/TextReveal";
 import { HeroCinematic } from "@/components/home/HeroCinematic";
 import { CredentialsRow } from "@/components/home/CredentialsRow";
-import {
-  PhoneCall,
-  ArrowLeft,
-  ArrowRight,
-} from "lucide-react";
+import { PhoneCall, ArrowLeft, ArrowRight } from "lucide-react";
 
 import {
   featuredServices as fallbackFeaturedServices,
@@ -253,39 +249,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
             </div>
           </div>
-
-          {/* Bottom Right Carousel Controls */}
-          {testimonials.length > 1 && (
-            <div className="absolute bottom-8 right-6 sm:bottom-10 sm:right-10 md:bottom-12 md:right-14 lg:bottom-14 lg:right-20 z-20 flex items-center gap-3 sm:gap-4 select-none">
-              <button
-                onClick={handlePrev}
-                aria-label="Previous Testimonial"
-                className="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center text-white/80 hover:text-white hover:border-white/60 hover:bg-white/10 transition-colors"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={handleNext}
-                aria-label="Next Testimonial"
-                className="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center text-white/80 hover:text-white hover:border-white/60 hover:bg-white/10 transition-colors"
-              >
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-
-              {/* Gold Progress/Divider Line */}
-              <div className="w-12 sm:w-16 h-[1.5px] bg-[#c9a86e]" />
-
-              {/* Counter: e.g. 01 / 02 */}
-              <div className="flex items-center gap-1 font-mono text-xs sm:text-sm">
-                <span className="text-white font-medium">
-                  {String(currentIndex + 1).padStart(2, "0")}
-                </span>
-                <span className="text-white/40 font-light">
-                  / {String(testimonials.length).padStart(2, "0")}
-                </span>
-              </div>
-            </div>
-          )}
         </section>
       )}
 
