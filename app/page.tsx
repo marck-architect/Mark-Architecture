@@ -61,7 +61,7 @@ export default async function HomePage() {
     getPublicTestimonials(),
   ]);
 
-  const curatedProjects = projectsData.slice(0, 3).map((p) => ({
+  const curatedProjects = projectsData.slice(0, 6).map((p) => ({
     title: p.title,
     category: (p.category || "RESIDENTIAL").toUpperCase(),
     location: p.location || "Pakistan",

@@ -8,7 +8,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TextReveal } from "@/components/ui/TextReveal";
 import { HeroCinematic } from "@/components/home/HeroCinematic";
 import { CredentialsRow } from "@/components/home/CredentialsRow";
-import { PhoneCall, ArrowLeft, ArrowRight } from "lucide-react";
+import { PhoneCall, ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 
 import {
   featuredServices as fallbackFeaturedServices,
@@ -163,6 +163,84 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <CredentialsRow />
       </section>
 
+      {/* Selected Works (Portfolio Showcase) */}
+      {curatedProjects.length > 0 && (
+        <section className="border-t border-[#e1d9ce] bg-[#eee9e1] px-4 py-24 md:px-margin-desktop md:py-32">
+          <div className="max-w-container-max mx-auto space-y-14 sm:space-y-16">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <ScrollReveal>
+                <div className="space-y-3">
+                  <span className="font-inter text-xs font-bold uppercase tracking-[0.3em] text-[#8a6125] md:text-sm">
+                    Selected Portfolio
+                  </span>
+                  <h2 className="max-w-2xl font-playfair text-4xl font-normal leading-[1.05] text-[#272522] md:text-6xl">
+                    Places with a point of view.
+                  </h2>
+                  <p className="max-w-xl font-inter text-sm font-light leading-7 text-[#77716a] md:text-base">
+                    A curated selection of luxury residences, modern estates,
+                    and architectural landmarks executed across Pakistan.
+                  </p>
+                </div>
+              </ScrollReveal>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {curatedProjects.map((project, idx) => (
+                <ScrollReveal
+                  key={project.title + idx}
+                  delay={0.08 * (idx % 3)}
+                >
+                  <Link
+                    href="/portfolio"
+                    className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-[#292722] shadow-lg transition-transform duration-500 hover:-translate-y-1.5 hover:shadow-2xl"
+                  >
+                    <Image
+                      fill
+                      alt={project.title}
+                      className="object-cover transition-transform duration-[0.9s] group-hover:scale-110"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 384px"
+                      src={project.image}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-95 flex flex-col justify-end p-6 sm:p-8">
+                      <div className="translate-y-2 transition-transform duration-500 group-hover:translate-y-0 space-y-2">
+                        <span className="block font-inter text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-[#e8c889]">
+                          {project.category}
+                        </span>
+                        <h3 className="font-playfair text-xl sm:text-2xl text-white font-normal leading-tight">
+                          {project.title}
+                        </h3>
+                        {project.location && (
+                          <div className="flex items-center gap-1.5 text-white/80 text-xs pt-0.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#c9a86e] shrink-0" />
+                            <span>{project.location}</span>
+                          </div>
+                        )}
+                        {project.scale && (
+                          <p className="font-inter text-[11px] text-white/50 pt-0.5">
+                            {project.scale}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </ScrollReveal>
+              ))}
+            </div>
+
+            {/* Centered Explore More Portfolio Button */}
+            <ScrollReveal delay={0.2} className="text-center pt-2 sm:pt-4">
+              <Link
+                href="/portfolio"
+                className="inline-flex items-center justify-center gap-3 rounded-xl bg-[#292722] px-8 py-4 font-inter text-xs font-bold uppercase tracking-widest text-white shadow-xl transition-all duration-300 hover:bg-[#8a6125] hover:shadow-2xl active:scale-95 group min-h-[48px]"
+              >
+                <span>Explore Full Portfolio</span>
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1.5" />
+              </Link>
+            </ScrollReveal>
+          </div>
+        </section>
+      )}
+
       {/* Testimonials Showcase Section with Architectural Background */}
       {testimonials.length > 0 && currentTestimonial && (
         <section className="relative overflow-hidden w-full bg-[#121212] min-h-[580px] sm:min-h-[620px] lg:min-h-[680px] xl:min-h-[720px] flex items-center">
@@ -297,10 +375,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
               className="w-full sm:w-auto"
             >
               <Link
-                href="/services"
+                href="/pricing"
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-[#c9c0b2] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-[#5f5951] transition-all hover:border-[#8a6125] hover:text-[#8a6125] active:scale-95 text-center min-h-[48px]"
               >
-                Explore All Services
+                Explore Pricing & Packages
               </Link>
             </ScrollReveal>
           </div>

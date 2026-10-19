@@ -37,12 +37,6 @@ export const PLOT_SIZES = ["5 Marla", "10 Marla", "1 Kanal"] as const;
 
 export const paymentPolicyPoints = [
   {
-    title: "50% Advance Required",
-    description:
-      "All design orders require a 50% upfront commitment to initiate architectural drafting.",
-    icon: "ShieldCheck",
-  },
-  {
     title: "Work Starts Immediately",
     description:
       "Drafting, diagnostic modeling, and reviews begin promptly once payment confirmation is verified via Safepay.",
@@ -68,7 +62,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "A",
     title: "Online Consultation (Video/Call)",
     subtitle: "Direct 1-on-1 Strategy Call with Principal Architect",
-    icon: "/images/pricing/consult.png",
+    icon: "/images/For Call.png",
     image: "/images/For Call.png",
     badge: "Direct Advisory",
     description:
@@ -125,7 +119,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "B",
     title: "House Plan Review",
     subtitle: "Fast Architectural Audit to Spot Flaws Before Construction",
-    icon: "/images/pricing/review.png",
+    icon: "/images/House Plan review.png",
     image: "/images/House Plan review.png",
     badge: "High Demand • Fast 24–48h",
     description:
@@ -192,7 +186,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "C",
     title: "Plan Redesign / Correction",
     subtitle: "Turn Flawed Contractor Drawings into an Elegant Modern Home",
-    icon: "/images/pricing/correction.png",
+    icon: "/images/House Plan Correction.png",
     image: "/images/House Plan Correction.png",
     badge: "Top Seller",
     description:
@@ -264,7 +258,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "D",
     title: "Front Elevation 3D (Exterior Render)",
     subtitle: "Photorealistic 3D Facade Concepts & Material Specs",
-    icon: "/images/pricing/elevation.png",
+    icon: "/images/Front Elevation 3D (Exterior Render).png",
     image: "/images/Front Elevation 3D (Exterior Render).png",
     badge: "Exterior 3D",
     description:
@@ -336,7 +330,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "E",
     title: "Interior Room Makeover",
     subtitle: "Bespoke Room Styling, Moodboards & 3D Visualizations",
-    icon: "/images/pricing/interior.png",
+    icon: "/images/Interior Room Makeover.png",
     image: "/images/Interior Room Makeover.png",
     badge: "Fast Selling",
     description:
@@ -403,7 +397,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "F",
     title: "Construction Cost Estimate",
     subtitle: "Grey Structure & Finishing Bill of Quantities (BOQ)",
-    icon: "/images/pricing/estimate.png",
+    icon: "/images/Construction Cost Estimate.png",
     image: "/images/Construction Cost Estimate.png",
     badge: "Financial Control",
     description:
@@ -457,7 +451,7 @@ export const pricingMenuCategories: PricingCategory[] = [
     letter: "G",
     title: "Full House Design Package",
     subtitle: "End-to-End Architectural Blueprint & Submission Drawings",
-    icon: "/images/pricing/full-design.png",
+    icon: "/images/Full House Design Package.png",
     image: "/images/Full House Design Package.png",
     badge: "High Ticket • Turnkey Blueprint",
     description:

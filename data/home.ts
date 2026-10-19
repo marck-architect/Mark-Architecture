@@ -6,7 +6,29 @@ import type {
 
 export const featuredServices: FeaturedService[] = [];
 
-export const curatedProjects: CuratedProject[] = [];
+export const curatedProjects: CuratedProject[] = [
+  {
+    title: "The Hayatabad Minimalist",
+    category: "RESIDENTIAL",
+    location: "Hayatabad, Peshawar, Pakistan",
+    image: "/images/dha_lahore_villa.png",
+    scale: "1 Kanal • 6,200 sq. ft.",
+  },
+  {
+    title: "Margalla Crest Contemporary Mansion",
+    category: "RESIDENTIAL",
+    location: "DHA Phase 2, Islamabad, Pakistan",
+    image: "/images/dha_islamabad_mansion.png",
+    scale: "2 Kanal • 9,500 sq. ft.",
+  },
+  {
+    title: "The Clifton Coastal Residence",
+    category: "RESIDENTIAL",
+    location: "Clifton Block 4, Karachi, Pakistan",
+    image: "/images/clifton_karachi_villa.png",
+    scale: "10 Marla • 3,850 sq. ft.",
+  },
+];
 
 export const fallbackTestimonials: AdminTestimonial[] = [
   {

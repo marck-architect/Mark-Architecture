@@ -33,6 +33,12 @@ export const PaymentPolicy: React.FC<PaymentPolicyProps> = ({ policyPoints }) =>
     return () => { ctx.revert(); mm.revert(); };
   }, []);
 
+  const activePoints = policyPoints.filter(
+    (pt) =>
+      !pt.title.toLowerCase().includes("50% advance") &&
+      !pt.title.toLowerCase().includes("advance required")
+  );
+
   return (
     <section id="payment-policy" ref={root} className="relative scroll-mt-24 bg-cream pb-[clamp(8px,1.5vw,20px)] pt-[clamp(48px,6vw,88px)] font-instrument text-ink">
       <div className="mx-auto max-w-[1280px] px-[clamp(20px,5vw,72px)]">
@@ -46,8 +52,8 @@ export const PaymentPolicy: React.FC<PaymentPolicyProps> = ({ policyPoints }) =>
 
         <div data-reveal="line" className="mt-[clamp(22px,3vw,36px)] h-px bg-gold-line" />
 
-        <div className="mt-[clamp(22px,3vw,36px)] grid grid-cols-1 gap-[clamp(14px,1.6vw,22px)] sm:grid-cols-2 lg:grid-cols-4">
-          {policyPoints.map((pt) => (
+        <div className={`mt-[clamp(22px,3vw,36px)] grid grid-cols-1 gap-[clamp(14px,1.6vw,22px)] sm:grid-cols-2 ${activePoints.length <= 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
+          {activePoints.map((pt) => (
             <div key={pt.title} data-reveal="wipe" className="grid">
               <article className="flex flex-col gap-3 rounded-[18px] border border-gold/25 bg-[#FFFDF8] p-[clamp(22px,2.2vw,30px)] transition duration-300 hover:-translate-y-[3px] hover:border-gold-line hover:shadow-[0_24px_48px_-28px_rgba(122,91,44,.45)]">
                 <h3 className="font-newsreader text-[clamp(21px,1.7vw,24px)] font-medium leading-tight tracking-[-.01em]">{pt.title}</h3>

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Pricing & Architectural Packages Menu | MARK Architects",
     description:
-      "Complete package menu, fixed deliverables, upfront milestone pricing, 50% advance policy, and instant online booking via Safepay payment gateway.",
+      "Complete package menu, fixed deliverables, upfront pricing, studio payment policy, and instant online booking via Safepay payment gateway.",
     url: "https://markarchitects.com/pricing",
     images: [
       {

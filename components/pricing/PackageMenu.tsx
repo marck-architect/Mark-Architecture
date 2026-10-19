@@ -17,6 +17,16 @@ gsap.registerPlugin(ScrollTrigger);
 const EASE = [0.2, 0.7, 0.2, 1] as const;
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
+const CATEGORY_IMAGES: Record<string, string> = {
+  consultation: "/images/For Call.png",
+  "plan-review": "/images/House Plan review.png",
+  "plan-redesign": "/images/House Plan Correction.png",
+  "elevation-3d": "/images/Front Elevation 3D (Exterior Render).png",
+  "interior-makeover": "/images/Interior Room Makeover.png",
+  "cost-estimate": "/images/Construction Cost Estimate.png",
+  "full-house": "/images/Full House Design Package.png",
+};
+
 function matches(c: PricingCategory, q: string) {
   if (!q) return true;
   const hay = [c.title, c.subtitle, c.description, ...c.tiers.flatMap((t) => [t.name, ...t.inclusions])];
@@ -148,6 +158,12 @@ export const PackageMenu: React.FC<PackageMenuProps> = ({ categories, calculator
         <div data-tiles className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-[clamp(12px,1.4vw,20px)]">
           {tiles.map((c) => {
             const on = c.id === cat?.id;
+            const tileImage =
+              (c.image && !c.image.includes("/pricing/"))
+                ? c.image
+                : (c.icon && !c.icon.includes("/pricing/"))
+                  ? c.icon
+                  : CATEGORY_IMAGES[c.id];
             return (
               <div key={c.id} data-tile className="grid">
                 <button
@@ -155,10 +171,15 @@ export const PackageMenu: React.FC<PackageMenuProps> = ({ categories, calculator
                   onClick={() => pick(c.id)}
                   className={`relative flex min-h-[88px] items-center gap-4 rounded-2xl border p-2.5 pr-11 text-left transition-[transform,box-shadow,background] duration-300 hover:-translate-y-[3px] cursor-pointer ${on ? "border-gold bg-gold text-[#FBF7EF] shadow-[0_18px_40px_-18px_rgba(122,91,44,.7)]" : "border-gold/30 bg-[#FFFDF8]"}`}
                 >
-                  {c.icon && (
-                    <span className="grid size-[72px] flex-none place-items-center overflow-hidden rounded-xl bg-[#FBF7EF]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={c.icon} alt="" width={578} height={432} loading="lazy" decoding="async" className="w-[132%] max-w-none" />
+                  {tileImage && (
+                    <span className="relative size-[72px] flex-none overflow-hidden rounded-xl bg-[#FBF7EF]">
+                      <Image
+                        src={tileImage}
+                        alt={c.title}
+                        fill
+                        sizes="72px"
+                        className="object-cover"
+                      />
                     </span>
                   )}
                   <span className="flex min-w-0 flex-col gap-[3px]">
@@ -208,9 +229,16 @@ interface CategoryDetailProps {
 }
 
 function CategoryDetail({ cat, sizeIndex, setSizeIndex, selection, onSelect, calculatorSettings }: CategoryDetailProps) {
+  const detailImage =
+    (cat.image && !cat.image.includes("/pricing/"))
+      ? cat.image
+      : (cat.icon && !cat.icon.includes("/pricing/"))
+        ? cat.icon
+        : CATEGORY_IMAGES[cat.id];
+
   return (
     <>
-      <div className={cat.image ? "grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-start" : undefined}>
+      <div className={detailImage ? "grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-start" : undefined}>
         <div className="flex flex-col gap-3.5">
           <div className="flex flex-wrap items-center gap-4">
             <AnimatePresence mode="wait">
@@ -264,7 +292,7 @@ function CategoryDetail({ cat, sizeIndex, setSizeIndex, selection, onSelect, cal
           )}
         </div>
 
-        {cat.image && (
+        {detailImage && (
           <AnimatePresence mode="wait">
             <motion.div
               key={cat.id}
@@ -275,7 +303,7 @@ function CategoryDetail({ cat, sizeIndex, setSizeIndex, selection, onSelect, cal
               className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] bg-[#FFFDF8] lg:order-last"
             >
               <Image
-                src={cat.image}
+                src={detailImage}
                 alt={cat.title}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

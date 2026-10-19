@@ -107,7 +107,7 @@ export const PricingHero: React.FC = () => {
             href="#payment-policy"
             className="inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded border border-gold-line px-6 text-base text-gold-deep transition-colors hover:bg-gold/10"
           >
-            <ShieldCheck size={18} strokeWidth={1.6} /> Payment Policy (50% Advance)
+            <ShieldCheck size={18} strokeWidth={1.6} /> Payment Policy
           </a>
           <Link
             href="/consultation"
