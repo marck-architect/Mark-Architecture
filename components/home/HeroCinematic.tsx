@@ -112,7 +112,7 @@ export const HeroCinematic: React.FC = () => {
   };
 
   useLayoutEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
+    const mq = window.matchMedia("(min-width: 1024px)");
     const apply = () => setTier(mq.matches ? "lg" : "sm");
     apply();
     mq.addEventListener("change", apply);
@@ -180,27 +180,15 @@ export const HeroCinematic: React.FC = () => {
     if (activeSource !== "1") return;
     gsap.registerPlugin(ScrollTrigger);
     const mm = gsap.matchMedia();
-    mm.add("(min-width: 768px)", () => {
+    mm.add("(min-width: 1024px)", () => {
       const trigger = ScrollTrigger.create({
         trigger: heroRef.current,
         start: "top top",
         end: () => `+=${window.innerHeight * ZOOM_RUNWAY_VH_FRACTION}`,
         pin: true,
-        // true, not a number: a numeric scrub value eases the playhead
-        // toward the scroll position over that many seconds, which on
-        // reversal shows a lagging blend of frames instead of jumping
-        // straight to the exact frame for the current scroll position.
-        // `true` ties progress to the scrollbar with zero lag either
-        // direction.
         scrub: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
-        // Writes the sprite frame straight to the DOM via refs instead of
-        // React state — calling setState here would force a full component
-        // re-render on every scroll tick (~60/sec during the scrub), which
-        // is what was causing the stutter. `overlayVisible` is still real
-        // React state, but it's only committed on the rare tick where it
-        // actually flips, not continuously.
         onUpdate: (self) => {
           const progress = self.progress;
           const visible = progress > SWAP_AT;
@@ -226,11 +214,6 @@ export const HeroCinematic: React.FC = () => {
       return () => trigger.kill();
     });
     return () => mm.revert();
-    // cols/frameCount/rows come from the static balconyZoomManifest import —
-    // stable across the component's lifetime. tier/tierData are included
-    // because onUpdate reads tierData[tier] directly (a real, if rare,
-    // dependency — tier can change on a breakpoint cross independently of
-    // activeSource).
   }, [activeSource, cols, frameCount, rows, tier, tierData]);
 
   return (
@@ -238,28 +221,45 @@ export const HeroCinematic: React.FC = () => {
       ref={heroRef}
       className="relative w-full min-h-[100dvh] flex items-center overflow-hidden bg-zinc-950"
     >
-      {/* Poster image fallback so the hero never renders as a black screen while the atlas loads */}
-      <div
-        className="absolute inset-0 bg-cover bg-top pointer-events-none brightness-[0.55] contrast-[1.05]"
-        style={{
-          backgroundImage:
-            "url('/images/Front Elevation 3D (Exterior Render).png')",
-        }}
-      />
+      {/* Static Responsive Hero Image for Mobile (<640px), Tablet (640-767px), and iPad (768-1023px) */}
+      <div className="absolute inset-0 lg:hidden overflow-hidden pointer-events-none">
+        <picture className="w-full h-full block">
+          {/* iPad: 768px to 1023px */}
+          <source media="(min-width: 768px)" srcSet="/images/ipad.jpg" />
+          {/* Tablet: 640px to 767px */}
+          <source media="(min-width: 640px)" srcSet="/images/tablate.jpg" />
+          {/* Mobile: default below 640px */}
+          <img
+            src="/images/mobile.jpg"
+            alt="MARK Architects Modern Luxury Villa"
+            className="w-full h-full object-cover object-center brightness-[0.6] contrast-[1.05]"
+            loading="eager"
+            fetchPriority="high"
+          />
+        </picture>
+        {/* Soft bottom/top darkening scrim on touch devices */}
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/25 to-black/30" />
+      </div>
 
-      {/* Layer 0: interactive orbit viewer — the resting hero visual */}
-      <VillaOrbitViewer
-        fill
-        compareSources
-        onSourceChange={handleSourceChange}
-      />
+      {/* Desktop (>=1024px) Layer 0: interactive orbit viewer with poster image fallback */}
+      <div className="hidden lg:block absolute inset-0">
+        <div
+          className="absolute inset-0 bg-cover bg-top pointer-events-none brightness-[0.55] contrast-[1.05]"
+          style={{
+            backgroundImage:
+              "url('/images/Front Elevation 3D (Exterior Render).png')",
+          }}
+        />
+        <VillaOrbitViewer
+          fill
+          compareSources
+          onSourceChange={handleSourceChange}
+        />
+      </div>
 
-      {/* Layer 1 (desktop only): balcony push-in. Hard-toggled visible once
-          scroll passes the small dead zone — never partially transparent,
-          so the orbit viewer never shows through underneath it. Mounted
-          only while visible so it isn't sitting there invisible-but-present. */}
+      {/* Desktop (>=1024px) Layer 1: balcony push-in on scroll */}
       {overlayVisible && (
-        <div className="absolute inset-0 z-30 pointer-events-none hidden md:block">
+        <div className="absolute inset-0 z-30 pointer-events-none hidden lg:block">
           <canvas
             ref={balconyCanvasRef}
             className="absolute inset-0 h-full w-full brightness-[0.85]"

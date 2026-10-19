@@ -95,13 +95,25 @@ export default async function HomePage() {
         rel="preload"
         as="image"
         href="/hero-atlas/villa-lg.webp"
-        media="(min-width: 768px)"
+        media="(min-width: 1024px)"
       />
       <link
         rel="preload"
         as="image"
-        href="/hero-atlas/villa-sm.webp"
-        media="(max-width: 767px)"
+        href="/images/ipad.jpg"
+        media="(min-width: 768px) and (max-width: 1023px)"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/images/tablate.jpg"
+        media="(min-width: 640px) and (max-width: 767px)"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/images/mobile.jpg"
+        media="(max-width: 639px)"
       />
       <HomeView
         initialFeaturedServices={featuredServices}
