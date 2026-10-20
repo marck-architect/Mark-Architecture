@@ -85,7 +85,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
         {/* Responsive Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[600px]">
           <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project) => (
+            {filteredProjects.map((project, index) => (
               <motion.div
                 layout
                 key={project.title}
@@ -114,6 +114,8 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                     alt={project.title}
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover transition-transform duration-[0.9s] group-hover:scale-105"
+                    priority={index < 3}
+                    loading={index < 3 ? undefined : "lazy"}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
 
