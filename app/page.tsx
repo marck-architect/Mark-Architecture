@@ -91,15 +91,30 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={orgSchema} />
-      {/* No <link rel="preload"> for the hero-atlas sprite sheets (2-9MB
-          each): forcing those to the front of the queue at browser-highest
-          priority meant they competed directly with the page's own JS/font
-          requests for bandwidth, which is what made the whole page feel
-          stuck loading. HeroCinematic already paints a fast, lightweight
-          poster image immediately; VillaOrbitViewer/HeroCinematic's own
-          background `new Image()` prefetch still fetches the real atlas
-          right after mount, just at normal priority instead of jumping the
-          queue in front of everything else. */}
+      <link
+        rel="preload"
+        as="image"
+        href="/hero-atlas/villa-lg.webp"
+        media="(min-width: 1024px)"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/images/ipad.jpg"
+        media="(min-width: 768px) and (max-width: 1023px)"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/images/tablate.jpg"
+        media="(min-width: 640px) and (max-width: 767px)"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/images/mobile.jpg"
+        media="(max-width: 639px)"
+      />
       <HomeView
         initialFeaturedServices={featuredServices}
         initialCuratedProjects={curatedProjects}
