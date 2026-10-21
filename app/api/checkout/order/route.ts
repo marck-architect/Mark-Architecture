@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import { createSafepayCheckoutSession } from "@/lib/server/safepay";
 import { getAppOrigin } from "@/lib/server/origin";
+import { sendOrderConfirmation } from "@/lib/server/email/orderEmailService";
 
 export const runtime = "nodejs";
 
@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
       selectedDisciplines,
       notes,
       attachmentUrls,
+      paymentScreenshotUrl,
     } = body;
 
     if (!customer?.name || !customer?.email || !customer?.phone) {
@@ -28,6 +29,13 @@ export async function POST(req: NextRequest) {
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+    }
+
+    if (!paymentScreenshotUrl) {
+      return NextResponse.json(
+        { error: "A payment screenshot is required to confirm this order" },
+        { status: 400 },
+      );
     }
 
     // Calculate authoritative totals
@@ -53,26 +61,6 @@ export async function POST(req: NextRequest) {
     const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
     const orderId = crypto.randomUUID();
 
-    const appUrl = getAppOrigin(req);
-    const redirectUrl = `${appUrl}/payment/callback?orderId=${orderId}&type=order`;
-    const cancelUrl = `${appUrl}/collection?canceled=true`;
-
-    const safepayResult = await createSafepayCheckoutSession({
-      amountPkr: advancePkr,
-      orderId,
-      customer: {
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-      },
-      redirectUrl,
-      cancelUrl,
-      metadata: {
-        order_id: String(orderId),
-        order_number: orderNumber,
-      },
-    });
-
     // Build item summary if client notes are omitted
     const itemSummary =
       Array.isArray(items) && items.length > 0
@@ -97,8 +85,7 @@ export async function POST(req: NextRequest) {
       remaining_balance_pkr: remainingBalancePkr,
       payment_type: paymentType,
       payment_status: "pending",
-      safepay_tracker: safepayResult.tracker,
-      attachment_urls: attachmentUrls || [],
+      attachment_urls: [...(attachmentUrls || []), paymentScreenshotUrl],
       notes: notes || itemSummary || null,
     };
 
@@ -121,21 +108,34 @@ export async function POST(req: NextRequest) {
       console.warn("[Orders Checkout] Database storage notice:", dbErr);
     }
 
+    // Email the client a permanent link to track payment status & download
+    // their receipt once confirmed — non-fatal if it fails.
+    try {
+      const orderUrl = `${getAppOrigin(req)}/orders/${orderId}`;
+      await sendOrderConfirmation({
+        clientName: customer.name,
+        clientEmail: customer.email,
+        orderNumber,
+        orderId,
+        amountPkr: advancePkr,
+        orderUrl,
+      });
+    } catch (emailErr) {
+      console.warn("[Orders Checkout] Confirmation email notice:", emailErr);
+    }
+
     return NextResponse.json({
       success: true,
       orderNumber,
       orderId,
-      checkoutUrl: safepayResult.checkoutUrl,
-      tracker: safepayResult.tracker,
       chargedAmount: advancePkr,
       totalAmount: calculatedTotalPkr,
-      isSimulated: safepayResult.isSimulated || false,
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error("Order checkout API error:", errorMsg);
     return NextResponse.json(
-      { error: errorMsg || "Failed to initialize Safepay session" },
+      { error: errorMsg || "Failed to submit order" },
       { status: 500 },
     );
   }

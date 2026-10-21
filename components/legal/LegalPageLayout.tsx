@@ -273,11 +273,11 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
               </p>
               <div className="pt-1 space-y-2 text-xs">
                 <a
-                  href="mailto:briefs@markarchitects.com"
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=markarchitects.web@gmail.com" target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 text-stone-300 hover:text-amber-300 transition-colors"
                 >
                   <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span className="truncate">briefs@markarchitects.com</span>
+                  <span className="truncate">markarchitects.web@gmail.com</span>
                 </a>
                 <div className="flex items-start gap-2 text-stone-400 text-[11px]">
                   <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />

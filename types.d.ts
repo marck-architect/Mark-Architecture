@@ -51,7 +51,7 @@ export interface ConfirmedOrder {
   tracker?: string;
   title: string;
   amountPkr: number;
-  status: "paid" | "completed" | "advance_paid";
+  status: "paid" | "completed" | "advance_paid" | "pending_verification";
   date: string;
   customerName?: string;
   customerEmail?: string;
@@ -275,6 +275,19 @@ export interface ArchitecturalPackage {
   plotSize?: string;
   inclusions: string[];
   description: string;
+}
+
+export interface StoreProduct {
+  id: string;
+  category_id: string;
+  subcategory: string;
+  name: string;
+  price_pkr: number;
+  price_unit?: string;
+  image_url: string;
+  description?: string;
+  is_published: boolean;
+  display_order: number;
 }
 
 export interface Product {
@@ -522,6 +535,7 @@ export type AdminTabType =
   | "pricing"
   | "projects"
   | "collection"
+  | "store-products"
   | "clients"
   | "payments"
   | "media"

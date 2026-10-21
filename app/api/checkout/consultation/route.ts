@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import { createSafepayCheckoutSession } from "@/lib/server/safepay";
-import { getAppOrigin } from "@/lib/server/origin";
 import { getSiteContent } from "@/lib/server/content";
 import { defaultPricingSettings } from "@/data/pricing";
 import type { PricingSettingsContent } from "@/types";
@@ -21,11 +19,19 @@ export async function POST(req: NextRequest) {
       bookingTime,
       message,
       attachmentUrls,
+      paymentScreenshotUrl,
     } = body;
 
     if (!name || !email || !phone || !bookingDate || !bookingTime) {
       return NextResponse.json(
         { error: "Missing required booking details" },
+        { status: 400 },
+      );
+    }
+
+    if (!paymentScreenshotUrl) {
+      return NextResponse.json(
+        { error: "A payment screenshot is required to confirm this booking" },
         { status: 400 },
       );
     }
@@ -49,22 +55,6 @@ export async function POST(req: NextRequest) {
 
     const consultationId = crypto.randomUUID();
 
-    // Generate Safepay Session
-    const appUrl = getAppOrigin(req);
-    const redirectUrl = `${appUrl}/payment/callback?orderId=${consultationId}&type=consultation`;
-    const cancelUrl = `${appUrl}/consultation?canceled=true`;
-
-    const safepayResult = await createSafepayCheckoutSession({
-      amountPkr: pricePkr,
-      orderId: consultationId,
-      customer: { name, email, phone },
-      redirectUrl,
-      cancelUrl,
-      metadata: {
-        order_id: String(consultationId),
-      },
-    });
-
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
@@ -81,11 +71,9 @@ export async function POST(req: NextRequest) {
           price_pkr: pricePkr,
           booking_date: bookingDate,
           booking_time: bookingTime,
-          attachment_urls: attachmentUrls || [],
+          attachment_urls: [...(attachmentUrls || []), paymentScreenshotUrl],
           notes: message || null,
           payment_status: "pending",
-          safepay_tracker: safepayResult.tracker,
-          safepay_token: safepayResult.token,
         })
         .select()
         .single();
@@ -100,15 +88,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       consultationId,
-      checkoutUrl: safepayResult.checkoutUrl,
-      tracker: safepayResult.tracker,
-      isSimulated: safepayResult.isSimulated || false,
+      pricePkr,
+      tierName,
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error("Consultation checkout API error:", errorMsg);
     return NextResponse.json(
-      { error: errorMsg || "Failed to initialize Safepay session" },
+      { error: errorMsg || "Failed to submit booking" },
       { status: 500 },
     );
   }

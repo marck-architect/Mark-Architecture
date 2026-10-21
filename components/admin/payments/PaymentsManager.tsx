@@ -2,13 +2,11 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import {
-  CreditCard,
   Search,
   Download,
-  ExternalLink,
+  Paperclip,
   CheckCircle2,
   Clock4,
-  Copy,
   DollarSign,
   ShieldCheck,
   X,
@@ -31,8 +29,7 @@ interface UnifiedTransaction {
   description: string;
   amountPkr: number;
   paymentStatus: string;
-  safepayTracker: string | null;
-  safepayToken: string | null;
+  attachmentUrls: string[];
   createdAt: string;
 }
 
@@ -44,7 +41,6 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [selectedTx, setSelectedTx] = useState<UnifiedTransaction | null>(null);
-  const [copiedTracker, setCopiedTracker] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -69,8 +65,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
         description: `Consultation — ${c.tier_name}`,
         amountPkr: Number(c.price_pkr || 0),
         paymentStatus: c.payment_status || "pending",
-        safepayTracker: c.safepay_tracker || null,
-        safepayToken: c.safepay_token || null,
+        attachmentUrls: c.attachment_urls || [],
         createdAt: c.created_at || c.booking_date,
       });
     });
@@ -87,8 +82,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
         description: `Design Package Order #${o.order_number}${o.plot_size ? ` (${o.plot_size})` : ""}`,
         amountPkr: Number(o.advance_amount_pkr || o.total_amount_pkr || 0),
         paymentStatus: o.payment_status || "pending",
-        safepayTracker: o.safepay_tracker || null,
-        safepayToken: null,
+        attachmentUrls: o.attachment_urls || [],
         createdAt: o.created_at,
       });
     });
@@ -112,13 +106,13 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
     );
     const totalPending = pendingTxs.reduce((sum, t) => sum + t.amountPkr, 0);
 
-    const withTracker = transactions.filter((t) => !!t.safepayTracker).length;
+    const withProof = transactions.filter((t) => t.attachmentUrls.length > 0).length;
     const successRate =
       transactions.length > 0
         ? Math.round((paidTxs.length / transactions.length) * 100)
         : 100;
 
-    return { totalCaptured, totalPending, withTracker, successRate };
+    return { totalCaptured, totalPending, withProof, successRate };
   }, [transactions]);
 
   // Filtered transactions
@@ -146,10 +140,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
         const matches =
           tx.clientName.toLowerCase().includes(query) ||
           tx.clientEmail.toLowerCase().includes(query) ||
-          tx.clientPhone.includes(query) ||
-          (tx.safepayTracker &&
-            tx.safepayTracker.toLowerCase().includes(query)) ||
-          (tx.safepayToken && tx.safepayToken.toLowerCase().includes(query));
+          tx.clientPhone.includes(query);
         if (!matches) return false;
       }
 
@@ -162,12 +153,6 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
 
-  const handleCopyTracker = (tracker: string) => {
-    navigator.clipboard.writeText(tracker);
-    setCopiedTracker(tracker);
-    setTimeout(() => setCopiedTracker(null), 2000);
-  };
-
   const handleExportCsv = () => {
     const headers = [
       "Transaction ID",
@@ -177,8 +162,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
       "Client Email",
       "Amount (PKR)",
       "Payment Status",
-      "Safepay Tracker",
-      "Safepay Token",
+      "Payment Proof",
     ];
     const rows = filtered.map((tx) => [
       tx.id,
@@ -188,8 +172,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
       tx.clientEmail,
       tx.amountPkr,
       tx.paymentStatus,
-      tx.safepayTracker || "N/A",
-      tx.safepayToken || "N/A",
+      tx.attachmentUrls[tx.attachmentUrls.length - 1] || "N/A",
     ]);
 
     const csvContent =
@@ -200,7 +183,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `safepay-transactions-${new Date().toISOString().split("T")[0]}.csv`,
+      `payment-transactions-${new Date().toISOString().split("T")[0]}.csv`,
     );
     document.body.appendChild(link);
     link.click();
@@ -213,13 +196,13 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-5">
         <div>
           <span className="text-[11px] font-mono tracking-widest text-[#7E5714] uppercase">
-            Financial & Gateway Ledger
+            Financial Ledger
           </span>
           <h1 className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight mt-1">
-            Safepay Payments & Invoicing
+            Payments & Invoicing
           </h1>
           <p className="text-xs text-stone-500 mt-1">
-            Reconcile live Safepay tracker receipts, consultation fees, and
+            Reconcile bank transfer / JazzCash payment screenshots, consultation fees, and
             design retainer transactions.
           </p>
         </div>
@@ -249,7 +232,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
             PKR {metrics.totalCaptured.toLocaleString()}
           </div>
           <div className="text-[11px] text-emerald-600 mt-1 font-mono">
-            Settled via Safepay Checkout
+            Verified & confirmed
           </div>
         </div>
 
@@ -266,24 +249,24 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
             PKR {metrics.totalPending.toLocaleString()}
           </div>
           <div className="text-[11px] text-stone-400 mt-1">
-            Awaiting Safepay checkout
+            Awaiting payment verification
           </div>
         </div>
 
         <div className="bg-white border border-stone-200 p-5 rounded-sm shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs text-stone-500 uppercase tracking-wider font-mono">
-              Tracked Transactions
+              With Payment Proof
             </span>
             <div className="p-2 bg-blue-50 rounded-sm text-blue-700">
-              <CreditCard className="w-4 h-4" />
+              <Paperclip className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-serif text-stone-900 mt-2">
-            {metrics.withTracker}
+            {metrics.withProof}
           </div>
           <div className="text-[11px] text-stone-400 mt-1">
-            With verified gateway tracker
+            Screenshot uploaded at checkout
           </div>
         </div>
 
@@ -314,7 +297,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by client, tracker ID (track_...), or token..."
+              placeholder="Search by client name, email, or phone..."
               className="w-full pl-9 pr-4 py-2 text-xs bg-stone-50 border border-stone-200 rounded-sm focus:outline-none focus:border-[#7E5714] focus:bg-white text-stone-800"
             />
           </div>
@@ -352,7 +335,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
                 <th className="py-3 px-4">Transaction / Date</th>
                 <th className="py-3 px-4">Client</th>
                 <th className="py-3 px-4">Description</th>
-                <th className="py-3 px-4">Safepay Tracker</th>
+                <th className="py-3 px-4">Payment Proof</th>
                 <th className="py-3 px-4 text-right">Amount (PKR)</th>
                 <th className="py-3 px-4 text-center">Status</th>
                 <th className="py-3 px-4 text-right">Action</th>
@@ -396,31 +379,19 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
                       {tx.description}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-[11px]">
-                      {tx.safepayTracker ? (
-                        <div className="flex items-center gap-1 text-stone-700">
-                          <span className="truncate max-w-[140px]">
-                            {tx.safepayTracker}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopyTracker(tx.safepayTracker!);
-                            }}
-                            title="Copy Tracker"
-                            className="p-1 hover:text-[#7E5714] transition-colors"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                          {copiedTracker === tx.safepayTracker && (
-                            <span className="text-[10px] text-emerald-600">
-                              Copied
-                            </span>
-                          )}
-                        </div>
+                      {tx.attachmentUrls.length > 0 ? (
+                        <a
+                          href={tx.attachmentUrls[tx.attachmentUrls.length - 1]}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-[#7E5714] hover:text-[#684710] hover:underline"
+                        >
+                          <Paperclip className="w-3 h-3" />
+                          View screenshot
+                        </a>
                       ) : (
-                        <span className="text-stone-400 italic">
-                          No tracker
-                        </span>
+                        <span className="text-stone-400 italic">None uploaded</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right font-mono font-medium text-stone-900">
@@ -488,7 +459,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
             <div className="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
               <div>
                 <span className="text-[10px] font-mono text-[#7E5714] uppercase">
-                  Safepay Transaction Receipt
+                  Transaction Receipt
                 </span>
                 <h3 className="text-base font-serif text-stone-900 font-medium">
                   {selectedTx.description}
@@ -545,22 +516,25 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between pt-2">
-                  <span className="text-stone-500">Gateway:</span>
+                  <span className="text-stone-500">Payment Method:</span>
                   <span className="text-stone-900 font-medium">
-                    Safepay Pakistan
+                    Bank Transfer / JazzCash
                   </span>
                 </div>
                 <div className="flex justify-between pt-2">
-                  <span className="text-stone-500">Safepay Tracker:</span>
-                  <span className="text-stone-900 select-all">
-                    {selectedTx.safepayTracker || "None assigned"}
-                  </span>
-                </div>
-                <div className="flex justify-between pt-2">
-                  <span className="text-stone-500">Payment Token:</span>
-                  <span className="text-stone-900 select-all">
-                    {selectedTx.safepayToken || "None assigned"}
-                  </span>
+                  <span className="text-stone-500">Payment Proof:</span>
+                  {selectedTx.attachmentUrls.length > 0 ? (
+                    <a
+                      href={selectedTx.attachmentUrls[selectedTx.attachmentUrls.length - 1]}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#7E5714] hover:text-[#684710] hover:underline"
+                    >
+                      View screenshot
+                    </a>
+                  ) : (
+                    <span className="text-stone-900">None uploaded</span>
+                  )}
                 </div>
                 <div className="flex justify-between pt-2">
                   <span className="text-stone-500">Timestamp:</span>
@@ -571,16 +545,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
               </div>
             </div>
 
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
-              <a
-                href="https://merchant.getsafepay.com"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-stone-600 hover:text-stone-900 font-medium font-mono"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Safepay Merchant Portal
-              </a>
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end">
               <button
                 onClick={() => setSelectedTx(null)}
                 className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-medium rounded-sm transition-colors"

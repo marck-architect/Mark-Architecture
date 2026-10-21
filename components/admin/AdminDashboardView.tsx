@@ -11,6 +11,7 @@ import { ServicesManager } from "./services/ServicesManager";
 import { PricingManager } from "./pricing/PricingManager";
 import { ProjectsManager } from "./projects/ProjectsManager";
 import { CollectionManager } from "./collection/CollectionManager";
+import { StoreProductsManager } from "./store/StoreProductsManager";
 import { ClientsManager } from "./clients/ClientsManager";
 import { PaymentsManager } from "./payments/PaymentsManager";
 import { MediaLibraryManager } from "./media/MediaLibraryManager";
@@ -46,6 +47,7 @@ const VALID_TABS: AdminTabType[] = [
   "pricing",
   "projects",
   "collection",
+  "store-products",
   "clients",
   "payments",
   "media",
@@ -469,6 +471,7 @@ function AdminDashboardInner({
           )}
 
           {activeTab === "collection" && <CollectionManager />}
+          {activeTab === "store-products" && <StoreProductsManager />}
 
           {activeTab === "clients" && (
             <ClientsManager consultations={consultations} orders={orders} />

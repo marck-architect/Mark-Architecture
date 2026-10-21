@@ -13,8 +13,8 @@ export const termsSections: LegalSectionItem[] = [
     title: "Standardized Formula Pricing (PKR 57/sq.ft)",
   },
   {
-    id: "mobilization-safepay",
-    title: "Mobilization Advance & Safepay Billing",
+    id: "mobilization-advance",
+    title: "Mobilization Advance & Payment Verification",
   },
   {
     id: "video-consultations",
@@ -37,7 +37,7 @@ export const TermsOfServiceContent: React.FC = () => {
   return (
     <LegalPageLayout
       title="Terms of Service & Engagement"
-      subtitle="Standardized contractual terms governing architectural design commissions, turnkey drawing packages, video consultations, and Safepay payments with MARK Architects."
+      subtitle="Standardized contractual terms governing architectural design commissions, turnkey drawing packages, video consultations, and payment verification with MARK Architects."
       documentType="Terms of Service"
       effectiveDate="September 01, 2026"
       lastUpdated="September 24, 2026"
@@ -204,13 +204,13 @@ export const TermsOfServiceContent: React.FC = () => {
         </section>
 
         {/* Section 5 */}
-        <section id="mobilization-safepay" className="scroll-mt-32 space-y-4">
+        <section id="mobilization-advance" className="scroll-mt-32 space-y-4">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs font-bold text-tertiary dark:text-amber-400">
               05
             </span>
             <h2 className="font-playfair text-xl sm:text-2xl font-bold text-stone-900 dark:text-white m-0">
-              Mobilization Advance & Safepay Billing
+              Mobilization Advance & Payment Verification
             </h2>
           </div>
           <p>
@@ -224,9 +224,10 @@ export const TermsOfServiceContent: React.FC = () => {
               </span>
               <p className="text-stone-600 dark:text-zinc-400 leading-normal">
                 To commence drafting and schedule structural consultations, the
-                Client deposits a 50% advance fee processed securely via our
-                Safepay gateway. Work begins immediately upon advance
-                confirmation.
+                Client deposits a 50% advance fee via bank transfer or
+                JazzCash and uploads a payment screenshot as proof. Work
+                begins immediately once our team verifies and confirms the
+                advance.
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-stone-100 dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 text-stone-900 dark:text-zinc-200">
@@ -454,8 +455,7 @@ export const TermsOfServiceContent: React.FC = () => {
             <li>
               <strong>Consultations Refund Policy:</strong> If a Client cancels
               a video consultation with at least 24 hours prior notice, a full
-              refund (less standard Safepay gateway processing fees of ~2.5%)
-              will be credited to the original payment source.
+              refund will be transferred back via bank transfer or JazzCash.
             </li>
           </ul>
         </section>
@@ -540,10 +540,10 @@ export const TermsOfServiceContent: React.FC = () => {
                   Email:
                 </strong>{" "}
                 <a
-                  href="mailto:briefs@markarchitects.com"
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=markarchitects.web@gmail.com" target="_blank" rel="noopener noreferrer"
                   className="text-tertiary dark:text-amber-400 hover:underline"
                 >
-                  briefs@markarchitects.com
+                  markarchitects.web@gmail.com
                 </a>
               </div>
               <div>

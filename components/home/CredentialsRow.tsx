@@ -57,7 +57,7 @@ const items: CredentialItem[] = [
   {
     icon: "/images/credentials/milestone-terms.png",
     title: "50% Advance Milestone Terms",
-    body: "Transparent stage payments processed securely via Safepay with complete client review checkpoints.",
+    body: "Transparent stage payments with verified bank transfer / JazzCash confirmation and complete client review checkpoints.",
   },
 ];
 

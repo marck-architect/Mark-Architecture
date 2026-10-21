@@ -8,6 +8,8 @@ import { ShoppingBag, Menu, X } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { navLinks } from "@/data/navigation";
+import { navIconComponentMap, NavIconStyles } from "@/components/navigation/NavIcons";
+import { RollText } from "@/components/navigation/RollText";
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
@@ -120,26 +122,50 @@ export const Header: React.FC = () => {
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden lg:flex items-center gap-5 xl:gap-7">
+        <NavIconStyles />
+        <div className="hidden lg:flex items-center gap-1 xl:gap-1.5">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
+            const Icon = navIconComponentMap[link.href];
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 prefetch={true}
                 className={cn(
-                  "font-inter text-sm font-semibold tracking-wide transition-colors pb-1 border-b-2 border-transparent",
+                  "group flex items-center rounded-full px-3 py-2 font-inter text-sm font-semibold tracking-wide transition-all duration-200",
                   isHomeHero
-                    ? "text-white/80 hover:text-tertiary-fixed"
-                    : "text-on-surface-variant hover:text-tertiary",
+                    ? "text-white/80 hover:bg-white/10 hover:text-tertiary-fixed"
+                    : "text-on-surface-variant hover:bg-tertiary/10 hover:text-tertiary",
                   isActive &&
                     (isHomeHero
-                      ? "text-tertiary-fixed! border-tertiary-fixed!"
-                      : "text-tertiary! border-tertiary!"),
+                      ? "bg-white/10 text-tertiary-fixed!"
+                      : "bg-tertiary/10 text-tertiary!"),
                 )}
               >
-                {link.label}
+                {Icon && (
+                  <span
+                    className={cn(
+                      "grid max-w-0 place-items-center overflow-hidden opacity-0 transition-all duration-300 ease-out [transform:rotateY(90deg)] [transform-style:preserve-3d] group-hover:mr-1.5 group-hover:max-w-[18px] group-hover:opacity-100 group-hover:[transform:rotateY(0deg)]",
+                      isActive && "mr-1.5 max-w-[18px] opacity-100 [transform:rotateY(0deg)]",
+                    )}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                  </span>
+                )}
+                <RollText
+                  text={link.label}
+                  topClassName={
+                    isActive
+                      ? isHomeHero
+                        ? "text-tertiary-fixed"
+                        : "text-tertiary"
+                      : isHomeHero
+                        ? "text-white/80"
+                        : "text-on-surface-variant"
+                  }
+                  bottomClassName={isHomeHero ? "text-tertiary-fixed" : "text-tertiary"}
+                />
               </Link>
             );
           })}

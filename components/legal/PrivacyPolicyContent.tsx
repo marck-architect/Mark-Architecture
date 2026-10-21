@@ -110,7 +110,8 @@ export const PrivacyPolicyContent: React.FC = () => {
               <strong>Billing & Transaction Metadata:</strong> Invoice
               references, transaction order numbers (e.g.{" "}
               <code>ORD-XXXXXX-XXX</code>), payment verification statuses, and
-              Safepay tracking tokens. We do <em>not</em> store full
+              the payment screenshot you upload as proof of a bank transfer or
+              JazzCash payment. We do <em>not</em> collect or store full
               credit/debit card numbers or CVVs on our servers.
             </li>
             <li>
@@ -224,8 +225,8 @@ export const PrivacyPolicyContent: React.FC = () => {
                 Fiscal Invoicing & Receipts
               </span>
               <p className="text-xs text-stone-600 dark:text-zinc-400 leading-normal">
-                Issuing digital tax receipts, verifying Safepay advance
-                settlements, and accounting for outstanding milestone balances.
+                Issuing digital tax receipts, verifying bank transfer / JazzCash
+                advance settlements, and accounting for outstanding milestone balances.
               </p>
             </div>
           </div>
@@ -238,30 +239,27 @@ export const PrivacyPolicyContent: React.FC = () => {
               05
             </span>
             <h2 className="font-playfair text-xl sm:text-2xl font-bold text-stone-900 dark:text-white m-0">
-              Payment Processing & SBP Compliance
+              Payment Processing & Verification
             </h2>
           </div>
           <p>
-            To guarantee absolute financial privacy, all online payments on MARK
-            Architects (including the 50% mobilization advance and consultation
-            booking fees) are processed through <strong>Safepay</strong>, a
-            digital payment service provider licensed and regulated by the State
-            Bank of Pakistan (SBP).
+            All payments on MARK Architects (including the 50% mobilization
+            advance and consultation booking fees) are made directly by the
+            client via bank transfer to our Askari Bank account or via
+            JazzCash. We never ask for or collect card numbers, CVV codes, or
+            bank PINs through our website.
           </p>
           <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs space-y-2">
             <div className="flex items-center gap-2 font-bold text-stone-900 dark:text-white">
               <CreditCard className="w-4 h-4 text-tertiary dark:text-amber-400" />
-              <span>Zero Card Data Storage Principle</span>
+              <span>Manual Verification Principle</span>
             </div>
             <p className="text-stone-600 dark:text-zinc-400 leading-relaxed">
-              When checking out, your browser communicates directly with
-              Safepay&apos;s PCI-DSS compliant checkout engine over an encrypted
-              TLS 1.3 channel with 256-bit AES encryption. MARK Architects never
-              stores, views, or intercepts client card numbers, CVV codes, or
-              bank PINs. Our database only records cryptographic transaction
-              tokens (e.g.,{" "}
-              <code>track_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code>) used
-              solely for audit verification.
+              After transferring funds, you upload a screenshot of the
+              transaction as proof of payment. This screenshot is stored
+              securely in our database and reviewed by our team, who then
+              manually confirm your booking or order. No third-party payment
+              gateway ever receives or processes your financial details.
             </p>
           </div>
         </section>
@@ -374,15 +372,6 @@ export const PrivacyPolicyContent: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-200 dark:divide-zinc-800 font-inter">
-                <tr>
-                  <td className="p-3 font-semibold text-stone-900 dark:text-white">
-                    Safepay
-                  </td>
-                  <td className="p-3 text-stone-600 dark:text-zinc-400">
-                    Credit/Debit card processing & SBP payment settlement
-                  </td>
-                  <td className="p-3 font-mono">Pakistan</td>
-                </tr>
                 <tr>
                   <td className="p-3 font-semibold text-stone-900 dark:text-white">
                     Supabase
@@ -569,10 +558,10 @@ export const PrivacyPolicyContent: React.FC = () => {
                   Email:
                 </strong>{" "}
                 <a
-                  href="mailto:briefs@markarchitects.com"
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=markarchitects.web@gmail.com" target="_blank" rel="noopener noreferrer"
                   className="text-tertiary dark:text-amber-400 hover:underline"
                 >
-                  briefs@markarchitects.com
+                  markarchitects.web@gmail.com
                 </a>
               </div>
               <div>

@@ -57,10 +57,12 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
         return "Portfolio Projects & Case Studies";
       case "collection":
         return "Architectural Products Catalog";
+      case "store-products":
+        return "Store Product Catalog";
       case "clients":
         return "Client Directory & Historical Records";
       case "payments":
-        return "Payments & Safepay Gateway Verification";
+        return "Payments & Manual Verification";
       case "media":
         return "Atelier Media & Asset Library";
       case "testimonials":

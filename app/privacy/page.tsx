@@ -7,11 +7,11 @@ import { siteConfig } from "@/lib/seo/schema";
 export const metadata: Metadata = {
   title: "Privacy Policy & Data Protection | MARK Architects Atelier",
   description:
-    "Official privacy policy of MARK Architects. Discover how we protect client personal data, cadastral land records, architectural CAD blueprints, and Safepay payments in compliance with PCATP and SBP standards.",
+    "Official privacy policy of MARK Architects. Discover how we protect client personal data, cadastral land records, architectural CAD blueprints, and payment data in compliance with PCATP and SBP standards.",
   keywords: [
     "mark architects privacy policy",
     "architectural data protection pakistan",
-    "safepay architectural payments security",
+    "architectural payment data security",
     "pcatp client confidentiality",
     "cad blueprints data storage",
     "luxury villa design privacy pakistan",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Privacy Policy & Data Protection | MARK Architects Atelier",
     description:
-      "Statutory data governance, client survey protection, CAD blueprint archival, and secure Safepay checkout for residential and commercial architectural projects.",
+      "Statutory data governance, client survey protection, CAD blueprint archival, and secure manual payment confirmation for residential and commercial architectural projects.",
     url: `${siteConfig.url}/privacy`,
     siteName: siteConfig.name,
     locale: "en_US",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Privacy Policy & Data Protection | MARK Architects Atelier",
     description:
-      "Statutory data governance, client survey protection, CAD blueprint archival, and secure Safepay checkout.",
+      "Statutory data governance, client survey protection, CAD blueprint archival, and secure manual payment confirmation.",
   },
   alternates: {
     canonical: `${siteConfig.url}/privacy`,

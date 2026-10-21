@@ -30,7 +30,8 @@ import {
 import { useStore } from "@/hooks/useStore";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { cn } from "@/lib/utils";
-import { SafepayService } from "@/lib/safepay";
+import { PaymentService } from "@/lib/payment";
+import { ManualPaymentDetails } from "@/components/payment/ManualPaymentDetails";
 import { ConsultationHero } from "@/components/consultation/ConsultationHero";
 import type {
   AttachedFile,
@@ -97,10 +98,23 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
     isAppointmentLinked,
     setAppointmentLinked,
     showToast,
+    addConfirmedOrder,
   } = useStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const screenshotInputRef = useRef<HTMLInputElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [bookingStep, setBookingStep] = useState<"form" | "payment" | "success">("form");
+  const [pendingBooking, setPendingBooking] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    message?: string;
+    formattedDate: string;
+  } | null>(null);
+  const [screenshot, setScreenshot] = useState<{ name: string; url: string } | null>(null);
+  const [isUploadingScreenshot, setIsUploadingScreenshot] = useState(false);
+  const [screenshotError, setScreenshotError] = useState<string | null>(null);
   // Packages start collapsed to a compact price preview (not fully hidden —
   // both prices are visible immediately) and expand to the full cards once
   // the visitor asks for them, either via the hero CTA or the preview's own
@@ -269,7 +283,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
     }
   };
 
-  const handleFormSubmit = async (values: BriefFormValues) => {
+  const handleFormSubmit = (values: BriefFormValues) => {
     // MANDATORY REQUIREMENT: Client must attach file/photo before confirmation
     if (!booking.attachedFile) {
       setFileError(
@@ -308,46 +322,112 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
       prev.includes(formattedDate) ? prev : [...prev, formattedDate],
     );
 
+    setPendingBooking({
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      message: values.message,
+      formattedDate,
+    });
+    setBookingStep("payment");
+  };
+
+  const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxBytes = 25 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setScreenshotError("File exceeds 25MB limit.");
+      return;
+    }
+
+    setScreenshotError(null);
+    setIsUploadingScreenshot(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "payment-proofs");
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Upload failed. Please try again.");
+      }
+
+      setScreenshot({ name: file.name, url: data.url });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setScreenshotError(msg);
+    } finally {
+      setIsUploadingScreenshot(false);
+    }
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!pendingBooking || !booking.selectedTime) return;
+
+    if (!screenshot) {
+      setScreenshotError("Please upload a screenshot of your payment before confirming.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/checkout/consultation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: values.name,
-          email: values.email,
-          phone: values.phone,
+          name: pendingBooking.name,
+          email: pendingBooking.email,
+          phone: pendingBooking.phone,
           callTier: booking.callTier,
-          bookingDate: formattedDate,
+          bookingDate: pendingBooking.formattedDate,
           bookingTime: booking.selectedTime,
-          message: values.message,
+          message: pendingBooking.message,
           attachmentUrls: booking.attachedFile?.url
             ? [booking.attachedFile.url]
             : booking.attachedFile?.name
               ? [booking.attachedFile.name]
               : [],
+          paymentScreenshotUrl: screenshot.url,
         }),
       });
 
       const data = await res.json();
 
-      if (!res.ok || !data.checkoutUrl) {
-        throw new Error(data.error || "Failed to initiate payment session.");
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit booking.");
       }
 
-      showToast("Connecting to Safepay Checkout...", "success");
+      addConfirmedOrder({
+        id: data.consultationId,
+        type: "consultation",
+        referenceNumber: data.consultationId,
+        title: `${data.tierName || booking.callTier} Consultation`,
+        amountPkr: data.pricePkr || selectedTierData.price,
+        status: "pending_verification",
+        date: new Date().toISOString(),
+        customerName: pendingBooking.name,
+        customerEmail: pendingBooking.email,
+        customerPhone: pendingBooking.phone,
+        scheduledDate: pendingBooking.formattedDate,
+        scheduledTime: booking.selectedTime,
+      });
 
       // Reset local inputs
       reset();
       unlinkAppointment();
       setAttachedFile(null);
-
-      // Redirect client to Safepay hosted checkout
-      window.location.assign(data.checkoutUrl);
+      setScreenshot(null);
+      setPendingBooking(null);
+      setBookingStep("success");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error("Safepay checkout error:", message);
-      showToast(message || "Payment checkout failed", "warning");
+      console.error("Consultation booking error:", message);
+      showToast(message || "Booking submission failed", "warning");
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -446,7 +526,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
                             </h3>
                           </div>
                           <span className="font-montserrat text-lg font-extrabold text-secondary dark:text-zinc-100 shrink-0">
-                            {SafepayService.formatPKR(tier.price)}
+                            {PaymentService.formatPKR(tier.price)}
                           </span>
                         </button>
                       ))}
@@ -498,7 +578,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
                                 </h3>
                               </div>
                               <span className="font-montserrat text-xl sm:text-2xl font-extrabold text-secondary dark:text-zinc-100">
-                                {SafepayService.formatPKR(tier.price)}
+                                {PaymentService.formatPKR(tier.price)}
                               </span>
                             </div>
 
@@ -554,6 +634,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
             </section>
 
             {/* Unified Form containing Contact Form (Step 2) & Consultation Scheduling (Step 3) */}
+            {bookingStep === "form" && (
             <form
               onSubmit={handleSubmit(handleFormSubmit)}
               className="space-y-16"
@@ -682,7 +763,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
                 </div>
               </section>
 
-              {/* 3. Consultation Scheduling Form (Calendar, Time Slot, File Upload & Safepay Checkout) */}
+              {/* 3. Consultation Scheduling Form (Calendar, Time Slot, File Upload & Manual Payment) */}
               <section
                 id="consultation-booking-section"
                 className="space-y-8 scroll-mt-24"
@@ -715,7 +796,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
                     <div className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-zinc-400 bg-surface-container-low dark:bg-zinc-900 px-3.5 py-2 rounded-xl border border-outline-variant/30">
                       <CreditCard className="w-3.5 h-3.5 text-tertiary" />
                       <span>
-                        Fee: {SafepayService.formatPKR(selectedTierData.price)}
+                        Fee: {PaymentService.formatPKR(selectedTierData.price)}
                       </span>
                     </div>
                   </div>
@@ -1097,7 +1178,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
                           </span>
                           <span className="text-zinc-500 dark:text-zinc-400 font-light">
                             Fee:{" "}
-                            {SafepayService.formatPKR(selectedTierData.price)}
+                            {PaymentService.formatPKR(selectedTierData.price)}
                           </span>
                         </div>
                       </div>
@@ -1116,33 +1197,138 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
                   <div className="pt-6 border-t border-outline-variant/20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                       <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Safepay Pakistan • 100% Encrypted Payment</span>
+                      <span>Manually reviewed &amp; confirmed by our team</span>
                     </div>
 
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="w-full sm:w-auto bg-primary hover:bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed text-on-primary px-6 sm:px-10 py-4 sm:py-4.5 rounded-xl font-inter font-bold text-xs tracking-wider sm:tracking-widest uppercase transition-all duration-300 shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2 min-h-[48px]"
+                      className="w-full sm:w-auto bg-primary hover:bg-tertiary text-on-primary px-6 sm:px-10 py-4 sm:py-4.5 rounded-xl font-inter font-bold text-xs tracking-wider sm:tracking-widest uppercase transition-all duration-300 shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2 min-h-[48px]"
                     >
-                      {isSubmitting ? (
-                        <>
-                          <Clock className="w-4 h-4 animate-spin text-tertiary" />
-                          <span>CONNECTING SAFEPAY...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>
-                            CONFIRM &amp; PAY{" "}
-                            {SafepayService.formatPKR(selectedTierData.price)}
-                          </span>
-                          <Sparkles className="w-4 h-4" />
-                        </>
-                      )}
+                      <span>Continue to Payment</span>
+                      <Sparkles className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
               </section>
             </form>
+            )}
+
+            {bookingStep === "payment" && pendingBooking && (
+              <section className="space-y-8">
+                <button
+                  type="button"
+                  onClick={() => setBookingStep("form")}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-tertiary hover:underline cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" /> Back to booking details
+                </button>
+
+                <div className="p-4 rounded-2xl bg-tertiary/10 border border-tertiary/30 flex items-center gap-3">
+                  <CalendarIcon className="w-5 h-5 text-tertiary shrink-0" />
+                  <span className="text-xs font-bold text-on-surface dark:text-white">
+                    {booking.callTier} — {months[booking.selectedDate!.month]}{" "}
+                    {booking.selectedDate!.day}, {booking.selectedDate!.year} at {booking.selectedTime}
+                  </span>
+                </div>
+
+                <ManualPaymentDetails amountLabel={PaymentService.formatPKR(selectedTierData.price)} />
+
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                    Upload Payment Screenshot *
+                  </label>
+                  <input
+                    type="file"
+                    ref={screenshotInputRef}
+                    onChange={handleScreenshotUpload}
+                    accept=".jpg,.jpeg,.png,.webp"
+                    className="hidden"
+                  />
+                  {isUploadingScreenshot ? (
+                    <div className="rounded-xl border border-dashed border-tertiary/60 bg-tertiary/5 p-4 text-center">
+                      <Loader2 className="mx-auto mb-2 size-5 animate-spin text-tertiary" />
+                      <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Uploading screenshot...</p>
+                    </div>
+                  ) : !screenshot ? (
+                    <div
+                      onClick={() => screenshotInputRef.current?.click()}
+                      className={`cursor-pointer rounded-xl border border-dashed p-4 text-center transition-all ${
+                        screenshotError
+                          ? "border-red-500/70 bg-red-500/5"
+                          : "border-outline-variant/40 hover:border-tertiary bg-white dark:bg-zinc-900/50 hover:bg-tertiary/5"
+                      }`}
+                    >
+                      <UploadCloud className="mx-auto mb-1.5 size-5 text-tertiary" />
+                      <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                        Click to upload your payment screenshot
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">Max 25MB • JPG, PNG, WebP</p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-xl border border-tertiary/40 bg-white p-3 dark:bg-zinc-900">
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        <FileText className="size-5 shrink-0 text-tertiary" />
+                        <p className="truncate text-xs font-bold text-zinc-800 dark:text-zinc-200">{screenshot.name}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScreenshot(null);
+                          if (screenshotInputRef.current) screenshotInputRef.current.value = "";
+                        }}
+                        className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-red-500/10 hover:text-red-500 cursor-pointer"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
+                  )}
+                  {screenshotError && (
+                    <span className="mt-1 flex items-center gap-1 text-[11px] font-medium text-red-500">
+                      <AlertTriangle className="size-3.5" />
+                      {screenshotError}
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmBooking}
+                  disabled={isSubmitting || !screenshot}
+                  className="w-full sm:w-auto bg-primary hover:bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed text-on-primary px-6 sm:px-10 py-4 sm:py-4.5 rounded-xl font-inter font-bold text-xs tracking-wider sm:tracking-widest uppercase transition-all duration-300 shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2 min-h-[48px]"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Clock className="w-4 h-4 animate-spin text-tertiary" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <span>Confirm Booking</span>
+                  )}
+                </button>
+              </section>
+            )}
+
+            {bookingStep === "success" && (
+              <section className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+                <span className="grid size-16 place-items-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="size-8" />
+                </span>
+                <h3 className="font-playfair text-2xl font-bold text-on-surface dark:text-zinc-100">
+                  Booking Submitted!
+                </h3>
+                <p className="max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
+                  We&apos;ve received your consultation booking and payment screenshot. Our team will verify it and
+                  send your Google Meet invitation shortly.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setBookingStep("form")}
+                  className="mt-2 rounded-xl bg-primary px-6 py-3 text-xs font-bold uppercase tracking-widest text-on-primary transition-colors hover:bg-tertiary cursor-pointer"
+                >
+                  Book Another Call
+                </button>
+              </section>
+            )}
           </div>
 
           {/* Right Column (4 cols): Consultation Inclusions, Full Services Gateway & Hotline */}
@@ -1289,7 +1475,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-tertiary shrink-0" />
-                <span>100% Encrypted Safepay Milestone Checkout</span>
+                <span>Secure Manual Payment Review &amp; Confirmation</span>
               </div>
             </div>
           </aside>

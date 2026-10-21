@@ -5,7 +5,7 @@ import { ConsultationView } from "@/components/consultation/ConsultationView";
 export const metadata: Metadata = {
   title: "Book Architectural Consultation & Strategy Call | MARK Architects",
   description:
-    "Schedule a 1-on-1 strategy call with a licensed principal architect. Video consultation, live layout diagnosis, turnkey design calculators, and secure Safepay checkout.",
+    "Schedule a 1-on-1 strategy call with a licensed principal architect. Video consultation, live layout diagnosis, turnkey design calculators and secure manual payment confirmation.",
   keywords: [
     "book architect consultation",
     "architect video call pakistan",

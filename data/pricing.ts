@@ -39,7 +39,7 @@ export const paymentPolicyPoints = [
   {
     title: "Work Starts Immediately",
     description:
-      "Drafting, diagnostic modeling, and reviews begin promptly once payment confirmation is verified via Safepay.",
+      "Drafting, diagnostic modeling, and reviews begin promptly once your payment screenshot is verified by our team.",
     icon: "Clock",
   },
   {

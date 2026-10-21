@@ -502,11 +502,11 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
             )}
           </div>
 
-          {/* 2. Safepay Gateway Details */}
+          {/* 2. Payment Verification */}
           <div className="p-4 rounded-2xl border border-stone-200 bg-white space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase font-mono tracking-widest text-[#7E5714] font-bold">
-                Safepay Transaction Status
+                Payment Status
               </span>
               <span className="font-mono text-xs font-bold text-stone-900">
                 PKR {Number(booking.price_pkr || 0).toLocaleString("en-PK")}
@@ -516,10 +516,10 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
               <div>
                 <span className="text-stone-400 block text-[11px]">
-                  Tracker Reference
+                  Payment Proof
                 </span>
-                <span className="font-mono text-stone-700 select-all">
-                  {booking.safepay_tracker || "Awaiting Safepay Callback"}
+                <span className="font-mono text-stone-700">
+                  See Attachments above
                 </span>
               </div>
               <div>

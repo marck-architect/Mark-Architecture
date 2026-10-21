@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   Clock4,
   CreditCard,
-  Copy,
+  Paperclip,
   ChevronRight,
   RefreshCw,
   AlertCircle,
@@ -30,7 +30,6 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentTypeFilter, setPaymentTypeFilter] = useState("all");
-  const [copiedTracker, setCopiedTracker] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -38,13 +37,6 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, paymentTypeFilter]);
-
-  const copyToClipboard = (text: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(text);
-    setCopiedTracker(text);
-    setTimeout(() => setCopiedTracker(null), 2000);
-  };
 
   // Metrics
   const metrics = useMemo(() => {
@@ -93,8 +85,7 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
         o.client_name?.toLowerCase().includes(q) ||
         o.client_email?.toLowerCase().includes(q) ||
         o.client_phone?.includes(q) ||
-        o.plot_size?.toLowerCase().includes(q) ||
-        o.safepay_tracker?.toLowerCase().includes(q);
+        o.plot_size?.toLowerCase().includes(q);
 
       let matchesStatus = true;
       if (statusFilter === "pending") {
@@ -136,7 +127,7 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
       "Remaining Balance (PKR)",
       "Billing Type",
       "Payment Status",
-      "Safepay Tracker",
+      "Payment Proof",
       "Date",
     ];
 
@@ -152,7 +143,7 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
       `"${o.remaining_balance_pkr}"`,
       `"${o.payment_type}"`,
       `"${o.payment_status}"`,
-      `"${o.safepay_tracker || ""}"`,
+      `"${o.attachment_urls?.[o.attachment_urls.length - 1] || ""}"`,
       `"${new Date(o.created_at).toISOString()}"`,
     ]);
 
@@ -222,7 +213,7 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
           </div>
           <p className="text-xs text-stone-500 mt-1">
             Authoritative registry of architectural design commissions, turnkey
-            packages, and Safepay payments.
+            packages, and payments.
           </p>
         </div>
 
@@ -231,7 +222,7 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
             <button
               onClick={onRefresh}
               className="px-3.5 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 hover:text-stone-900 hover:bg-stone-50 transition-colors shadow-2xs text-xs font-semibold flex items-center gap-2 cursor-pointer"
-              title="Refresh and auto-sync payments with Safepay"
+              title="Refresh orders list"
             >
               <RefreshCw className="w-4 h-4 text-stone-500" />
               <span>Sync & Refresh</span>
@@ -356,7 +347,7 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
                   <th className="py-3 px-4">Client Details</th>
                   <th className="py-3 px-4">Scope / Plot</th>
                   <th className="py-3 px-4">Financials (PKR)</th>
-                  <th className="py-3 px-4">Safepay Tracker</th>
+                  <th className="py-3 px-4">Payment Proof</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Action</th>
                 </tr>
@@ -460,25 +451,19 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
                         </div>
                       </td>
 
-                      {/* Safepay Tracker */}
+                      {/* Payment Proof */}
                       <td className="py-3.5 px-4 font-mono text-[11px]">
-                        {order.safepay_tracker ? (
-                          <div
-                            onClick={(e) =>
-                              copyToClipboard(order.safepay_tracker!, e)
-                            }
-                            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors cursor-pointer max-w-[140px]"
-                            title="Click to copy tracker"
+                        {order.attachment_urls && order.attachment_urls.length > 0 ? (
+                          <a
+                            href={order.attachment_urls[order.attachment_urls.length - 1]}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[#7E5714] hover:text-[#684710] hover:underline"
                           >
-                            <span className="truncate">
-                              {order.safepay_tracker}
-                            </span>
-                            {copiedTracker === order.safepay_tracker ? (
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                            ) : (
-                              <Copy className="w-3 h-3 text-stone-400 shrink-0" />
-                            )}
-                          </div>
+                            <Paperclip className="w-3 h-3" />
+                            View screenshot
+                          </a>
                         ) : (
                           <span className="text-stone-400 italic">None</span>
                         )}

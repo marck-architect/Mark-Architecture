@@ -75,7 +75,7 @@ export function generateFaqSchema(
     "@type": "FAQPage",
     name: "MARK Architects | Frequently Asked Architectural Questions (AEO Guide)",
     description:
-      "Authoritative answers to architectural design fees, PDA & CDA municipal approvals, turnkey blueprint packages, and Safepay payments across Pakistan.",
+      "Authoritative answers to architectural design fees, PDA & CDA municipal approvals, turnkey blueprint packages, and payment terms across Pakistan.",
     mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,

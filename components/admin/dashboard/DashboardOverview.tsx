@@ -95,7 +95,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </h1>
           <p className="text-xs sm:text-sm text-stone-300 font-light leading-relaxed">
             Welcome to the centralized management dashboard. Oversee live video
-            consultations, Safepay transaction confirmations, portfolio
+            consultations, payment confirmations, portfolio
             projects, and availability schedules across Pakistan.
           </p>
         </div>
@@ -172,14 +172,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
         </div>
 
-        {/* Safepay Revenue */}
+        {/* Payments Processed */}
         <div
           onClick={() => onNavigateTab("payments")}
           className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:border-[#7E5714]/60 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono uppercase tracking-widest text-stone-400 font-semibold">
-              Safepay Processed
+              Payments Processed
             </span>
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-[#7E5714] group-hover:scale-105 transition-transform">
               <DollarSign className="w-4 h-4" />
@@ -189,7 +189,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             PKR {totalRev.toLocaleString("en-PK")}
           </div>
           <div className="text-[11px] text-stone-500 mt-1 flex items-center gap-1 font-medium">
-            <span>Verified gate revenue</span>
+            <span>Verified revenue</span>
             <ArrowRight className="w-3 h-3 text-[#7E5714] group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
@@ -280,7 +280,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-stone-800 font-semibold text-xs">
                 <Clock className="w-4 h-4 text-stone-500" />
-                <span>Pending Safepay Checkouts</span>
+                <span>Pending Payment Verification</span>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-stone-200 text-stone-700 font-mono text-[10px] font-bold">
                 {pendingPayment.length}

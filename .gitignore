@@ -43,3 +43,11 @@ next-env.d.ts
 # local AI tooling state (agent skills cache, Serena project memory)
 /.agents/
 /.serena/
+
+# local write-through cache for admin-managed store products (source of
+# truth is Supabase; this file is regenerated automatically on first write)
+/data/store_products.json
+
+# client reference documents dropped into the repo root, not app source
+*.docx
+*.doc

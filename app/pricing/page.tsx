@@ -5,7 +5,7 @@ import { PricingView } from "@/components/pricing/PricingView";
 export const metadata: Metadata = {
   title: "Pricing & Architectural Packages Menu | MARK Architects",
   description:
-    "Explore transparent pricing and standardized packages for House Plan Reviews (from PKR 2,000), 3D Front Elevations, Interior Makeovers, Online Consultation Calls, and Turnkey Blueprints in Pakistan with secure Safepay payment gateway checkout.",
+    "Explore transparent pricing and standardized packages for House Plan Reviews (from PKR 2,000), 3D Front Elevations, Interior Makeovers, Online Consultation Calls, and Turnkey Blueprints in Pakistan with secure bank transfer / JazzCash payment confirmation.",
   keywords: [
     "architectural design pricing pakistan",
     "house plan review cost lahore islamabad",
@@ -14,12 +14,12 @@ export const metadata: Metadata = {
     "house plan correction packages",
     "grey structure cost estimate lahore",
     "full house design blueprint charges pakistan",
-    "safepay architectural payments",
+    "jazzcash architectural payments",
   ],
   openGraph: {
     title: "Pricing & Architectural Packages Menu | MARK Architects",
     description:
-      "Complete package menu, fixed deliverables, upfront pricing, studio payment policy, and instant online booking via Safepay payment gateway.",
+      "Complete package menu, fixed deliverables, upfront pricing, studio payment policy, and instant online booking via bank transfer or JazzCash.",
     url: "https://markarchitects.com/pricing",
     images: [
       {

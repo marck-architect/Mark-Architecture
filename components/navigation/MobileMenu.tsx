@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { mobileMenuLinks } from "@/data/navigation";
+import { navIconComponentMap, NavIconStyles } from "@/components/navigation/NavIcons";
 
 export const MobileMenu: React.FC = () => {
   const { mobileMenuOpen, setMobileMenuOpen } = useStore();
@@ -48,18 +49,27 @@ export const MobileMenu: React.FC = () => {
             : "scale-y-0 opacity-0 pointer-events-none",
         )}
       >
+        <NavIconStyles />
         <div className="flex flex-col gap-4 sm:gap-5 max-w-sm mx-auto">
-          {mobileMenuLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              prefetch={true}
-              onClick={() => setMobileMenuOpen(false)}
-              className="font-inter text-base font-semibold text-on-surface hover:text-tertiary transition-colors py-1.5 flex items-center min-h-[44px]"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {mobileMenuLinks.map((link) => {
+            const Icon = navIconComponentMap[link.href];
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                prefetch={true}
+                onClick={() => setMobileMenuOpen(false)}
+                className="font-inter text-base font-semibold text-on-surface hover:text-tertiary transition-colors py-1.5 flex items-center gap-3 min-h-[44px]"
+              >
+                {Icon && (
+                  <span className="grid size-5 shrink-0 place-items-center text-tertiary">
+                    <Icon className="loop size-5" />
+                  </span>
+                )}
+                {link.label}
+              </Link>
+            );
+          })}
           <Link
             href="/consultation"
             prefetch={true}

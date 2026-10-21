@@ -7,20 +7,20 @@ import { siteConfig } from "@/lib/seo/schema";
 export const metadata: Metadata = {
   title: "Terms of Service & Architectural Engagement | MARK Architects",
   description:
-    "Official Terms of Service for MARK Architects. Read our contractual terms governing architectural blueprints, PKR 57/sq.ft formula pricing, 50% advance policy, Safepay payments, and PCATP/PEC compliance.",
+    "Official Terms of Service for MARK Architects. Read our contractual terms governing architectural blueprints, PKR 57/sq.ft formula pricing, 50% advance policy, manual payment terms, and PCATP/PEC compliance.",
   keywords: [
     "mark architects terms of service",
     "architectural contract pakistan",
     "pcatp architect agreement terms",
     "pkr 57 formula architectural terms",
-    "safepay architectural payments terms",
+    "architectural payment terms pakistan",
     "single site construction license blueprints",
     "pda cda architectural approvals disclaimer",
   ],
   openGraph: {
     title: "Terms of Service & Architectural Engagement | MARK Architects",
     description:
-      "Statutory contract terms, 50% mobilization advance, CAD blueprint intellectual property, single-site license, and Safepay checkout governance.",
+      "Statutory contract terms, 50% mobilization advance, CAD blueprint intellectual property, single-site license, and manual payment governance.",
     url: `${siteConfig.url}/terms`,
     siteName: siteConfig.name,
     locale: "en_US",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Terms of Service & Engagement | MARK Architects",
     description:
-      "Statutory contract terms, 50% mobilization advance, CAD blueprint intellectual property, single-site license, and Safepay checkout governance.",
+      "Statutory contract terms, 50% mobilization advance, CAD blueprint intellectual property, single-site license, and manual payment governance.",
   },
   alternates: {
     canonical: `${siteConfig.url}/terms`,

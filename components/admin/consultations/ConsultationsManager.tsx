@@ -97,8 +97,7 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
         !searchTerm ||
         item.client_name?.toLowerCase().includes(q) ||
         item.client_email?.toLowerCase().includes(q) ||
-        item.client_phone?.includes(q) ||
-        item.safepay_tracker?.toLowerCase().includes(q);
+        item.client_phone?.includes(q);
 
       let matchesStatus = true;
       if (statusFilter === "needs_link") {
@@ -213,8 +212,8 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
             Consultation Appointments
           </h2>
           <p className="text-xs text-stone-500 font-light mt-0.5">
-            Automated Google Meet scheduling, Resend confirmations, and Safepay
-            transaction management.
+            Automated Google Meet scheduling, Resend confirmations, and payment
+            verification.
           </p>
         </div>
 
@@ -300,7 +299,7 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by client name, email, phone, or Safepay tracker..."
+              placeholder="Search by client name, email, or phone..."
               className="w-full pl-9 pr-4 py-2 bg-stone-50/50 border border-stone-200 rounded-xl text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#7E5714] focus:ring-1 focus:ring-[#7E5714]/20 transition-all"
             />
           </div>

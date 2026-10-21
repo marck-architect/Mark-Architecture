@@ -5,7 +5,7 @@ import { AdminLoginView } from "@/components/admin/AdminLoginView";
 export const metadata: Metadata = {
   title: "Admin Portal Sign In | MARK Architects Atelier",
   description:
-    "Secure administrative login portal for managing architectural consultation bookings, schedules, and Safepay payments.",
+    "Secure administrative login portal for managing architectural consultation bookings, schedules, and payments.",
   robots: {
     index: false,
     follow: false,

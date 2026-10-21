@@ -1,6 +1,6 @@
 # MARK Architects Atelier
 
-A high-performance architectural practice web application and client portal built with Next.js 16, React 19, Tailwind CSS, Supabase, and Safepay.
+A high-performance architectural practice web application and client portal built with Next.js 16, React 19, Tailwind CSS, and Supabase.
 
 ---
 
@@ -53,7 +53,7 @@ https://yourdomain.com/markarchit/admin
 - **Framework**: Next.js 16.2.9 (App Router, Turbopack, `proxy.ts` middleware)
 - **UI & Animation**: React 19, Tailwind CSS v4, Framer Motion, Lucide Icons, GSAP, Lenis Smooth Scroll
 - **Database & Auth**: Supabase (PostgreSQL, Row-Level Security, Supabase Auth SSR)
-- **Payments**: Safepay Payment Gateway (Checkout SDK & Reporter API)
+- **Payments**: Manual bank transfer / JazzCash — client uploads a payment screenshot, reviewed and confirmed from the admin panel
 - **Calendar & Meetings**: Google Cloud OAuth 2.0 (Google Calendar API & Google Meet)
 - **Transactional Emails**: Resend API
 - **State Management**: Zustand (with persistent local storage for order history and cart items)
@@ -94,8 +94,6 @@ Key environment variables:
 | `SUPABASE_SERVICE_ROLE_KEY`                 | Supabase service role key (backend workflows/webhooks) |
 | `ADMIN_EMAIL`                               | Single-admin authorized email address                  |
 | `ADMIN_ACCESS_KEY`                          | Secret URL query key required to unlock `/admin`       |
-| `SAFEPAY_API_KEY`                           | Safepay Public Key                                     |
-| `SAFEPAY_V1_SECRET`                         | Safepay Secret Key                                     |
 | `RESEND_API_KEY`                            | Resend API key for transactional consultation emails   |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google Cloud OAuth for Google Meet creation            |
 
@@ -137,7 +135,7 @@ npx tsc --noEmit
 │   │   ├── (dashboard)/      # Main Dashboard Tabs (Projects, Orders, Availability, etc.)
 │   │   ├── login/            # Admin Sign-In Screen
 │   │   └── reset-password/   # Admin Password Reset Screen
-│   ├── api/                  # API routes (Admin endpoints, Checkout, Safepay webhooks, Lock)
+│   ├── api/                  # API routes (Admin endpoints, Checkout, Upload, Lock)
 │   ├── layout.tsx            # Global Root Layout
 │   └── sitemap.ts            # Dynamic XML Sitemap Generator
 ├── components/
@@ -150,7 +148,6 @@ npx tsc --noEmit
 │   └── server/
 │       ├── adminGatekeeper.ts # URL Secret Key Verification & Token Signatures
 │       ├── adminAuth.ts       # Supabase Admin Session Verification
-│       ├── safepay.ts         # Safepay Payment Gateway Verification
 │       └── consultationWorkflow.ts # Appointment booking and order fulfillment
 ├── proxy.ts                  # Next.js 16 Proxy / Request Interceptor
 └── utils/

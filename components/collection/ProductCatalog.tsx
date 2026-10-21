@@ -1,24 +1,47 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { productCategories } from "@/data/productCatalog";
+import React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Truck, ShieldCheck, Headset, CreditCard } from "lucide-react";
+import { useStore } from "@/hooks/useStore";
+import { productCategories, styledLooks } from "@/data/productCatalog";
 import { categoryIconMap } from "@/components/collection/CategoryIcons";
+import { ProductCard } from "@/components/collection/ProductCard";
+import { defaultStoreProducts } from "@/data/storeProducts";
+import type { StoreProduct } from "@/types";
 
-const EASE = [0.2, 0.7, 0.2, 1] as const;
+interface ProductCatalogProps {
+  products?: StoreProduct[];
+}
 
-export const ProductCatalog: React.FC = () => {
-  const [activeId, setActiveId] = useState(productCategories[0]?.id ?? "");
-  const detailRef = useRef<HTMLDivElement>(null);
+const trustPoints = [
+  { icon: Truck, title: "Nationwide Delivery", desc: "Safe & reliable shipping" },
+  { icon: ShieldCheck, title: "Quality Products", desc: "Curated and trusted suppliers" },
+  { icon: Headset, title: "Expert Support", desc: "Advice from our team" },
+  { icon: CreditCard, title: "Secure Payments", desc: "Multiple payment options" },
+];
 
-  const active = productCategories.find((c) => c.id === activeId) ?? productCategories[0];
+export const ProductCatalog: React.FC<ProductCatalogProps> = ({ products }) => {
+  const list = products && products.length > 0 ? products : defaultStoreProducts;
+  const { addToCart, setCartDrawerOpen, showToast } = useStore();
 
-  const pick = (id: string) => {
-    setActiveId(id);
-    const el = detailRef.current;
-    if (el && el.getBoundingClientRect().top > window.innerHeight * 0.75) {
-      window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - 24, behavior: "smooth" });
-    }
+  const popularProducts = [...list]
+    .filter((p) => p.is_published && p.image_url)
+    .sort((a, b) => a.display_order - b.display_order)
+    .slice(0, 6);
+
+  const handleAddToCart = (p: StoreProduct) => {
+    const cat = productCategories.find((c) => c.id === p.category_id);
+    addToCart({
+      title: p.name,
+      price: p.price_pkr,
+      image: p.image_url || "/images/Full House Design Package.png",
+      currency: "PKR",
+      tier: cat?.title,
+    });
+    setCartDrawerOpen(true);
+    showToast(`Added "${p.name}" to your cart!`, "success");
   };
 
   return (
@@ -33,83 +56,112 @@ export const ProductCatalog: React.FC = () => {
           </h2>
         </div>
 
-        {/* Category tile grid — 2 cols mobile, 3 tablet, 4 desktop */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Category strip — compact thumbnails, 4 cols mobile up to 8 on desktop */}
+        <div id="categories" className="grid scroll-mt-24 grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1.5 sm:gap-3">
           {productCategories.map((cat) => {
             const Icon = categoryIconMap[cat.id];
-            const on = cat.id === active?.id;
             return (
-              <button
+              <Link
                 key={cat.id}
-                type="button"
-                onClick={() => pick(cat.id)}
-                aria-pressed={on}
-                className={`group flex flex-col items-start gap-3 rounded-2xl border p-4 sm:p-5 text-left transition-colors duration-200 ease-out cursor-pointer ${
-                  on
-                    ? "border-gold bg-gold/10"
-                    : "border-gold/20 bg-[#FFFDF8] hover:border-gold-line hover:bg-gold/5"
-                }`}
+                href={`/collection/${cat.id}`}
+                className="group flex flex-col overflow-hidden rounded-lg border border-gold/20 bg-[#FFFDF8] transition-colors duration-200 ease-out hover:border-gold-line sm:rounded-xl"
               >
-                <span
-                  className={`grid size-11 sm:size-12 shrink-0 place-items-center rounded-full border transition-colors duration-200 ease-out ${
-                    on
-                      ? "border-gold bg-gold text-[#FBF7EF]"
-                      : "border-gold-line/60 bg-gold/10 text-gold-deep group-hover:border-gold group-hover:bg-gold group-hover:text-[#FBF7EF]"
-                  }`}
-                >
-                  {Icon && <Icon className="size-5 sm:size-[22px]" />}
+                <span className="relative block aspect-square w-full overflow-hidden">
+                  <Image
+                    src={cat.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 25vw, (max-width: 1024px) 16vw, 12vw"
+                    quality={90}
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 </span>
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-[14px] sm:text-[15px] font-medium leading-tight text-ink">{cat.title}</span>
-                  <span className="text-[11px] sm:text-[12px] leading-snug text-[#6B5A40]">{cat.subtitle}</span>
+                <span className="flex flex-col items-center gap-1 px-1 py-1.5 text-center sm:gap-1.5 sm:px-2 sm:py-3">
+                  <span className="grid size-4 shrink-0 place-items-center text-ink-soft sm:size-7">
+                    {Icon && <Icon className="size-full" />}
+                  </span>
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-[9.5px] font-medium leading-tight text-ink sm:text-[12.5px]">
+                      {cat.title}
+                    </span>
+                    <span className="hidden text-[10px] leading-snug text-[#6B5A40] sm:block">{cat.subtitle}</span>
+                  </span>
                 </span>
-              </button>
+              </Link>
             );
           })}
         </div>
 
-        {/* Active category detail: subcategory chips */}
-        <div ref={detailRef} className="mt-10 md:mt-14">
-          <AnimatePresence mode="wait">
-            {active && (
-              <motion.div
-                key={active.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
-                transition={{ duration: 0.3, ease: EASE }}
+        {/* Popular Products — flat grid across all categories, always visible */}
+        {popularProducts.length > 0 && (
+          <div className="mt-12 md:mt-16">
+            <div className="mb-5 flex items-end justify-between gap-3 border-b border-gold/20 pb-4">
+              <h3 className="font-newsreader text-[clamp(22px,2.8vw,32px)] font-medium text-ink">
+                Popular Products
+              </h3>
+              <a
+                href="#categories"
+                className="shrink-0 text-[12px] font-semibold text-gold-deep hover:text-gold"
               >
-                <div className="flex flex-wrap items-center gap-3 border-b border-gold/20 pb-4 mb-5">
-                  <span className="grid size-9 place-items-center rounded-full bg-gold text-[#FBF7EF]">
-                    {(() => {
-                      const Icon = categoryIconMap[active.id];
-                      return Icon ? <Icon className="size-4" /> : null;
-                    })()}
-                  </span>
-                  <h3 className="font-newsreader text-[clamp(20px,2.4vw,28px)] font-medium text-ink">
-                    {active.title}
-                  </h3>
-                  <span className="text-[12px] text-[#6B5A40]">{active.subcategories.length} subcategories</span>
-                </div>
+                View All →
+              </a>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+              {popularProducts.map((p) => (
+                <ProductCard key={p.id} product={p} categoryId={p.category_id} onAdd={handleAddToCart} />
+              ))}
+            </div>
+          </div>
+        )}
 
-                <div className="flex flex-wrap gap-2.5">
-                  {active.subcategories.map((sub) => (
-                    <span
-                      key={sub}
-                      className="rounded-full border border-gold-line/50 bg-[#FFFDF8] px-4 py-2.5 text-[13px] sm:text-[13.5px] text-ink-soft transition-colors duration-200 ease-out hover:border-gold hover:bg-gold/10 hover:text-ink cursor-default"
-                    >
-                      {sub}
-                    </span>
-                  ))}
+        {/* Shop the Look — real room photography */}
+        <div className="mt-12 md:mt-16">
+          <div className="mb-5 flex items-end justify-between gap-3 border-b border-gold/20 pb-4">
+            <h3 className="font-newsreader text-[clamp(22px,2.8vw,32px)] font-medium text-ink">Shop the Look</h3>
+            <Link
+              href="/collection/shop-the-look"
+              className="shrink-0 text-[12px] font-semibold text-gold-deep hover:text-gold"
+            >
+              View All Rooms →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {styledLooks.map((room) => (
+              <div
+                key={room.slug}
+                className="group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-2xl border border-gold/20 p-4 text-left transition-colors duration-200 ease-out hover:border-gold-line"
+              >
+                <Image
+                  src={room.image}
+                  alt={room.name}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                  quality={90}
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/25 to-transparent" />
+                <div className="relative">
+                  <p className="text-[13.5px] font-medium text-[#FBF7EF]">{room.name}</p>
+                  <span className="text-[11.5px] text-[#FBF7EF]/80">Shop the Look →</span>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-                <p className="mt-6 text-[13px] text-[#8A7960] italic">
-                  Full product listings for {active.title.toLowerCase()} are being added — check back soon, or get in
-                  touch for current availability.
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Trust strip */}
+        <div className="mt-14 grid grid-cols-2 gap-4 border-t border-gold/20 pt-8 sm:grid-cols-4 md:mt-16">
+          {trustPoints.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="flex flex-col items-center gap-2 text-center sm:flex-row sm:text-left">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gold/10 text-gold-deep">
+                <Icon size={18} />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-[12.5px] font-medium text-ink">{title}</span>
+                <span className="text-[11px] text-[#8A7960]">{desc}</span>
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </section>

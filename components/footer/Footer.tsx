@@ -39,7 +39,9 @@ export const Footer: React.FC = () => {
             </a>
             <a
               className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-tertiary hover:border-tertiary transition-colors"
-              href="mailto:briefs@markarchitects.com"
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=markarchitects.web@gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="Email"
             >
               <Mail className="w-4 h-4 text-white" />
@@ -102,9 +104,14 @@ export const Footer: React.FC = () => {
           <ul className="space-y-3 font-inter text-sm font-light">
             <li className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-tertiary shrink-0" />
-              <span className="min-w-0 break-all sm:break-normal">
-                briefs@markarchitects.com
-              </span>
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=markarchitects.web@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-0 break-all hover:text-tertiary-fixed transition-colors sm:break-normal"
+              >
+                markarchitects.web@gmail.com
+              </a>
             </li>
             <li className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-tertiary mt-1 flex-shrink-0" />
@@ -125,6 +132,17 @@ export const Footer: React.FC = () => {
             <span>Karachi</span>
             <span>Peshawar</span>
           </div>
+          <p className="break-words">
+            Made by{" "}
+            <a
+              href="https://ziriumai.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-white/70 hover:text-tertiary-fixed transition-colors"
+            >
+              Ziriumai
+            </a>
+          </p>
         </div>
       </div>
     </footer>

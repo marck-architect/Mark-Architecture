@@ -90,7 +90,7 @@ export const PricingHero: React.FC = () => {
           className="mt-[clamp(20px,3vw,32px)] max-w-[640px] text-[clamp(16px,1.35vw,19px)] leading-relaxed text-ink-soft text-pretty"
         >
           Explore our full menu of architectural services. Every package has fixed deliverables, a clear price, and
-          secure checkout through Safepay.
+          secure bank transfer / JazzCash checkout.
         </motion.p>
 
         <motion.div

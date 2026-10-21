@@ -30,11 +30,13 @@ export const metadata: Metadata = {
   },
 };
 
-import { getPublicCollection } from "@/lib/server/content";
+import { getSiteContent } from "@/lib/server/content";
+import { defaultStoreProducts } from "@/data/storeProducts";
+import type { StoreProduct } from "@/types";
 
 export const revalidate = 60;
 
 export default async function CollectionPage() {
-  const packages = await getPublicCollection();
-  return <CollectionView initialPackages={packages} />;
+  const storeProducts = await getSiteContent<StoreProduct[]>("store_products", defaultStoreProducts);
+  return <CollectionView initialStoreProducts={storeProducts} />;
 }

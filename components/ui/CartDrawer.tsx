@@ -2,6 +2,7 @@
 
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   ShoppingBag,
   X,
@@ -10,13 +11,9 @@ import {
   Minus,
   ShieldCheck,
   ArrowRight,
-  Clock,
-  UploadCloud,
-  FileText,
-  Loader2,
-  AlertTriangle,
   Receipt,
   CheckCircle2,
+  Hourglass,
   Calendar,
   Video,
   ExternalLink,
@@ -25,18 +22,18 @@ import {
   PhoneCall,
 } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
-import { SafepayService } from "@/lib/safepay";
+import { PaymentService } from "@/lib/payment";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 export const CartDrawer: React.FC = () => {
+  const router = useRouter();
   const {
     cartDrawerOpen,
     setCartDrawerOpen,
     cart,
     changeQuantity,
     removeFromCart,
-    clearCart,
     confirmedOrders = [],
     removeConfirmedOrder,
     clearConfirmedOrders,
@@ -69,144 +66,15 @@ export const CartDrawer: React.FC = () => {
     }
   }, [cart.length, confirmedOrders.length]);
 
-  const [step, setStep] = React.useState<"cart" | "checkout">("cart");
-  const [customerName, setCustomerName] = React.useState("");
-  const [customerEmail, setCustomerEmail] = React.useState("");
-  const [customerPhone, setCustomerPhone] = React.useState("");
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [attachedFile, setAttachedFile] = React.useState<{
-    name: string;
-    url: string;
-    size: number;
-    isImage?: boolean;
-  } | null>(null);
-  const [isUploadingFile, setIsUploadingFile] = React.useState(false);
-  const [fileError, setFileError] = React.useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
-
   const pkrSubtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
 
-  const isAdvanceOrder = cart.some(
-    (item) =>
-      item.title.toLowerCase().includes("50% advance") ||
-      item.title.toLowerCase().includes("advance"),
-  );
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const maxBytes = 25 * 1024 * 1024;
-    if (file.size > maxBytes) {
-      setFileError(
-        "File exceeds 25MB limit. Please attach a compressed file or PDF.",
-      );
-      return;
-    }
-
-    setFileError(null);
-    setIsUploadingFile(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "orders");
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.url) {
-        throw new Error(data.error || "Upload failed. Please try again.");
-      }
-
-      setAttachedFile({
-        name: file.name,
-        url: data.url,
-        size: data.processedSize || file.size,
-        isImage: data.isImage,
-      });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setFileError(msg);
-    } finally {
-      setIsUploadingFile(false);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setAttachedFile(null);
-    setFileError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleProceedToDetails = () => {
+  const handleGoToCheckout = () => {
     if (cart.length === 0) return;
-    setErrorMsg(null);
-    setStep("checkout");
-  };
-
-  const handleSafepayCheckout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !customerName.trim() ||
-      !customerEmail.trim() ||
-      !customerPhone.trim()
-    ) {
-      setErrorMsg("Please fill in all contact fields to proceed.");
-      return;
-    }
-
-    if (isUploadingFile) {
-      setErrorMsg("Please wait for your drawing to finish uploading.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMsg(null);
-
-    try {
-      const res = await fetch("/api/checkout/order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer: {
-            name: customerName.trim(),
-            email: customerEmail.trim(),
-            phone: customerPhone.trim(),
-          },
-          items: cart,
-          paymentType: isAdvanceOrder ? "50_percent_advance" : "full",
-          attachmentUrls: attachedFile?.url ? [attachedFile.url] : [],
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.checkoutUrl) {
-        throw new Error(data.error || "Failed to initialize Safepay session.");
-      }
-
-      // Clear cart and forward to Safepay
-      clearCart();
-      setAttachedFile(null);
-      setCartDrawerOpen(false);
-      setStep("cart");
-      window.location.assign(data.checkoutUrl);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error("Safepay cart checkout error:", msg);
-      setErrorMsg(msg || "Checkout failed. Please try again.");
-      setIsSubmitting(false);
-    }
+    setCartDrawerOpen(false);
+    router.push("/checkout");
   };
 
   return (
@@ -251,219 +119,48 @@ export const CartDrawer: React.FC = () => {
                 </button>
               </div>
 
-              {/* Tab Navigation (visible when not in checkout step) */}
-              {step === "cart" && (
-                <div className="flex border-b border-outline-variant/30 px-3 sm:px-6 bg-surface-container-lowest dark:bg-zinc-900/60 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("cart")}
-                    className={cn(
-                      "py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 cursor-pointer",
-                      activeTab === "cart"
-                        ? "border-tertiary text-tertiary font-bold"
-                        : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300",
-                    )}
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5" />
-                    <span>Order Cart ({cart.length})</span>
-                  </button>
+              {/* Tab Navigation */}
+              <div className="flex border-b border-outline-variant/30 px-3 sm:px-6 bg-surface-container-lowest dark:bg-zinc-900/60 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("cart")}
+                  className={cn(
+                    "py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 cursor-pointer",
+                    activeTab === "cart"
+                      ? "border-tertiary text-tertiary font-bold"
+                      : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300",
+                  )}
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Order Cart ({cart.length})</span>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("orders")}
-                    className={cn(
-                      "py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ml-1",
-                      activeTab === "orders"
-                        ? "border-tertiary text-tertiary font-bold"
-                        : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300",
-                    )}
-                  >
-                    <Receipt className="w-3.5 h-3.5" />
-                    <span>Confirmed Orders</span>
-                    {confirmedOrders.length > 0 && (
-                      <span className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-emerald-500/30">
-                        {confirmedOrders.length}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("orders")}
+                  className={cn(
+                    "py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ml-1",
+                    activeTab === "orders"
+                      ? "border-tertiary text-tertiary font-bold"
+                      : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300",
+                  )}
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>Confirmed Orders</span>
+                  {confirmedOrders.length > 0 && (
+                    <span className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-emerald-500/30">
+                      {confirmedOrders.length}
+                    </span>
+                  )}
+                </button>
+              </div>
 
-              {/* Cart Items List or Checkout Form */}
+              {/* Cart Items List or Orders List */}
               <div
                 data-lenis-prevent
                 className="flex-grow overflow-y-auto overscroll-contain min-h-0 p-4 sm:p-6 space-y-4 touch-pan-y"
               >
-                {step === "checkout" ? (
-                  <form
-                    id="cart-checkout-form"
-                    onSubmit={handleSafepayCheckout}
-                    className="space-y-4"
-                  >
-                    <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
-                      <span className="font-playfair text-sm font-bold text-secondary dark:text-zinc-200">
-                        Client Contact Details
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setStep("cart")}
-                        className="text-xs text-tertiary hover:underline font-medium cursor-pointer"
-                      >
-                        ← Back to items
-                      </button>
-                    </div>
-
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                      Required by Safepay to issue your digital payment receipt
-                      and studio booking credentials.
-                    </p>
-
-                    {errorMsg && (
-                      <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-medium">
-                        {errorMsg}
-                      </div>
-                    )}
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="e.g. Tariq Mehmood"
-                        className="w-full bg-surface dark:bg-zinc-900 border border-outline-variant/50 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-tertiary"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        placeholder="tariq@example.com"
-                        className="w-full bg-surface dark:bg-zinc-900 border border-outline-variant/50 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-tertiary"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-                        Contact / Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="+92 300 1234567"
-                        className="w-full bg-surface dark:bg-zinc-900 border border-outline-variant/50 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-tertiary"
-                      />
-                    </div>
-
-                    {/* Attach Blueprint or Site Drawing */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block">
-                          Attach Blueprint / Site Photo (Optional)
-                        </label>
-                        <span className="text-[10px] text-tertiary font-mono">
-                          JPG, PNG, WebP (Sharp) or PDF
-                        </span>
-                      </div>
-
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileUpload}
-                        accept=".jpg,.jpeg,.png,.webp,.pdf"
-                        className="hidden"
-                      />
-
-                      {isUploadingFile ? (
-                        <div className="border border-dashed border-tertiary/60 bg-tertiary/5 rounded-xl p-3.5 text-center">
-                          <Loader2 className="w-5 h-5 text-tertiary animate-spin mx-auto mb-1.5" />
-                          <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                            Resizing with Sharp &amp; Uploading to Supabase...
-                          </p>
-                          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
-                            Compressing blueprint for instant studio review.
-                          </p>
-                        </div>
-                      ) : !attachedFile ? (
-                        <div
-                          onClick={() => fileInputRef.current?.click()}
-                          className={`border border-dashed rounded-xl p-3.5 text-center cursor-pointer transition-all ${
-                            fileError
-                              ? "border-red-500/70 bg-red-500/5"
-                              : "border-outline-variant/50 hover:border-tertiary bg-surface dark:bg-zinc-900/50 hover:bg-tertiary/5"
-                          }`}
-                        >
-                          <UploadCloud className="w-5 h-5 text-tertiary mx-auto mb-1" />
-                          <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                            Click to attach drawings or site photo
-                          </p>
-                          <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
-                            Max 25MB • Formats: PDF, JPG, PNG, WebP
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="p-2.5 rounded-xl bg-surface dark:bg-zinc-900 border border-tertiary/40 flex items-center justify-between">
-                          <div className="flex items-center gap-2 overflow-hidden">
-                            <FileText className="w-5 h-5 text-tertiary shrink-0" />
-                            <div className="overflow-hidden">
-                              <div className="flex items-center gap-1.5">
-                                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                                  {attachedFile.name}
-                                </p>
-                                <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.2 rounded-sm border border-emerald-500/20 shrink-0">
-                                  Supabase Storage
-                                </span>
-                              </div>
-                              <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
-                                {(attachedFile.size / (1024 * 1024)).toFixed(2)}{" "}
-                                MB • Sharp-optimized
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleRemoveFile}
-                            className="p-1 hover:bg-red-500/10 text-zinc-400 hover:text-red-500 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-
-                      {fileError && (
-                        <span className="text-[11px] text-red-500 font-medium block mt-1 flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          {fileError}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Summary Chip */}
-                    <div className="p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-outline-variant/30 space-y-1.5 text-xs">
-                      <div className="flex justify-between text-zinc-500">
-                        <span>Items in Order</span>
-                        <span>{cart.length} package(s)</span>
-                      </div>
-                      <div className="flex justify-between font-bold text-secondary dark:text-zinc-100">
-                        <span>Payable via Safepay</span>
-                        <span className="text-tertiary">
-                          {SafepayService.formatPKR(pkrSubtotal)}
-                        </span>
-                      </div>
-                    </div>
-                  </form>
-                ) : activeTab === "orders" ? (
+                {activeTab === "orders" ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between pb-2 border-b border-outline-variant/30">
                       <div>
@@ -517,23 +214,39 @@ export const CartDrawer: React.FC = () => {
                     ) : (
                       confirmedOrders.map((order, index) => {
                         const copyRefKey = `ref-${order.id || index}`;
-                        const copyTrkKey = `trk-${order.id || index}`;
+                        const isOrderLink = order.type === "order" && order.id;
 
                         return (
                           <div
                             key={order.id || order.referenceNumber || index}
-                            className="p-4 bg-surface-container-low dark:bg-zinc-900/60 border border-outline-variant/30 rounded-2xl space-y-3 relative group"
+                            onClick={() => {
+                              if (isOrderLink) {
+                                setCartDrawerOpen(false);
+                                router.push(`/orders/${order.id}`);
+                              }
+                            }}
+                            className={cn(
+                              "p-4 bg-surface-container-low dark:bg-zinc-900/60 border border-outline-variant/30 rounded-2xl space-y-3 relative group",
+                              isOrderLink && "cursor-pointer hover:border-tertiary/50 transition-colors",
+                            )}
                           >
                             {/* Card Top: Badges & Remove */}
                             <div className="flex items-start justify-between gap-2 pr-6">
                               <div>
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    {order.status === "advance_paid"
-                                      ? "50% Advance Paid"
-                                      : "Paid & Confirmed"}
-                                  </span>
+                                  {order.status === "pending_verification" ? (
+                                    <span className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                      <Hourglass className="w-3 h-3" />
+                                      Awaiting Verification
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                      <CheckCircle2 className="w-3 h-3" />
+                                      {order.status === "advance_paid"
+                                        ? "50% Advance Paid"
+                                        : "Paid & Confirmed"}
+                                    </span>
+                                  )}
                                   <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary border border-tertiary/20">
                                     {order.type === "consultation"
                                       ? "Consultation"
@@ -547,7 +260,10 @@ export const CartDrawer: React.FC = () => {
 
                               <button
                                 type="button"
-                                onClick={() => removeConfirmedOrder(order.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeConfirmedOrder(order.id);
+                                }}
                                 className="absolute top-3 right-3 text-zinc-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-500/10 cursor-pointer"
                                 title="Remove from device"
                                 aria-label="Remove from device"
@@ -570,7 +286,7 @@ export const CartDrawer: React.FC = () => {
                               </span>
                               {order.amountPkr > 0 && (
                                 <span className="font-montserrat font-bold text-tertiary">
-                                  {SafepayService.formatPKR(order.amountPkr)}
+                                  {PaymentService.formatPKR(order.amountPkr)}
                                 </span>
                               )}
                             </div>
@@ -596,6 +312,7 @@ export const CartDrawer: React.FC = () => {
                                     href={order.meetingUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
                                     className="w-full mt-1.5 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
                                   >
                                     <Video className="w-3.5 h-3.5" />
@@ -629,7 +346,7 @@ export const CartDrawer: React.FC = () => {
                                         : ""}
                                     </span>
                                     <span className="font-mono text-tertiary">
-                                      {SafepayService.formatPKR(
+                                      {PaymentService.formatPKR(
                                         it.price * (it.quantity || 1),
                                       )}
                                     </span>
@@ -650,12 +367,10 @@ export const CartDrawer: React.FC = () => {
                                   </span>
                                   <button
                                     type="button"
-                                    onClick={() =>
-                                      handleCopy(
-                                        order.referenceNumber,
-                                        copyRefKey,
-                                      )
-                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCopy(order.referenceNumber, copyRefKey);
+                                    }}
                                     className="p-1 hover:text-tertiary transition-colors cursor-pointer"
                                     title="Copy Reference Number"
                                   >
@@ -667,34 +382,13 @@ export const CartDrawer: React.FC = () => {
                                   </button>
                                 </div>
                               </div>
-
-                              {order.tracker && (
-                                <div className="flex items-center justify-between">
-                                  <span>Safepay:</span>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-tertiary">
-                                      {order.tracker.length > 18
-                                        ? `${order.tracker.slice(0, 15)}...`
-                                        : order.tracker}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleCopy(order.tracker!, copyTrkKey)
-                                      }
-                                      className="p-1 hover:text-tertiary transition-colors cursor-pointer"
-                                      title="Copy Tracker Token"
-                                    >
-                                      {copiedKey === copyTrkKey ? (
-                                        <Check className="w-3 h-3 text-emerald-400" />
-                                      ) : (
-                                        <Copy className="w-3 h-3" />
-                                      )}
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
                             </div>
+
+                            {isOrderLink && (
+                              <p className="text-[10px] text-tertiary font-medium">
+                                Tap to view status &amp; receipt →
+                              </p>
+                            )}
                           </div>
                         );
                       })
@@ -748,7 +442,7 @@ export const CartDrawer: React.FC = () => {
                           </p>
                         )}
                         <p className="text-tertiary font-montserrat font-semibold text-xs">
-                          {SafepayService.formatPKR(item.price)}
+                          {PaymentService.formatPKR(item.price)}
                         </p>
 
                         {/* Quantity Selector */}
@@ -817,50 +511,23 @@ export const CartDrawer: React.FC = () => {
                       Total Payable (PKR)
                     </span>
                     <span className="font-montserrat text-lg sm:text-xl font-bold text-secondary dark:text-zinc-100">
-                      {SafepayService.formatPKR(pkrSubtotal)}
+                      {PaymentService.formatPKR(pkrSubtotal)}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/60 p-2 sm:p-2.5 rounded-lg">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>
-                      Secured with Safepay Pakistan payment gateway. Instant
-                      receipt issued.
-                    </span>
+                    <span>Manually reviewed &amp; confirmed by our team.</span>
                   </div>
 
-                  {step === "checkout" ? (
-                    <button
-                      type="submit"
-                      form="cart-checkout-form"
-                      disabled={isSubmitting}
-                      className="w-full bg-primary hover:bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed text-on-primary py-3.5 sm:py-4 font-bold tracking-wider sm:tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 min-h-[48px]"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Clock className="w-4 h-4 animate-spin text-tertiary" />
-                          <span>CONNECTING SAFEPAY...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>
-                            PAY {SafepayService.formatPKR(pkrSubtotal)} VIA
-                            SAFEPAY
-                          </span>
-                          <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleProceedToDetails}
-                      className="w-full bg-primary hover:bg-tertiary text-on-primary py-3.5 sm:py-4 font-bold tracking-wider sm:tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 min-h-[48px]"
-                    >
-                      <span>PROCEED TO CHECKOUT</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={handleGoToCheckout}
+                    className="w-full bg-primary hover:bg-tertiary text-on-primary py-3.5 sm:py-4 font-bold tracking-wider sm:tracking-widest text-xs uppercase rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 min-h-[48px]"
+                  >
+                    <span>PROCEED TO CHECKOUT</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               ) : null}
             </motion.div>

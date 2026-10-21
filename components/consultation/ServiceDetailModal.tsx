@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import type { PlotSize, ServiceDetailModalProps } from "@/types";
 import { getStartingPriceText } from "@/data/services";
-import { SafepayService } from "@/lib/safepay";
+import { PaymentService } from "@/lib/payment";
 import { useStore } from "@/hooks/useStore";
 
 const emptySubscribe = () => () => {};
@@ -267,7 +267,7 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
                                 Fixed Fee
                               </span>
                               <span className="font-montserrat text-lg font-extrabold text-secondary dark:text-zinc-100">
-                                {SafepayService.formatPKR(price)}
+                                {PaymentService.formatPKR(price)}
                               </span>
                             </div>
                           </div>
@@ -370,7 +370,7 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
                         className="flex-1 sm:flex-initial px-5 py-3 rounded-xl border border-tertiary text-tertiary hover:bg-tertiary/10 dark:border-tertiary/70 dark:hover:bg-tertiary/20 text-xs font-bold uppercase tracking-wider text-center transition-all cursor-pointer flex items-center justify-center gap-2"
                       >
                         <ShoppingBag className="w-4 h-4" />
-                        <span>Direct Order (Safepay)</span>
+                        <span>Direct Order</span>
                       </button>
                     )}
 

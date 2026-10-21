@@ -172,7 +172,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         <div className="bg-white border border-stone-200 p-5 rounded-sm shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs text-stone-500 uppercase tracking-wider font-mono">
-              Safepay Conversion
+              Payment Conversion
             </span>
             <div className="p-2 bg-blue-50 rounded-sm text-blue-700">
               <TrendingUp className="w-4 h-4" />
@@ -251,7 +251,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           <div className="flex items-center justify-between border-b border-stone-100 pb-3">
             <div>
               <h3 className="font-serif text-base text-stone-900 font-medium">
-                Safepay Conversion Pipeline
+                Payment Conversion Pipeline
               </h3>
               <p className="text-xs text-stone-400 mt-0.5">
                 From initial slot reservation to confirmed meeting dispatch.
@@ -276,7 +276,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-sm flex items-center justify-between text-emerald-900">
               <div>
                 <div className="text-[10px] uppercase text-emerald-600">
-                  Step 2: Safepay Paid & Settled
+                  Step 2: Payment Confirmed
                 </div>
                 <div className="font-semibold text-emerald-900 text-sm mt-0.5">
                   {analytics.funnel.paidCount} Confirmed

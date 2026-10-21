@@ -1044,7 +1044,7 @@ export const PricingManager: React.FC = () => {
                 <div className="mt-6 pt-4 border-t border-stone-800/80 text-[11px] text-stone-500 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                   <span>
-                    Matches the exact live Safepay checkout calculation used on
+                    Matches the exact live checkout calculation used on
                     /services.
                   </span>
                 </div>
@@ -1228,7 +1228,7 @@ export const PricingManager: React.FC = () => {
               </p>
             </div>
             <span className="text-xs font-mono text-stone-500">
-              Synced with Safepay checkout
+              Synced with live checkout
             </span>
           </div>
 

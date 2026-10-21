@@ -35,27 +35,6 @@ export const FaqView: React.FC<FaqViewProps> = ({ initialFaqs }) => {
     }
   }, [initialFaqs]);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function refreshFaqs() {
-      try {
-        const res = await fetch("/api/faqs", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          if (isMounted && json?.data && Array.isArray(json.data) && json.data.length > 0) {
-            setFaqsList(json.data);
-          }
-        }
-      } catch (err) {
-        console.warn("Client FAQs refresh notice:", err);
-      }
-    }
-    refreshFaqs();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   const categoriesList = useMemo(() => {
     const list: { key: string; label: string; description?: string }[] = [
       ...faqCategories,

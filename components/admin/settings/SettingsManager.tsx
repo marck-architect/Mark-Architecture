@@ -51,19 +51,8 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
     meetingProvider: "google_meet",
     defaultDuration: "60",
     bufferMinutes: "15",
-    safepayMode: "production",
     autoSendReceipts: true,
   });
-
-  const webhookUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/api/safepay/webhook`
-      : "https://markarchitects.com/api/safepay/webhook";
-
-  const successUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/consultation/success`
-      : "https://markarchitects.com/consultation/success";
 
   const handleCopy = (field: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -89,8 +78,8 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
             Studio Operations Settings
           </h1>
           <p className="text-xs text-stone-500 mt-1">
-            Configure architectural practice metadata, Safepay gateway
-            endpoints, and meeting defaults.
+            Configure architectural practice metadata, payment methods,
+            and meeting defaults.
           </p>
         </div>
 
@@ -173,74 +162,65 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
           </div>
         </div>
 
-        {/* Safepay Gateway Settings */}
+        {/* Manual Payment Methods */}
         <div className="bg-white border border-stone-200 p-6 rounded-sm shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-stone-100 pb-3">
             <div className="flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-[#7E5714]" />
               <h3 className="font-serif text-sm font-semibold text-stone-900">
-                Safepay Pakistan Gateway Integration
+                Manual Payment Methods
               </h3>
             </div>
             <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-mono uppercase rounded-full">
-              Production Mode Active
+              Active
             </span>
           </div>
 
           <p className="text-xs text-stone-600 leading-relaxed">
-            All Safepay API secret credentials (
-            <code className="font-mono text-[11px] text-[#7E5714]">
-              SAFEPAY_API_KEY
-            </code>
-            ,{" "}
-            <code className="font-mono text-[11px] text-[#7E5714]">
-              SAFEPAY_WEBHOOK_SECRET
-            </code>
-            ) are stored securely on server-side environment variables and are
-            never exposed in browser runtimes.
+            Clients pay via bank transfer or JazzCash and upload a screenshot as proof at checkout. Review each
+            screenshot in Orders / Consultations and set its payment status once verified. These are the exact
+            details shown to clients during checkout.
           </p>
 
           <div className="space-y-3 font-mono text-xs">
             <div>
-              <label className="block text-stone-500 text-[10px] uppercase mb-1">
-                Safepay Webhook Endpoint URL
-              </label>
+              <label className="block text-stone-500 text-[10px] uppercase mb-1">Askari Bank — IBAN</label>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
-                  value={webhookUrl}
+                  value="PK16ASCM0007550200010044"
                   className="w-full p-2 bg-stone-50 border border-stone-200 rounded-sm text-stone-800 select-all"
                 />
                 <button
                   type="button"
-                  onClick={() => handleCopy("webhook", webhookUrl)}
+                  onClick={() => handleCopy("iban", "PK16ASCM0007550200010044")}
                   className="px-3 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs rounded-sm shrink-0"
                 >
-                  {copiedField === "webhook" ? "Copied" : "Copy"}
+                  {copiedField === "iban" ? "Copied" : "Copy"}
                 </button>
               </div>
+              <p className="mt-1 text-[10px] text-stone-400 normal-case">Account title: Mark Architects</p>
             </div>
 
             <div>
-              <label className="block text-stone-500 text-[10px] uppercase mb-1">
-                Safepay Client Return URL
-              </label>
+              <label className="block text-stone-500 text-[10px] uppercase mb-1">JazzCash Number</label>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
-                  value={successUrl}
+                  value="0344 9240884"
                   className="w-full p-2 bg-stone-50 border border-stone-200 rounded-sm text-stone-800 select-all"
                 />
                 <button
                   type="button"
-                  onClick={() => handleCopy("return", successUrl)}
+                  onClick={() => handleCopy("jazzcash", "0344 9240884")}
                   className="px-3 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs rounded-sm shrink-0"
                 >
-                  {copiedField === "return" ? "Copied" : "Copy"}
+                  {copiedField === "jazzcash" ? "Copied" : "Copy"}
                 </button>
               </div>
+              <p className="mt-1 text-[10px] text-stone-400 normal-case">Account title: Muhammad Arslan</p>
             </div>
           </div>
         </div>

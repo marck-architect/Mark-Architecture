@@ -10,7 +10,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
-import { SafepayService } from "@/lib/safepay";
+import { PaymentService } from "@/lib/payment";
 
 import { disciplines, plotPresets } from "@/data/calculator";
 import type { Discipline, PlotPreset } from "@/types";
@@ -201,7 +201,7 @@ export const FullHouseCalculator: React.FC<FullHouseCalculatorProps> = ({
               Full Package Value
             </span>
             <span className="font-montserrat text-lg sm:text-xl font-bold text-on-surface dark:text-zinc-200">
-              {SafepayService.formatPKR(totalAmount)}
+              {PaymentService.formatPKR(totalAmount)}
             </span>
           </div>
 
@@ -210,10 +210,10 @@ export const FullHouseCalculator: React.FC<FullHouseCalculatorProps> = ({
               {advancePercentage}% Advance Required to Start
             </span>
             <span className="font-montserrat text-xl sm:text-2xl font-extrabold text-tertiary">
-              {SafepayService.formatPKR(advanceAmount)}
+              {PaymentService.formatPKR(advanceAmount)}
             </span>
             <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
-              Balance ({SafepayService.formatPKR(remainingBalance)}) on final
+              Balance ({PaymentService.formatPKR(remainingBalance)}) on final
               delivery
             </span>
           </div>
@@ -224,7 +224,7 @@ export const FullHouseCalculator: React.FC<FullHouseCalculatorProps> = ({
           <AlertCircle className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
           <p className="leading-relaxed">
             <strong>Terms &amp; Liability Note:</strong> Work commences strictly
-            upon receipt of 50% advance via Safepay. Estimated quote is based on
+            upon verification of the 50% advance payment. Estimated quote is based on
             standard covered area rates; final scope and structural complexities
             are verified before contract execution. Extra revisions beyond tier
             limits are billed separately.
@@ -235,7 +235,7 @@ export const FullHouseCalculator: React.FC<FullHouseCalculatorProps> = ({
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
           <div className="flex items-center gap-2 text-xs text-on-surface-variant">
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Safepay Escrow Protection • 100% Licensed Architects</span>
+            <span>Manually Verified Payments • 100% Licensed Architects</span>
           </div>
 
           <button

@@ -7,21 +7,21 @@ import { generateFaqSchema } from "@/lib/seo/schema";
 export const metadata: Metadata = {
   title: "Frequently Asked Architectural Questions & Guide | MARK Architects",
   description:
-    "Authoritative guide to architectural design fees in Pakistan, PDA & CDA approvals, PKR 57/sq.ft turnkey blueprints, and Safepay payments. Led by PCATP licensed architects.",
+    "Authoritative guide to architectural design fees in Pakistan, PDA & CDA approvals, PKR 57/sq.ft turnkey blueprints, and transparent payment terms. Led by PCATP licensed architects.",
   keywords: [
     "architectural faq pakistan",
     "how much does an architect charge in pakistan",
     "cost of 1 kanal house design",
     "pda peshawar code approval architect",
     "cda islamabad building plan approval",
-    "safepay architectural payments",
+    "architectural payment terms",
     "turnkey house drawings deliverables",
     "passive solar architecture pakistan",
   ],
   openGraph: {
     title: "Architectural FAQs & Answer Guide | MARK Architects",
     description:
-      "Direct answers on architectural fees, municipal PDA & CDA building permits, turnkey drafting deliverables, and Safepay checkout in Pakistan.",
+      "Direct answers on architectural fees, municipal PDA & CDA building permits, turnkey drafting deliverables, and secure payment terms in Pakistan.",
     url: "https://markarchitects.com/faqs",
     siteName: "MARK Architects",
     locale: "en_US",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Architectural FAQs & Answer Guide | MARK Architects",
     description:
-      "Direct answers on architectural fees, municipal PDA & CDA building permits, turnkey drafting deliverables, and Safepay checkout in Pakistan.",
+      "Direct answers on architectural fees, municipal PDA & CDA building permits, turnkey drafting deliverables, and secure payment terms in Pakistan.",
   },
   alternates: {
     canonical: "https://markarchitects.com/faqs",

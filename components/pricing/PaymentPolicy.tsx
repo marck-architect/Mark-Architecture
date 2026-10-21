@@ -66,9 +66,9 @@ export const PaymentPolicy: React.FC<PaymentPolicyProps> = ({ policyPoints }) =>
         <div data-reveal="up" className="mt-[clamp(20px,2.6vw,32px)] flex flex-wrap items-center justify-between gap-x-8 gap-y-3.5 border-t border-gold/25 pt-[18px]">
           <p className="flex max-w-[760px] items-start gap-3 text-[15px] leading-normal text-[#4A4236]">
             <ShieldCheck size={20} strokeWidth={1.8} className="mt-px flex-none text-gold" />
-            <span>Official payment gateway: <strong className="font-semibold text-ink">Safepay</strong> (Visa, Mastercard, PayPak, direct bank wire &amp; digital mobile accounts).</span>
+            <span>Payment methods: <strong className="font-semibold text-ink">Askari Bank transfer &amp; JazzCash</strong> — pay directly, then upload a screenshot as proof.</span>
           </p>
-          <span className="text-[13px] font-semibold uppercase tracking-[.12em] text-gold-deep">100% encrypted · PCI-DSS compliant</span>
+          <span className="text-[13px] font-semibold uppercase tracking-[.12em] text-gold-deep">Manually verified · No card data collected</span>
         </div>
       </div>
     </section>

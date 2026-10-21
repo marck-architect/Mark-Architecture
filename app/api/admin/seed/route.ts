@@ -981,7 +981,7 @@ export async function POST(request: NextRequest) {
         question:
           "How do I pay for architectural services and consultations on MARK Architects?",
         answer:
-          "Payments are processed securely online through Safepay, accepting all major Pakistani and international Visa, Mastercard, and PayPak debit/credit cards with instant transaction verification. We operate on a 50% advance milestone structure for full turnkey custom estates.",
+          "Payments are made via bank transfer or JazzCash — you'll see our account details and a QR code at checkout, pay directly, then upload a screenshot as proof. Our team verifies it and confirms your booking shortly after. We operate on a 50% advance milestone structure for full turnkey custom estates.",
         display_order: 2,
         is_published: true,
       },
