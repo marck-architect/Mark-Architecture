@@ -9,6 +9,7 @@ import { TextReveal } from "@/components/ui/TextReveal";
 import { HeroCinematic } from "@/components/home/HeroCinematic";
 import { CredentialsRow } from "@/components/home/CredentialsRow";
 import { PhoneCall, ArrowLeft, ArrowRight, MapPin } from "lucide-react";
+import { trackPageView, trackEvent } from "@/lib/analytics/gtag";
 
 import {
   featuredServices as fallbackFeaturedServices,
@@ -48,6 +49,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
     if (published.length > 0) return published;
     return fallbackTestimonials;
   });
+
+  // Fire Google Tag page_view & home_page trigger on mount
+  useEffect(() => {
+    trackPageView("/", "Home | MARK Architects");
+    trackEvent("view_home_page", { page_location: "/" });
+  }, []);
 
   // Keep state synchronized if initialTestimonials changes
   useEffect(() => {
@@ -192,6 +199,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 >
                   <Link
                     href="/portfolio"
+                    onClick={() =>
+                      trackEvent("select_portfolio_project", {
+                        project_title: project.title,
+                        category: project.category,
+                        location: project.location,
+                        source: "home",
+                      })
+                    }
                     className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-[#292722] shadow-lg transition-transform duration-500 hover:-translate-y-1.5 hover:shadow-2xl"
                   >
                     <Image
@@ -231,6 +246,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <ScrollReveal delay={0.2} className="text-center pt-2 sm:pt-4">
               <Link
                 href="/portfolio"
+                onClick={() =>
+                  trackEvent("cta_click", {
+                    cta_label: "Explore Full Portfolio",
+                    destination: "/portfolio",
+                    source: "home",
+                  })
+                }
                 className="inline-flex items-center justify-center gap-3 rounded-xl bg-[#292722] px-8 py-4 font-inter text-xs font-bold uppercase tracking-widest text-white shadow-xl transition-all duration-300 hover:bg-[#8a6125] hover:shadow-2xl active:scale-95 group min-h-[48px]"
               >
                 <span>Explore Full Portfolio</span>
@@ -363,6 +385,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
             >
               <Link
                 href="/consultation"
+                onClick={() =>
+                  trackEvent("cta_click", {
+                    cta_label: "Book Consultation (PKR 3,000)",
+                    destination: "/consultation",
+                    source: "home",
+                  })
+                }
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#292722] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-white shadow-xl transition-all duration-300 hover:bg-[#8a6125] active:scale-95 text-center min-h-[48px]"
               >
                 <span>Book Consultation (PKR 3,000)</span>
@@ -376,6 +405,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
             >
               <Link
                 href="/pricing"
+                onClick={() =>
+                  trackEvent("cta_click", {
+                    cta_label: "Explore Pricing & Packages",
+                    destination: "/pricing",
+                    source: "home",
+                  })
+                }
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-[#c9c0b2] px-6 sm:px-10 py-4 font-inter text-xs font-bold uppercase tracking-widest text-[#5f5951] transition-all hover:border-[#8a6125] hover:text-[#8a6125] active:scale-95 text-center min-h-[48px]"
               >
                 Explore Pricing & Packages

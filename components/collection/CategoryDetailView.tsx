@@ -37,6 +37,7 @@ import {
   GardenLandscapeIconStyles,
 } from "@/components/collection/GardenLandscapeSubcategoryIcons";
 import { ProductCard } from "@/components/collection/ProductCard";
+import { trackPageView, trackEvent } from "@/lib/analytics/gtag";
 import type { StoreProduct } from "@/types";
 
 // Per-category subcategory icon sets, built out one category at a time.
@@ -93,8 +94,20 @@ export const CategoryDetailView: React.FC<CategoryDetailViewProps> = ({ category
   const lightBand = isLightColor(category.bandColor);
   const [activeSubcategory, setActiveSubcategory] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    trackPageView(`/collection/${category.id}`, `${category.title} | MARK Architects`);
+    trackEvent("view_item_list", {
+      item_list_id: category.id,
+      item_list_name: category.title,
+    });
+  }, [category.id, category.title]);
+
   const handleSubcategoryClick = (sub: string) => {
     setActiveSubcategory((current) => (current === sub ? null : sub));
+    trackEvent("select_subcategory", {
+      category_id: category.id,
+      subcategory: sub,
+    });
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -114,6 +127,19 @@ export const CategoryDetailView: React.FC<CategoryDetailViewProps> = ({ category
       image: p.image_url || "/images/Full House Design Package.png",
       currency: "PKR",
       tier: category.title,
+    });
+    trackEvent("add_to_cart", {
+      currency: "PKR",
+      value: p.price_pkr,
+      items: [
+        {
+          item_id: p.id,
+          item_name: p.name,
+          item_category: category.title,
+          price: p.price_pkr,
+          quantity: 1,
+        },
+      ],
     });
     setCartDrawerOpen(true);
     showToast(`Added "${p.name}" to your cart!`, "success");

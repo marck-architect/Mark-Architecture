@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import { useStore } from "@/hooks/useStore";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -12,6 +12,7 @@ import {
   projects as fallbackProjects,
   filterCategories,
 } from "@/data/portfolio";
+import { trackPageView, trackEvent } from "@/lib/analytics/gtag";
 import type { AdminProject, Project } from "@/types";
 
 interface PortfolioViewProps {
@@ -22,6 +23,11 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
   initialProjects,
 }) => {
   const { portfolioFilter, setPortfolioFilter, openLightbox } = useStore();
+
+  useEffect(() => {
+    trackPageView("/portfolio", "Portfolio | MARK Architects");
+    trackEvent("view_portfolio_page", { page_location: "/portfolio" });
+  }, []);
 
   const projectList: Project[] = (
     initialProjects && initialProjects.length > 0
@@ -67,7 +73,13 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               return (
                 <button
                   key={cat.key}
-                  onClick={() => setPortfolioFilter(cat.key)}
+                  onClick={() => {
+                    setPortfolioFilter(cat.key);
+                    trackEvent("filter_portfolio_category", {
+                      category_key: cat.key,
+                      category_label: cat.label,
+                    });
+                  }}
                   className={cn(
                     "px-4 sm:px-6 py-2 sm:py-2.5 rounded-full border text-[11px] sm:text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer min-h-[40px] flex items-center justify-center shrink-0",
                     isActive
@@ -93,7 +105,13 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.35 }}
-                onClick={() =>
+                onClick={() => {
+                  trackEvent("view_portfolio_project", {
+                    project_title: project.title,
+                    category: project.category,
+                    location: project.location,
+                    year: project.year,
+                  });
                   openLightbox({
                     title: project.title,
                     location: project.location,
@@ -102,8 +120,8 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                     description: project.description,
                     category: project.category.toUpperCase(),
                     price: project.price,
-                  })
-                }
+                  });
+                }}
                 className="group relative overflow-hidden rounded-3xl cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 bg-surface-container-low dark:bg-zinc-900 flex flex-col justify-between h-full"
               >
                 {/* Standardized Responsive Image Container with Next.js Image */}

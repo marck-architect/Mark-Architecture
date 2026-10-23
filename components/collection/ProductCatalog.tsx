@@ -9,6 +9,7 @@ import { productCategories, styledLooks } from "@/data/productCatalog";
 import { categoryIconMap } from "@/components/collection/CategoryIcons";
 import { ProductCard } from "@/components/collection/ProductCard";
 import { defaultStoreProducts } from "@/data/storeProducts";
+import { trackEvent } from "@/lib/analytics/gtag";
 import type { StoreProduct } from "@/types";
 
 interface ProductCatalogProps {
@@ -40,6 +41,19 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ products }) => {
       currency: "PKR",
       tier: cat?.title,
     });
+    trackEvent("add_to_cart", {
+      currency: "PKR",
+      value: p.price_pkr,
+      items: [
+        {
+          item_id: p.id,
+          item_name: p.name,
+          item_category: cat?.title || p.category_id,
+          price: p.price_pkr,
+          quantity: 1,
+        },
+      ],
+    });
     setCartDrawerOpen(true);
     showToast(`Added "${p.name}" to your cart!`, "success");
   };
@@ -64,6 +78,12 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ products }) => {
               <Link
                 key={cat.id}
                 href={`/collection/${cat.id}`}
+                onClick={() =>
+                  trackEvent("select_product_category", {
+                    category_id: cat.id,
+                    category_title: cat.title,
+                  })
+                }
                 className="group flex flex-col overflow-hidden rounded-lg border border-gold/20 bg-[#FFFDF8] transition-colors duration-200 ease-out hover:border-gold-line sm:rounded-xl"
               >
                 <span className="relative block aspect-square w-full overflow-hidden">
