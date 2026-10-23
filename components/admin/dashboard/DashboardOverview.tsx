@@ -28,6 +28,7 @@ interface DashboardOverviewProps {
   services: AdminService[];
   onNavigateTab: (tab: AdminTabType) => void;
   onInspectConsultation: (booking: ConsultationRecord) => void;
+  onInspectOrder?: (order: OrderRecord) => void;
 }
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
@@ -37,6 +38,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   services,
   onNavigateTab,
   onInspectConsultation,
+  onInspectOrder,
 }) => {
   const today = new Date().toISOString().split("T")[0];
 
@@ -68,9 +70,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   const needsLink = consultations.filter(
     (c) => c.payment_status === "paid" && !c.meeting_url,
   );
-  const pendingPayment = consultations.filter(
+  const pendingConsultations = consultations.filter(
     (c) => c.payment_status === "pending",
   );
+  const pendingOrders = orders.filter((o) => o.payment_status === "pending");
+  const totalPendingVerifications =
+    pendingConsultations.length + pendingOrders.length;
 
   return (
     <div className="space-y-8 font-inter">
@@ -226,7 +231,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             </h2>
           </div>
           <span className="text-xs text-stone-500 font-mono">
-            {needsLink.length + pendingPayment.length} action items
+            {needsLink.length + totalPendingVerifications} action items
           </span>
         </div>
 
@@ -275,36 +280,76 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             )}
           </div>
 
-          {/* Card B: Pending payment verifications */}
+          {/* Card B: Pending payment verifications (Orders + Consultations) */}
           <div className="p-4 rounded-2xl border border-stone-200 bg-stone-50/50 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-stone-800 font-semibold text-xs">
                 <Clock className="w-4 h-4 text-stone-500" />
-                <span>Pending Payment Verification</span>
+                <span>Pending Payment Screenshot Verification</span>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-stone-200 text-stone-700 font-mono text-[10px] font-bold">
-                {pendingPayment.length}
+                {totalPendingVerifications}
               </span>
             </div>
 
-            {pendingPayment.length > 0 ? (
+            {totalPendingVerifications > 0 ? (
               <div className="space-y-2">
-                {pendingPayment.slice(0, 3).map((item) => (
+                {pendingOrders.slice(0, 2).map((order) => (
                   <div
-                    key={item.id}
-                    onClick={() => onInspectConsultation(item)}
-                    className="p-2.5 rounded-xl bg-white border border-stone-200 flex items-center justify-between text-xs hover:border-stone-400 transition-colors cursor-pointer shadow-2xs"
+                    key={`ord_${order.id}`}
+                    onClick={() =>
+                      onInspectOrder
+                        ? onInspectOrder(order)
+                        : onNavigateTab("orders")
+                    }
+                    className="p-2.5 rounded-xl bg-white border border-stone-200 flex items-center justify-between text-xs hover:border-[#7E5714] transition-colors cursor-pointer shadow-2xs"
                   >
-                    <div>
-                      <div className="font-semibold text-stone-900">
-                        {item.client_name}
+                    <div className="min-w-0 pr-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 font-mono text-[9px] font-bold uppercase border border-blue-200">
+                          Order
+                        </span>
+                        <span className="font-semibold text-stone-900 truncate">
+                          {order.client_name}
+                        </span>
                       </div>
-                      <div className="text-[11px] text-stone-500">
-                        {item.tier_name} • PKR {item.price_pkr.toLocaleString()}
+                      <div className="text-[11px] text-stone-500 truncate mt-0.5">
+                        #{order.order_number} • PKR{" "}
+                        {Number(
+                          order.advance_amount_pkr ||
+                            order.total_amount_pkr ||
+                            0,
+                        ).toLocaleString()}
                       </div>
                     </div>
-                    <span className="text-[10px] text-stone-500 font-mono">
-                      {item.booking_date}
+                    <span className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-[#7E5714] text-[10px] font-semibold shrink-0">
+                      Verify Proof →
+                    </span>
+                  </div>
+                ))}
+
+                {pendingConsultations.slice(0, 2).map((item) => (
+                  <div
+                    key={`cons_${item.id}`}
+                    onClick={() => onInspectConsultation(item)}
+                    className="p-2.5 rounded-xl bg-white border border-stone-200 flex items-center justify-between text-xs hover:border-[#7E5714] transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 font-mono text-[9px] font-bold uppercase border border-amber-200">
+                          Call
+                        </span>
+                        <span className="font-semibold text-stone-900 truncate">
+                          {item.client_name}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-stone-500 truncate mt-0.5">
+                        {item.tier_name} • PKR{" "}
+                        {Number(item.price_pkr || 0).toLocaleString()}
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-[#7E5714] text-[10px] font-semibold shrink-0">
+                      Verify Proof →
                     </span>
                   </div>
                 ))}
@@ -312,7 +357,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             ) : (
               <div className="text-xs text-stone-500 italic py-2 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>No checkout sessions pending verification.</span>
+                <span>No payment screenshots pending verification.</span>
               </div>
             )}
           </div>

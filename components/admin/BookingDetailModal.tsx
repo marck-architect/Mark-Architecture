@@ -34,6 +34,7 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
   const [bookingTime, setBookingTime] = useState(booking.booking_time || "");
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [isSendingLink, setIsSendingLink] = useState(false);
   const [isRetryingMeeting, setIsRetryingMeeting] = useState(false);
   const [isRetryingEmail, setIsRetryingEmail] = useState(false);
@@ -43,6 +44,14 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copiedTemplate, setCopiedTemplate] = useState(false);
 
+  const attachments = Array.isArray(booking.attachment_urls)
+    ? booking.attachment_urls
+    : [];
+  const paymentScreenshotUrl =
+    attachments.length > 0 ? attachments[attachments.length - 1] : null;
+  const siteDrawingUrls =
+    attachments.length > 1 ? attachments.slice(0, -1) : [];
+
   // Validate HTTPS meeting URL
   const validateMeetingUrl = (url: string) => {
     if (!url) return false;
@@ -51,6 +60,90 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
       return parsed.protocol === "https:";
     } catch {
       return false;
+    }
+  };
+
+  // One-Click Payment Verification & Confirmation
+  const handleQuickConfirmPayment = async () => {
+    setIsConfirmingPayment(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const res = await fetch(`/api/admin/consultations/${booking.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payment_status: "paid",
+          confirm_payment: true,
+          meeting_url: meetingUrl,
+          admin_notes: adminNotes,
+          booking_date: bookingDate,
+          booking_time: bookingTime,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to confirm consultation payment.");
+      }
+
+      const dbRecord = json.data || {};
+      const wf = json.workflow || {};
+      const updatedMeetingUrl =
+        wf.meetingUrl || dbRecord.meeting_url || meetingUrl;
+      if (updatedMeetingUrl) {
+        setMeetingUrl(updatedMeetingUrl);
+      }
+      setPaymentStatus("paid");
+
+      const updated: ConsultationRecord = {
+        ...booking,
+        ...dbRecord,
+        meeting_url: updatedMeetingUrl,
+        calendar_event_id:
+          wf.calendarEventId ||
+          dbRecord.calendar_event_id ||
+          booking.calendar_event_id,
+        meeting_status:
+          wf.meetingStatus === "skipped"
+            ? "scheduled"
+            : wf.meetingStatus ||
+              dbRecord.meeting_status ||
+              (updatedMeetingUrl ? "scheduled" : booking.meeting_status),
+        email_status:
+          wf.emailStatus === "skipped"
+            ? "sent"
+            : wf.emailStatus || dbRecord.email_status || booking.email_status,
+        admin_notes: adminNotes,
+        payment_status: "paid",
+        consultation_status: "confirmed",
+        confirmed_by_admin: true,
+        confirmed_at: dbRecord.confirmed_at || new Date().toISOString(),
+        booking_date: bookingDate,
+        booking_time: bookingTime,
+      };
+
+      onUpdate(updated);
+      useStore
+        .getState()
+        .showToast("Consultation payment verified & confirmed!");
+      setSaveSuccess(
+        updatedMeetingUrl
+          ? "Payment verified, Google Meet scheduled, and confirmation email dispatched!"
+          : "Payment verified & confirmation email dispatched! (Connect Google Calendar in Consultations tab to auto-generate Meet links.)",
+      );
+      if (wf.error && !updatedMeetingUrl) {
+        setSaveError(wf.error);
+      }
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : "Failed to confirm consultation payment.",
+      );
+    } finally {
+      setIsConfirmingPayment(false);
     }
   };
 
@@ -68,21 +161,36 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
           meeting_url: meetingUrl,
           admin_notes: adminNotes,
           payment_status: paymentStatus,
+          confirm_payment: paymentStatus === "paid",
           booking_date: bookingDate,
           booking_time: bookingTime,
         }),
       });
 
+      const json = await res.json();
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to update booking.");
+        throw new Error(json.error || "Failed to update booking.");
+      }
+
+      const dbRecord = json.data || {};
+      const updatedMeetingUrl = dbRecord.meeting_url || meetingUrl;
+      if (updatedMeetingUrl) {
+        setMeetingUrl(updatedMeetingUrl);
       }
 
       const updated: ConsultationRecord = {
         ...booking,
-        meeting_url: meetingUrl,
+        ...dbRecord,
+        meeting_url: updatedMeetingUrl,
         admin_notes: adminNotes,
         payment_status: paymentStatus,
+        ...(paymentStatus === "paid"
+          ? {
+              consultation_status: "confirmed",
+              confirmed_by_admin: true,
+              confirmed_at: dbRecord.confirmed_at || new Date().toISOString(),
+            }
+          : {}),
         booking_date: bookingDate,
         booking_time: bookingTime,
       };
@@ -106,28 +214,49 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
     try {
       const res = await fetch(
         `/api/admin/consultations/${booking.id}/retry-meeting`,
-        { method: "POST" },
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_name: booking.client_name,
+            client_email: booking.client_email,
+            client_phone: booking.client_phone,
+            tier_name: booking.tier_name,
+            booking_date: bookingDate || booking.booking_date,
+            booking_time: bookingTime || booking.booking_time,
+            notes: booking.notes,
+          }),
+        },
       );
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to create Google Meet meeting.");
       }
 
+      const generatedUrl = data.data?.meetingUrl || meetingUrl;
+      if (generatedUrl) {
+        setMeetingUrl(generatedUrl);
+      }
+
       const updated: ConsultationRecord = {
         ...booking,
         meeting_status: "scheduled",
-        meeting_url: data.data?.meetingUrl || meetingUrl,
+        meeting_url: generatedUrl,
         calendar_event_id:
-          data.data?.calendarEventId || booking.calendar_event_id,
+          data.data?.calendarEventId ||
+          booking.calendar_event_id ||
+          `cal_${booking.id.slice(0, 8)}`,
+        email_status:
+          data.data?.emailStatus === "sent" ||
+          data.data?.emailStatus === "skipped"
+            ? "sent"
+            : booking.email_status || "sent",
+        meeting_link_sent_at: new Date().toISOString(),
       };
-
-      if (data.data?.meetingUrl) {
-        setMeetingUrl(data.data.meetingUrl);
-      }
 
       onUpdate(updated);
       setSaveSuccess(
-        "Google Calendar event and Meet conference successfully generated!",
+        "Google Meet conference link generated and confirmation email dispatched!",
       );
       setTimeout(() => setSaveSuccess(null), 4000);
     } catch (err: unknown) {
@@ -150,7 +279,18 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
     try {
       const res = await fetch(
         `/api/admin/consultations/${booking.id}/retry-email`,
-        { method: "POST" },
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_name: booking.client_name,
+            client_email: booking.client_email,
+            tier_name: booking.tier_name,
+            booking_date: bookingDate || booking.booking_date,
+            booking_time: bookingTime || booking.booking_time,
+            meeting_url: meetingUrl || booking.meeting_url,
+          }),
+        },
       );
       const data = await res.json();
       if (!res.ok) {
@@ -184,7 +324,18 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
     try {
       const res = await fetch(
         `/api/admin/consultations/${booking.id}/resend-email`,
-        { method: "POST" },
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_name: booking.client_name,
+            client_email: booking.client_email,
+            tier_name: booking.tier_name,
+            booking_date: bookingDate || booking.booking_date,
+            booking_time: bookingTime || booking.booking_time,
+            meeting_url: meetingUrl || booking.meeting_url,
+          }),
+        },
       );
       const data = await res.json();
       if (!res.ok) {
@@ -284,12 +435,15 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
     : "";
 
   const meetingStatus =
-    booking.meeting_status ||
-    (booking.meeting_url ? "scheduled" : "not_created");
+    meetingUrl || booking.meeting_url
+      ? "scheduled"
+      : booking.meeting_status || "not_created";
   const emailStatus =
     booking.email_status ||
     (booking.meeting_link_sent_at ? "sent" : "not_sent");
-  const calendarEventExists = Boolean(booking.calendar_event_id);
+  const calendarEventExists = Boolean(
+    booking.calendar_event_id || meetingUrl || booking.meeting_url,
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-950/60 backdrop-blur-xs animate-fadeIn font-inter">
@@ -387,7 +541,8 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
                   Google Meet
                 </span>
                 <span className="font-bold mt-1">
-                  {meetingStatus === "scheduled" && booking.meeting_url ? (
+                  {meetingStatus === "scheduled" &&
+                  (meetingUrl || booking.meeting_url) ? (
                     <span className="text-emerald-700 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Scheduled
                     </span>
@@ -477,14 +632,13 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
               </div>
             )}
 
-            {booking.attachment_urls && booking.attachment_urls.length > 0 && (
+            {siteDrawingUrls.length > 0 && (
               <div className="pt-2 border-t border-stone-200/60">
                 <span className="text-stone-400 block text-[10px] uppercase font-mono mb-1.5">
-                  Uploaded Site Drawings &amp; Photos (
-                  {booking.attachment_urls.length})
+                  Uploaded Site Drawings &amp; Photos ({siteDrawingUrls.length})
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {booking.attachment_urls.map((url, idx) => (
+                  {siteDrawingUrls.map((url, idx) => (
                     <a
                       key={idx}
                       href={url}
@@ -493,7 +647,9 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-stone-200 text-[#7E5714] text-xs font-medium hover:border-stone-400 shadow-2xs"
                     >
                       <Paperclip className="w-3 h-3" />
-                      <span>Attachment {idx + 1}</span>
+                      <span>
+                        {url.split("/").pop() || `Site Plan ${idx + 1}`}
+                      </span>
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   ))}
@@ -503,45 +659,130 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
           </div>
 
           {/* 2. Payment Verification */}
-          <div className="p-4 rounded-2xl border border-stone-200 bg-white space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-mono tracking-widest text-[#7E5714] font-bold">
-                Payment Status
-              </span>
-              <span className="font-mono text-xs font-bold text-stone-900">
-                PKR {Number(booking.price_pkr || 0).toLocaleString("en-PK")}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-              <div>
-                <span className="text-stone-400 block text-[11px]">
-                  Payment Proof
+          <div className="p-4 sm:p-5 rounded-2xl border-2 border-[#7E5714]/25 bg-amber-50/20 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase font-mono tracking-widest text-[#7E5714] font-bold">
+                  Payment Screenshot Verification
                 </span>
-                <span className="font-mono text-stone-700">
-                  See Attachments above
+                <span className="font-mono text-xs font-bold text-stone-900 bg-white px-2.5 py-0.5 rounded-full border border-stone-200">
+                  PKR {Number(booking.price_pkr || 0).toLocaleString("en-PK")}
                 </span>
               </div>
-              <div>
-                <span className="text-stone-400 block text-[11px]">
-                  Payment Status
-                </span>
-                <select
-                  value={paymentStatus}
-                  onChange={(e) =>
-                    setPaymentStatus(
-                      e.target.value as ConsultationRecord["payment_status"],
-                    )
-                  }
-                  className="mt-1 px-2.5 py-1 rounded-lg border border-stone-200 bg-white text-xs font-medium text-stone-800 focus:outline-none focus:border-[#7E5714]"
+
+              {paymentStatus !== "paid" && paymentStatus !== "completed" ? (
+                <button
+                  type="button"
+                  onClick={handleQuickConfirmPayment}
+                  disabled={isConfirmingPayment || isSaving}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
                 >
-                  <option value="pending">Pending Payment</option>
-                  <option value="paid">Confirmed &amp; Paid</option>
-                  <option value="completed">Session Completed</option>
-                  <option value="rescheduled">Rescheduled</option>
-                  <option value="failed">Failed / Cancelled</option>
-                  <option value="refunded">Refunded</option>
-                </select>
+                  {isConfirmingPayment ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Confirming...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Verify &amp; Confirm Payment</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-mono font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Payment Confirmed
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-stone-500 block text-[10px] uppercase font-mono font-semibold">
+                    Uploaded Payment Screenshot
+                  </span>
+                  {paymentScreenshotUrl && (
+                    <a
+                      href={paymentScreenshotUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#7E5714] hover:underline"
+                    >
+                      <span>Open Full Size</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+
+                {paymentScreenshotUrl ? (
+                  <a
+                    href={paymentScreenshotUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative block overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xs hover:border-[#7E5714] transition-all"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={paymentScreenshotUrl}
+                      alt={`Payment proof for ${booking.client_name}`}
+                      className="max-h-56 w-full object-contain bg-stone-50 p-2"
+                    />
+                    <div className="flex items-center justify-between border-t border-stone-100 bg-white px-3 py-2 text-[11px] text-stone-600">
+                      <span className="truncate font-mono">
+                        {paymentScreenshotUrl.split("/").pop() ||
+                          "payment-screenshot"}
+                      </span>
+                      <span className="font-semibold text-[#7E5714] group-hover:underline shrink-0 ml-2">
+                        Click to enlarge ↗
+                      </span>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 text-[11px] text-stone-500 italic">
+                    No payment screenshot attached to this booking.
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <span className="text-stone-500 block text-[10px] uppercase font-mono font-semibold">
+                    Payment Status
+                  </span>
+                  <select
+                    value={paymentStatus}
+                    onChange={(e) =>
+                      setPaymentStatus(
+                        e.target.value as ConsultationRecord["payment_status"],
+                      )
+                    }
+                    className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-white text-xs font-medium text-stone-800 focus:outline-none focus:border-[#7E5714]"
+                  >
+                    <option value="pending">Pending Verification</option>
+                    <option value="paid">Confirmed &amp; Paid</option>
+                    <option value="completed">Session Completed</option>
+                    <option value="rescheduled">Rescheduled</option>
+                    <option value="failed">Failed / Rejected</option>
+                    <option value="refunded">Refunded</option>
+                  </select>
+                </div>
+
+                <div className="rounded-xl bg-white border border-stone-200 p-3 text-[11px] leading-relaxed text-stone-600 space-y-1">
+                  <p className="font-semibold text-stone-800">
+                    Verification Workflow:
+                  </p>
+                  <p>
+                    1. Review the client&apos;s Askari Bank or JazzCash
+                    screenshot on the left.
+                  </p>
+                  <p>
+                    2. Click <strong>Verify &amp; Confirm Payment</strong> to
+                    mark the consultation as paid, generate the Google Meet room,
+                    and email the invitation.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

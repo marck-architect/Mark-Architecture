@@ -1,5 +1,8 @@
 import "server-only";
-import { getSupabaseAdminClient } from "./supabaseAdmin";
+import {
+  getSupabaseAdminClient,
+  getServerSupabaseClient,
+} from "./supabaseAdmin";
 import { createConsultationCalendarEvent } from "./google/googleCalendarService";
 import { sendConsultationConfirmation } from "./email/emailService";
 
@@ -31,16 +34,29 @@ export interface ProcessPaidConsultationResult {
 export async function processPaidConsultation(
   consultationId: string,
   safepayTracker?: string,
+  forceEmail: boolean = false,
 ): Promise<ProcessPaidConsultationResult> {
-  const supabase = getSupabaseAdminClient();
+  const supabase = await getServerSupabaseClient();
   const nowIso = new Date().toISOString();
 
   // 1. Fetch consultation record
-  const { data: consultation, error: fetchErr } = await supabase
+  let { data: consultation, error: fetchErr } = await supabase
     .from("consultations")
     .select("*")
     .eq("id", consultationId)
-    .single();
+    .maybeSingle();
+
+  if (fetchErr || !consultation) {
+    const fb = await getSupabaseAdminClient()
+      .from("consultations")
+      .select("*")
+      .eq("id", consultationId)
+      .maybeSingle();
+    if (fb.data) {
+      consultation = fb.data;
+      fetchErr = null;
+    }
+  }
 
   if (fetchErr || !consultation) {
     console.error(
@@ -53,9 +69,6 @@ export async function processPaidConsultation(
   // 2. Mark payment_status = 'paid' and auto-confirm booking
   const paymentUpdates: Record<string, unknown> = {
     payment_status: "paid",
-    consultation_status: "confirmed",
-    confirmed_by_admin: true,
-    confirmed_at: nowIso,
     updated_at: nowIso,
   };
   if (safepayTracker && !consultation.safepay_tracker) {
@@ -136,7 +149,7 @@ export async function processPaidConsultation(
       timezone: consultation.timezone || "Pakistan Standard Time (PKT)",
       meetingUrl: activeMeetingUrl,
       calendarEventId: activeCalendarEventId,
-      forceResend: false, // Idempotent!
+      forceResend: forceEmail || meetingStatus === "scheduled",
     });
 
     emailStatus = emailResult.status;

@@ -10,13 +10,20 @@ import {
   DollarSign,
   ShieldCheck,
   X,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import type { ConsultationRecord, OrderRecord } from "@/types";
 import { AdminPagination } from "@/components/admin/ui/AdminPagination";
+import { useStore } from "@/hooks/useStore";
 
 interface PaymentsManagerProps {
   consultations: ConsultationRecord[];
   orders: OrderRecord[];
+  onUpdateOrder?: (order: OrderRecord) => void;
+  onUpdateConsultation?: (booking: ConsultationRecord) => void;
+  onInspectOrder?: (order: OrderRecord) => void;
+  onInspectConsultation?: (booking: ConsultationRecord) => void;
 }
 
 interface UnifiedTransaction {
@@ -28,6 +35,7 @@ interface UnifiedTransaction {
   clientPhone: string;
   description: string;
   amountPkr: number;
+  paymentType?: string;
   paymentStatus: string;
   attachmentUrls: string[];
   createdAt: string;
@@ -36,11 +44,17 @@ interface UnifiedTransaction {
 export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
   consultations,
   orders,
+  onUpdateOrder,
+  onUpdateConsultation,
+  onInspectOrder,
+  onInspectConsultation,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [selectedTx, setSelectedTx] = useState<UnifiedTransaction | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -81,6 +95,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
         clientPhone: o.client_phone,
         description: `Design Package Order #${o.order_number}${o.plot_size ? ` (${o.plot_size})` : ""}`,
         amountPkr: Number(o.advance_amount_pkr || o.total_amount_pkr || 0),
+        paymentType: o.payment_type,
         paymentStatus: o.payment_status || "pending",
         attachmentUrls: o.attachment_urls || [],
         createdAt: o.created_at,
@@ -152,6 +167,89 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
     const start = (currentPage - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
+
+  const handleConfirmTxPayment = async (tx: UnifiedTransaction) => {
+    setIsConfirming(true);
+    setConfirmError(null);
+
+    try {
+      if (tx.type === "order") {
+        const targetStatus =
+          tx.paymentType === "50_percent_advance"
+            ? "advance_paid"
+            : "fully_paid";
+        const res = await fetch(`/api/admin/orders/${tx.sourceId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payment_status: targetStatus }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to confirm order payment.");
+        }
+        const existingOrder = orders.find((o) => o.id === tx.sourceId);
+        if (existingOrder && onUpdateOrder) {
+          onUpdateOrder({
+            ...existingOrder,
+            ...(data.data || {}),
+            payment_status: targetStatus,
+          });
+        }
+        setSelectedTx({ ...tx, paymentStatus: targetStatus });
+        useStore
+          .getState()
+          .showToast("Order payment verified & confirmed!");
+      } else {
+        const res = await fetch(`/api/admin/consultations/${tx.sourceId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            payment_status: "paid",
+            confirm_payment: true,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            data.error || "Failed to confirm consultation payment.",
+          );
+        }
+        const existingBooking = consultations.find(
+          (c) => c.id === tx.sourceId,
+        );
+        if (existingBooking && onUpdateConsultation) {
+          onUpdateConsultation({
+            ...existingBooking,
+            ...(data.data || {}),
+            payment_status: "paid",
+            consultation_status: "confirmed",
+            confirmed_by_admin: true,
+          });
+        }
+        setSelectedTx({ ...tx, paymentStatus: "paid" });
+        useStore
+          .getState()
+          .showToast("Consultation payment verified & confirmed!");
+      }
+    } catch (err: unknown) {
+      setConfirmError(
+        err instanceof Error ? err.message : "Failed to confirm payment.",
+      );
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  const handleOpenFullRecord = (tx: UnifiedTransaction) => {
+    setSelectedTx(null);
+    if (tx.type === "order" && onInspectOrder) {
+      const found = orders.find((o) => o.id === tx.sourceId);
+      if (found) onInspectOrder(found);
+    } else if (tx.type === "consultation" && onInspectConsultation) {
+      const found = consultations.find((c) => c.id === tx.sourceId);
+      if (found) onInspectConsultation(found);
+    }
+  };
 
   const handleExportCsv = () => {
     const headers = [
@@ -380,16 +478,28 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
                     </td>
                     <td className="py-3.5 px-4 font-mono text-[11px]">
                       {tx.attachmentUrls.length > 0 ? (
-                        <a
-                          href={tx.attachmentUrls[tx.attachmentUrls.length - 1]}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 text-[#7E5714] hover:text-[#684710] hover:underline"
-                        >
-                          <Paperclip className="w-3 h-3" />
-                          View screenshot
-                        </a>
+                        <div className="flex items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={
+                              tx.attachmentUrls[tx.attachmentUrls.length - 1]
+                            }
+                            alt="Payment proof"
+                            className="w-8 h-8 rounded-sm object-cover border border-stone-200 bg-stone-50 shrink-0"
+                          />
+                          <a
+                            href={
+                              tx.attachmentUrls[tx.attachmentUrls.length - 1]
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[#7E5714] hover:text-[#684710] hover:underline font-medium"
+                          >
+                            <Paperclip className="w-3 h-3" />
+                            View screenshot
+                          </a>
+                        </div>
                       ) : (
                         <span className="text-stone-400 italic">None uploaded</span>
                       )}
@@ -417,11 +527,16 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          setConfirmError(null);
                           setSelectedTx(tx);
                         }}
-                        className="text-[11px] text-[#7E5714] hover:text-[#684710] font-medium py-1 px-2.5 hover:bg-amber-50 rounded transition-colors"
+                        className={`text-[11px] font-medium py-1.5 px-3 rounded transition-colors cursor-pointer ${
+                          !isPaid
+                            ? "bg-amber-50 border border-amber-300 text-amber-900 hover:bg-[#7E5714] hover:text-white hover:border-[#7E5714] font-semibold"
+                            : "text-[#7E5714] hover:text-[#684710] hover:bg-amber-50"
+                        }`}
                       >
-                        Receipt
+                        {!isPaid ? "Verify & Confirm" : "Receipt"}
                       </button>
                     </td>
                   </tr>
@@ -455,11 +570,11 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
       {/* Transaction Details Modal */}
       {selectedTx && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white border border-stone-200 rounded-sm shadow-xl max-w-lg w-full overflow-hidden">
+          <div className="bg-white border border-stone-200 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden">
             <div className="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
               <div>
-                <span className="text-[10px] font-mono text-[#7E5714] uppercase">
-                  Transaction Receipt
+                <span className="text-[10px] font-mono text-[#7E5714] uppercase font-bold">
+                  Payment Verification &amp; Receipt
                 </span>
                 <h3 className="text-base font-serif text-stone-900 font-medium">
                   {selectedTx.description}
@@ -467,14 +582,20 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
               </div>
               <button
                 onClick={() => setSelectedTx(null)}
-                className="text-stone-400 hover:text-stone-600"
+                className="text-stone-400 hover:text-stone-600 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
-              <div className="p-4 bg-stone-50 border border-stone-200 rounded-sm flex items-center justify-between">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              {confirmError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                  {confirmError}
+                </div>
+              )}
+
+              <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl flex items-center justify-between">
                 <div>
                   <div className="text-[10px] font-mono text-stone-400 uppercase">
                     Amount Charged
@@ -484,7 +605,7 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
                   </div>
                 </div>
                 <span
-                  className={`text-[11px] font-mono uppercase px-3 py-1 rounded-full font-medium ${
+                  className={`text-[11px] font-mono uppercase px-3 py-1 rounded-full font-medium flex items-center gap-1 ${
                     ["paid", "advance_paid", "fully_paid"].includes(
                       selectedTx.paymentStatus,
                     )
@@ -492,8 +613,79 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
                       : "bg-amber-100 text-amber-800"
                   }`}
                 >
+                  {["paid", "advance_paid", "fully_paid"].includes(
+                    selectedTx.paymentStatus,
+                  ) ? (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  ) : (
+                    <Clock4 className="w-3.5 h-3.5" />
+                  )}
                   {selectedTx.paymentStatus}
                 </span>
+              </div>
+
+              {/* Inline Payment Screenshot Preview */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase text-stone-500 font-bold">
+                    Uploaded Payment Screenshot
+                  </span>
+                  {selectedTx.attachmentUrls.length > 0 && (
+                    <a
+                      href={
+                        selectedTx.attachmentUrls[
+                          selectedTx.attachmentUrls.length - 1
+                        ]
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#7E5714] hover:underline"
+                    >
+                      <span>Open Full Size</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+
+                {selectedTx.attachmentUrls.length > 0 ? (
+                  <a
+                    href={
+                      selectedTx.attachmentUrls[
+                        selectedTx.attachmentUrls.length - 1
+                      ]
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group block overflow-hidden rounded-xl border border-stone-200 bg-stone-50 hover:border-[#7E5714] transition-all"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={
+                        selectedTx.attachmentUrls[
+                          selectedTx.attachmentUrls.length - 1
+                        ]
+                      }
+                      alt={`Payment screenshot from ${selectedTx.clientName}`}
+                      className="max-h-60 w-full object-contain p-2 bg-stone-50"
+                    />
+                    <div className="flex items-center justify-between border-t border-stone-200/80 bg-white px-3 py-2 text-[11px] text-stone-600">
+                      <span className="truncate font-mono">
+                        {selectedTx.attachmentUrls[
+                          selectedTx.attachmentUrls.length - 1
+                        ]
+                          .split("/")
+                          .pop() || "payment-screenshot"}
+                      </span>
+                      <span className="font-semibold text-[#7E5714] group-hover:underline shrink-0 ml-2">
+                        Click to enlarge ↗
+                      </span>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="rounded-xl border border-stone-200 bg-stone-50 p-3 text-stone-400 italic">
+                    No payment screenshot uploaded.
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2.5 divide-y divide-stone-100 font-mono">
@@ -522,21 +714,6 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between pt-2">
-                  <span className="text-stone-500">Payment Proof:</span>
-                  {selectedTx.attachmentUrls.length > 0 ? (
-                    <a
-                      href={selectedTx.attachmentUrls[selectedTx.attachmentUrls.length - 1]}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#7E5714] hover:text-[#684710] hover:underline"
-                    >
-                      View screenshot
-                    </a>
-                  ) : (
-                    <span className="text-stone-900">None uploaded</span>
-                  )}
-                </div>
-                <div className="flex justify-between pt-2">
                   <span className="text-stone-500">Timestamp:</span>
                   <span className="text-stone-900">
                     {new Date(selectedTx.createdAt).toLocaleString()}
@@ -545,13 +722,49 @@ export const PaymentsManager: React.FC<PaymentsManagerProps> = ({
               </div>
             </div>
 
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end">
-              <button
-                onClick={() => setSelectedTx(null)}
-                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-medium rounded-sm transition-colors"
-              >
-                Done
-              </button>
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex flex-wrap items-center justify-between gap-2">
+              {(onInspectOrder || onInspectConsultation) && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenFullRecord(selectedTx)}
+                  className="px-3.5 py-2 border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 text-xs font-medium rounded-xl transition-colors cursor-pointer"
+                >
+                  Open Full{" "}
+                  {selectedTx.type === "order" ? "Order" : "Consultation"}
+                </button>
+              )}
+
+              <div className="flex items-center gap-2 ml-auto">
+                {!["paid", "advance_paid", "fully_paid"].includes(
+                  selectedTx.paymentStatus,
+                ) && (
+                  <button
+                    type="button"
+                    disabled={isConfirming}
+                    onClick={() => handleConfirmTxPayment(selectedTx)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isConfirming ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Confirming...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Verify &amp; Confirm Payment</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setSelectedTx(null)}
+                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-medium rounded-xl transition-colors cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
             </div>
           </div>
         </div>

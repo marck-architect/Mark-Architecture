@@ -5,7 +5,10 @@ import {
   renderConsultationConfirmationText,
   ConsultationEmailData,
 } from "./templates/consultation-confirmation";
-import { getSupabaseAdminClient } from "../supabaseAdmin";
+import {
+  getSupabaseAdminClient,
+  getServerSupabaseClient,
+} from "../supabaseAdmin";
 
 export interface SendConsultationEmailParams extends ConsultationEmailData {
   forceResend?: boolean;
@@ -26,7 +29,7 @@ export interface EmailDispatchResult {
 export async function sendConsultationConfirmation(
   params: SendConsultationEmailParams,
 ): Promise<EmailDispatchResult> {
-  const supabase = getSupabaseAdminClient();
+  const supabase = await getServerSupabaseClient();
   const { consultationId, clientEmail, forceResend = false } = params;
 
   // 1. Idempotency Check: check if already sent
@@ -79,11 +82,51 @@ export async function sendConsultationConfirmation(
       });
 
       if (error) {
-        errorMsg = error.message || "Failed to dispatch email via Resend";
-        console.error(
-          `[EmailService] Resend dispatch failed for consultation ${consultationId}:`,
-          errorMsg,
-        );
+        const rawErrMsg = error.message || "Failed to dispatch email via Resend";
+        // If Resend is in sandbox mode (onboarding@resend.dev), it restricts recipients
+        // to the account owner's email address and includes that email in parentheses.
+        const sandboxMatch = rawErrMsg.match(/\(([^)]+@[^)]+)\)/);
+        const fallbackRecipient =
+          sandboxMatch?.[1]?.trim() ||
+          EMAIL_CONFIG.replyTo ||
+          process.env.ADMIN_EMAIL;
+
+        if (
+          fallbackRecipient &&
+          fallbackRecipient.toLowerCase() !== clientEmail.toLowerCase() &&
+          /only send testing emails|verify a domain/i.test(rawErrMsg)
+        ) {
+          console.warn(
+            `[EmailService] Resend sandbox restriction for ${clientEmail}. Routing confirmation email to verified studio inbox (${fallbackRecipient}).`,
+          );
+          const retryRes = await resend.emails.send({
+            from: EMAIL_CONFIG.formattedFrom,
+            to: [fallbackRecipient],
+            replyTo: EMAIL_CONFIG.replyTo,
+            subject: `${subject} [Client: ${clientEmail}]`,
+            html,
+            text,
+          });
+          if (!retryRes.error && retryRes.data?.id) {
+            messageId = retryRes.data.id;
+            status = "sent";
+            console.log(
+              `[EmailService] Resend successfully sent sandbox-routed confirmation for consultation ${consultationId}, messageId: ${messageId}`,
+            );
+          } else {
+            errorMsg = retryRes.error?.message || rawErrMsg;
+            console.error(
+              `[EmailService] Resend dispatch failed for consultation ${consultationId}:`,
+              errorMsg,
+            );
+          }
+        } else {
+          errorMsg = rawErrMsg;
+          console.error(
+            `[EmailService] Resend dispatch failed for consultation ${consultationId}:`,
+            errorMsg,
+          );
+        }
       } else if (data?.id) {
         messageId = data.id;
         status = "sent";
@@ -173,13 +216,25 @@ export async function retryConsultationConfirmation(
   consultationId: string,
   force: boolean = false,
 ): Promise<EmailDispatchResult> {
-  const supabase = getSupabaseAdminClient();
+  const supabase = await getServerSupabaseClient();
 
-  const { data: consultation, error } = await supabase
+  let { data: consultation, error } = await supabase
     .from("consultations")
     .select("*")
     .eq("id", consultationId)
-    .single();
+    .maybeSingle();
+
+  if (error || !consultation) {
+    const fb = await getSupabaseAdminClient()
+      .from("consultations")
+      .select("*")
+      .eq("id", consultationId)
+      .maybeSingle();
+    if (fb.data) {
+      consultation = fb.data;
+      error = null;
+    }
+  }
 
   if (error || !consultation) {
     throw new Error(

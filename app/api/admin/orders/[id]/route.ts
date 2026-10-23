@@ -157,7 +157,7 @@ export async function PATCH(
 
     let { data, error } = await updateQuery.select().maybeSingle();
 
-    if (error) {
+    if (error || !data) {
       // Fallback to cookie client
       let fallbackQuery = supabase.from("orders").update(updates);
       if (isUuid(id)) {
@@ -166,8 +166,44 @@ export async function PATCH(
         fallbackQuery = fallbackQuery.eq("order_number", id);
       }
       const fbResult = await fallbackQuery.select().maybeSingle();
-      if (fbResult.error) throw fbResult.error;
-      data = fbResult.data;
+      if (fbResult.error && error) throw fbResult.error;
+      if (fbResult.data) {
+        data = fbResult.data;
+      } else if (error) {
+        throw error;
+      }
+    }
+
+    // 4. If payment_status was confirmed (paid, advance_paid, or fully_paid),
+    // dispatch the payment-verified confirmation email to the client (non-fatal)
+    if (
+      data &&
+      payment_status &&
+      ["paid", "advance_paid", "fully_paid"].includes(payment_status) &&
+      data.client_email
+    ) {
+      try {
+        const { getAppOrigin } = await import("@/lib/server/origin");
+        const { sendOrderPaymentVerified } = await import(
+          "@/lib/server/email/orderEmailService"
+        );
+        const orderUrl = `${getAppOrigin(request)}/orders/${data.id}`;
+        await sendOrderPaymentVerified({
+          clientName: data.client_name || "Valued Client",
+          clientEmail: data.client_email,
+          orderNumber: data.order_number || id,
+          orderId: data.id,
+          amountPkr: Number(
+            data.advance_amount_pkr || data.total_amount_pkr || 0,
+          ),
+          orderUrl,
+        });
+      } catch (emailErr) {
+        console.warn(
+          "[Order Admin Confirm] Payment-verified email notice:",
+          emailErr,
+        );
+      }
     }
 
     return NextResponse.json({ success: true, data });

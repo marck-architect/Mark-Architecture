@@ -17,8 +17,41 @@ export async function POST(
 
     const { id } = await params;
 
-    // Retry only if not already sent
-    const result = await retryConsultationConfirmation(id, false);
+    let body: Record<string, unknown> = {};
+    try {
+      body = await req.json();
+    } catch {
+      // Optional body
+    }
+
+    let result;
+    if (typeof body.client_email === "string" && body.client_email) {
+      const { sendConsultationConfirmation } = await import(
+        "@/lib/server/email/emailService"
+      );
+      result = await sendConsultationConfirmation({
+        consultationId: id,
+        clientName:
+          (typeof body.client_name === "string" && body.client_name) ||
+          "Valued Client",
+        clientEmail: body.client_email,
+        consultationTitle:
+          (typeof body.tier_name === "string" && body.tier_name) ||
+          "Online Architectural Consultation",
+        date:
+          (typeof body.booking_date === "string" && body.booking_date) ||
+          new Date().toISOString().split("T")[0],
+        startTime:
+          (typeof body.booking_time === "string" && body.booking_time) ||
+          "14:00",
+        timezone: "Pakistan Standard Time (PKT)",
+        meetingUrl:
+          typeof body.meeting_url === "string" ? body.meeting_url : undefined,
+        forceResend: true,
+      });
+    } else {
+      result = await retryConsultationConfirmation(id, true);
+    }
 
     await logAdminAction({
       adminEmail: authResult.admin.user.email,

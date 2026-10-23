@@ -40,6 +40,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     order.covered_area_sqft ? String(order.covered_area_sqft) : "",
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -48,6 +49,61 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedField(label);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleQuickConfirmPayment = async () => {
+    const targetStatus =
+      order.payment_type === "50_percent_advance"
+        ? "advance_paid"
+        : "fully_paid";
+
+    setIsConfirmingPayment(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payment_status: targetStatus,
+          notes,
+          plot_size: plotSize || null,
+          covered_area_sqft: coveredAreaSqft ? Number(coveredAreaSqft) : null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to confirm order payment.");
+      }
+
+      setPaymentStatus(targetStatus);
+      const updated: OrderRecord = {
+        ...order,
+        payment_status: targetStatus,
+        notes,
+        plot_size: plotSize || null,
+        covered_area_sqft: coveredAreaSqft ? Number(coveredAreaSqft) : null,
+        updated_at: new Date().toISOString(),
+      };
+
+      onUpdate(updated);
+      useStore
+        .getState()
+        .showToast("Payment verified & confirmed! Client notified.");
+      setSaveSuccess(
+        "Payment screenshot verified and order confirmed! Confirmation email dispatched to client.",
+      );
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : "Failed to confirm order payment.",
+      );
+    } finally {
+      setIsConfirmingPayment(false);
+    }
   };
 
   const handleSave = async () => {
@@ -140,6 +196,13 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   const attachments = Array.isArray(order.attachment_urls)
     ? order.attachment_urls
     : [];
+  const paymentScreenshotUrl =
+    attachments.length > 0 ? attachments[attachments.length - 1] : null;
+  const drawingAttachments =
+    attachments.length > 1 ? attachments.slice(0, -1) : [];
+  const isAlreadyConfirmed = ["paid", "advance_paid", "fully_paid"].includes(
+    paymentStatus,
+  );
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -450,15 +513,15 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             {/* Uploaded Attachments */}
             <div>
               <span className="text-stone-400 block text-[10px] uppercase font-mono mb-2">
-                Client Uploaded Drawings & Documents ({attachments.length})
+                Client Uploaded Drawings & Documents ({drawingAttachments.length})
               </span>
-              {attachments.length === 0 ? (
+              {drawingAttachments.length === 0 ? (
                 <div className="p-3 rounded-xl bg-stone-50 text-stone-400 text-xs italic border border-stone-100">
-                  No survey drawings or site files attached.
+                  No additional survey drawings or site files attached (payment screenshot is shown below).
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {attachments.map((url, idx) => (
+                  {drawingAttachments.map((url, idx) => (
                     <a
                       key={idx}
                       href={url}
@@ -481,60 +544,167 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           </div>
 
           {/* Section 4: Payment Verification & Admin Status */}
-          <div className="p-5 rounded-2xl border border-stone-200 bg-white shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+          <div className="p-5 rounded-2xl border-2 border-[#7E5714]/25 bg-amber-50/20 shadow-2xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-3">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-[#7E5714]" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                  Payment Verification & Order Management
+                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                  Payment Screenshot Verification &amp; Confirmation
                 </h3>
               </div>
+
+              {!isAlreadyConfirmed ? (
+                <button
+                  type="button"
+                  onClick={handleQuickConfirmPayment}
+                  disabled={isConfirmingPayment || isSaving}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isConfirmingPayment ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Confirming...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>
+                        Verify &amp; Confirm Payment (
+                        {order.payment_type === "50_percent_advance"
+                          ? "50% Advance"
+                          : "100% Paid"}
+                        )
+                      </span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-mono font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Payment Verified &amp; Confirmed
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="space-y-1.5">
-                <label className="text-stone-400 block text-[10px] uppercase font-mono">
-                  Payment Proof
-                </label>
-                <p className="rounded-xl bg-stone-50 border border-stone-200 p-3 text-[11px] leading-relaxed text-stone-600">
-                  The client&apos;s bank transfer / JazzCash payment screenshot is in the Attachments section below.
-                  Check it, then set the payment status to confirm.
-                </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-stone-500 block text-[10px] uppercase font-mono font-semibold">
+                    Uploaded Payment Screenshot
+                  </label>
+                  {paymentScreenshotUrl && (
+                    <a
+                      href={paymentScreenshotUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#7E5714] hover:underline"
+                    >
+                      <span>Open Full Size</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+
+                {paymentScreenshotUrl ? (
+                  <a
+                    href={paymentScreenshotUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative block overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xs hover:border-[#7E5714] transition-all"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={paymentScreenshotUrl}
+                      alt={`Payment proof for order #${order.order_number}`}
+                      className="max-h-64 w-full object-contain bg-stone-50 p-2"
+                    />
+                    <div className="flex items-center justify-between border-t border-stone-100 bg-white px-3 py-2 text-[11px] text-stone-600">
+                      <span className="truncate font-mono">
+                        {paymentScreenshotUrl.split("/").pop() ||
+                          "payment-screenshot"}
+                      </span>
+                      <span className="font-semibold text-[#7E5714] group-hover:underline shrink-0 ml-2">
+                        Click to enlarge ↗
+                      </span>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 text-[11px] text-stone-500 italic">
+                    No payment screenshot attached to this order.
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-stone-400 block text-[10px] uppercase font-mono">
-                  Payment Status
-                </label>
-                <select
-                  value={paymentStatus}
-                  onChange={(e) => setPaymentStatus(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white text-stone-900 text-xs focus:outline-none focus:border-[#7E5714] font-medium"
-                >
-                  <option value="pending">Pending Payment</option>
-                  <option value="advance_paid">Advance Paid (50%)</option>
-                  <option value="fully_paid">Fully Paid (100%)</option>
-                  <option value="paid">Paid</option>
-                  <option value="refunded">Refunded</option>
-                  <option value="failed">Failed / Cancelled</option>
-                </select>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-stone-500 block text-[10px] uppercase font-mono font-semibold">
+                    Payment Status
+                  </label>
+                  <select
+                    value={paymentStatus}
+                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-900 text-xs focus:outline-none focus:border-[#7E5714] font-medium"
+                  >
+                    <option value="pending">Pending Verification</option>
+                    <option value="advance_paid">Advance Paid (50%)</option>
+                    <option value="fully_paid">Fully Paid (100%)</option>
+                    <option value="paid">Paid</option>
+                    <option value="refunded">Refunded</option>
+                    <option value="failed">Failed / Rejected</option>
+                  </select>
 
-                <div className="flex items-center gap-1.5 pt-0.5">
-                  <span className="text-[10px] text-stone-400">Quick set:</span>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentStatus("advance_paid")}
-                    className="px-2 py-0.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 text-[10px] font-medium cursor-pointer"
-                  >
-                    Advance (50%)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentStatus("fully_paid")}
-                    className="px-2 py-0.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-medium cursor-pointer"
-                  >
-                    Fully Paid (100%)
-                  </button>
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] text-stone-400">
+                      Quick set:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentStatus("advance_paid")}
+                      className="px-2 py-0.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 text-[10px] font-medium cursor-pointer"
+                    >
+                      Advance (50%)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentStatus("fully_paid")}
+                      className="px-2 py-0.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-medium cursor-pointer"
+                    >
+                      Fully Paid (100%)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentStatus("failed")}
+                      className="px-2 py-0.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-[10px] font-medium cursor-pointer"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-white border border-stone-200 p-3 text-[11px] leading-relaxed text-stone-600 space-y-1">
+                  <p className="font-semibold text-stone-800">
+                    Verification Checklist:
+                  </p>
+                  <p>
+                    1. Inspect the Askari Bank or JazzCash payment screenshot on
+                    the left.
+                  </p>
+                  <p>
+                    2. Confirm the amount matches{" "}
+                    <strong className="font-mono text-stone-900">
+                      PKR{" "}
+                      {Number(
+                        order.advance_amount_pkr || order.total_amount_pkr || 0,
+                      ).toLocaleString()}
+                    </strong>
+                    .
+                  </p>
+                  <p>
+                    3. Click <strong>Verify &amp; Confirm Payment</strong> (or
+                    change status and Save Changes) to unlock the client&apos;s
+                    official receipt at{" "}
+                    <span className="font-mono">/orders/{order.id.slice(0, 8)}…</span>
+                  </p>
                 </div>
               </div>
             </div>

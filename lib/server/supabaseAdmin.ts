@@ -38,3 +38,27 @@ export function getSupabaseAdminClient(): SupabaseClient {
 
   return cachedAdminClient;
 }
+
+/**
+ * Returns an authoritative Supabase client for server-side workflows.
+ * - When SUPABASE_SERVICE_ROLE_KEY is set, uses the service-role client (bypasses RLS).
+ * - When SUPABASE_SERVICE_ROLE_KEY is NOT set, uses the request's cookie-backed
+ *   server client so authenticated admin sessions satisfy RLS policies on
+ *   protected tables (google_integrations, meetings, notifications, consultations, orders).
+ */
+export async function getServerSupabaseClient(): Promise<SupabaseClient> {
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY && supabaseUrl) {
+    return getSupabaseAdminClient();
+  }
+
+  try {
+    const { cookies } = await import("next/headers");
+    const { createClient: createCookieClient } = await import(
+      "@/utils/supabase/server"
+    );
+    const cookieStore = await cookies();
+    return createCookieClient(cookieStore) as unknown as SupabaseClient;
+  } catch {
+    return getSupabaseAdminClient();
+  }
+}

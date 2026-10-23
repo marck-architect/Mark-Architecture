@@ -77,7 +77,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           badgeColor: "bg-blue-100 text-blue-900 border-blue-200",
         },
         { id: "calendar", label: "Calendar & Hours", icon: Calendar },
-        { id: "payments", label: "Payments", icon: CreditCard },
+        {
+          id: "payments",
+          label: "Payments",
+          icon: CreditCard,
+          badge:
+            pendingCount + pendingOrdersCount > 0
+              ? pendingCount + pendingOrdersCount
+              : undefined,
+          badgeColor: "bg-emerald-100 text-emerald-900 border-emerald-200",
+        },
       ],
     },
     {

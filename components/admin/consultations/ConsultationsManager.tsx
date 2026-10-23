@@ -138,6 +138,7 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
       "Booking Date",
       "Booking Time",
       "Payment Status",
+      "Payment Proof",
       "Meeting Status",
       "Email Status",
       "Meeting URL",
@@ -155,6 +156,7 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
       c.booking_date,
       c.booking_time,
       c.payment_status,
+      `"${c.attachment_urls?.[c.attachment_urls.length - 1] || ""}"`,
       c.meeting_status || (c.meeting_url ? "scheduled" : "not_created"),
       c.email_status || (c.meeting_link_sent_at ? "sent" : "not_sent"),
       c.meeting_url || "",
@@ -355,6 +357,7 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                   <th className="px-5 py-3.5">Date &amp; Timeslot</th>
                   <th className="px-5 py-3.5">Client Details</th>
                   <th className="px-5 py-3.5">Tier &amp; Fee</th>
+                  <th className="px-5 py-3.5">Payment Proof</th>
                   <th className="px-5 py-3.5">Payment</th>
                   <th className="px-5 py-3.5">Meeting &amp; Email</th>
                   <th className="px-5 py-3.5 text-right">Actions</th>
@@ -370,11 +373,16 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                   const emailStatus =
                     b.email_status ||
                     (b.meeting_link_sent_at ? "sent" : "not_sent");
+                  const paymentProofUrl =
+                    b.attachment_urls && b.attachment_urls.length > 0
+                      ? b.attachment_urls[b.attachment_urls.length - 1]
+                      : null;
 
                   return (
                     <tr
                       key={b.id}
-                      className={`hover:bg-stone-50/70 transition-colors ${
+                      onClick={() => onInspect(b)}
+                      className={`hover:bg-stone-50/70 transition-colors cursor-pointer ${
                         isToday ? "bg-amber-50/30" : ""
                       }`}
                     >
@@ -412,10 +420,13 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                         <div className="text-stone-500 text-[11px] flex items-center gap-1 mt-0.5">
                           <span>{b.client_phone}</span>
                           {b.attachment_urls &&
-                            b.attachment_urls.length > 0 && (
-                              <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded">
+                            b.attachment_urls.length > 1 && (
+                              <span
+                                className="inline-flex items-center gap-0.5 text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded"
+                                title="Site plan attached"
+                              >
                                 <Paperclip className="w-2.5 h-2.5" />
-                                {b.attachment_urls.length}
+                                Plan
                               </span>
                             )}
                         </div>
@@ -429,6 +440,32 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                         <div className="text-stone-600 font-mono text-[11px]">
                           PKR {Number(b.price_pkr || 0).toLocaleString("en-PK")}
                         </div>
+                      </td>
+
+                      {/* Payment Proof */}
+                      <td className="px-5 py-4 whitespace-nowrap font-mono text-[11px]">
+                        {paymentProofUrl ? (
+                          <div className="flex items-center gap-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={paymentProofUrl}
+                              alt="Payment proof"
+                              className="w-8 h-8 rounded-lg object-cover border border-stone-200 bg-stone-50 shrink-0"
+                            />
+                            <a
+                              href={paymentProofUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-[#7E5714] hover:text-[#684710] hover:underline font-medium"
+                            >
+                              <Paperclip className="w-3 h-3" />
+                              View screenshot
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-stone-400 italic">None</span>
+                        )}
                       </td>
 
                       {/* Payment */}
@@ -446,6 +483,7 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                                 href={b.meeting_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold hover:bg-emerald-100 transition-colors"
                               >
                                 <Video className="w-3 h-3" />
@@ -487,10 +525,21 @@ export const ConsultationsManager: React.FC<ConsultationsManagerProps> = ({
                       {/* Actions */}
                       <td className="px-5 py-4 whitespace-nowrap text-right">
                         <button
-                          onClick={() => onInspect(b)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-[#7E5714] hover:text-white text-stone-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onInspect(b);
+                          }}
+                          className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
+                            b.payment_status === "pending"
+                              ? "border border-amber-300 bg-amber-50 hover:bg-[#7E5714] hover:text-white hover:border-[#7E5714] text-amber-900"
+                              : "bg-stone-100 hover:bg-[#7E5714] hover:text-white text-stone-800"
+                          }`}
                         >
-                          <span>Manage</span>
+                          <span>
+                            {b.payment_status === "pending"
+                              ? "Verify Payment"
+                              : "Manage"}
+                          </span>
                           <ChevronRight className="w-3 h-3" />
                         </button>
                       </td>

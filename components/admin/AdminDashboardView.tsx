@@ -198,6 +198,21 @@ function AdminDashboardInner({
     }
   };
 
+  // Refresh Consultations from API
+  const fetchConsultations = async () => {
+    try {
+      const res = await fetch("/api/admin/consultations");
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.data)) {
+          setConsultations(json.data);
+        }
+      }
+    } catch (err) {
+      console.warn("Notice: Refreshing consultations from API fallback:", err);
+    }
+  };
+
   // Services handlers
   const handleSaveService = async (serviceData: Partial<AdminService>) => {
     if (serviceData.id) {
@@ -422,6 +437,7 @@ function AdminDashboardInner({
               services={services}
               onNavigateTab={handleTabChange}
               onInspectConsultation={setSelectedBooking}
+              onInspectOrder={setSelectedOrder}
             />
           )}
 
@@ -429,6 +445,7 @@ function AdminDashboardInner({
             <ConsultationsManager
               consultations={consultations}
               onInspect={setSelectedBooking}
+              onRefresh={fetchConsultations}
             />
           )}
 
@@ -478,7 +495,14 @@ function AdminDashboardInner({
           )}
 
           {activeTab === "payments" && (
-            <PaymentsManager consultations={consultations} orders={orders} />
+            <PaymentsManager
+              consultations={consultations}
+              orders={orders}
+              onUpdateOrder={handleOrderUpdate}
+              onUpdateConsultation={handleBookingUpdate}
+              onInspectOrder={setSelectedOrder}
+              onInspectConsultation={setSelectedBooking}
+            />
           )}
 
           {activeTab === "media" && <MediaLibraryManager />}

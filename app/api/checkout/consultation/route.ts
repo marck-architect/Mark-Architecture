@@ -55,31 +55,45 @@ export async function POST(req: NextRequest) {
 
     const consultationId = crypto.randomUUID();
 
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const consultationPayload = {
+      id: consultationId,
+      client_name: name,
+      client_email: email,
+      client_phone: phone,
+      tier_name: tierName,
+      price_pkr: pricePkr,
+      booking_date: bookingDate,
+      booking_time: bookingTime,
+      attachment_urls: [...(attachmentUrls || []), paymentScreenshotUrl],
+      notes: message || null,
+      payment_status: "pending",
+    };
 
-    // Save record to Supabase with tracker already attached
     try {
-      const { data, error } = await supabase
+      const { getSupabaseAdminClient } = await import(
+        "@/lib/server/supabaseAdmin"
+      );
+      const supabaseAdmin = getSupabaseAdminClient();
+      const { error } = await supabaseAdmin
         .from("consultations")
-        .insert({
-          id: consultationId,
-          client_name: name,
-          client_email: email,
-          client_phone: phone,
-          tier_name: tierName,
-          price_pkr: pricePkr,
-          booking_date: bookingDate,
-          booking_time: bookingTime,
-          attachment_urls: [...(attachmentUrls || []), paymentScreenshotUrl],
-          notes: message || null,
-          payment_status: "pending",
-        })
-        .select()
-        .single();
+        .insert(consultationPayload);
 
       if (error) {
-        console.warn("Supabase consultation insert warning:", error.message);
+        console.warn(
+          "[Consultation Checkout] Primary admin insert notice:",
+          error.message,
+        );
+        const cookieStore = await cookies();
+        const supabase = createClient(cookieStore);
+        const { error: cookieErr } = await supabase
+          .from("consultations")
+          .insert(consultationPayload);
+        if (cookieErr) {
+          console.warn(
+            "[Consultation Checkout] Fallback client insert notice:",
+            cookieErr.message,
+          );
+        }
       }
     } catch (dbErr) {
       console.warn("Database storage deferred:", dbErr);

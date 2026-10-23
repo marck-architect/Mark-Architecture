@@ -119,10 +119,26 @@ export async function POST(
         .update(updates)
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (!updateErr && dbData) {
         updatedRecord = dbData;
+      } else {
+        const coreUpdates: Record<string, unknown> = {
+          meeting_url,
+          payment_status: "paid",
+          updated_at: nowIso,
+        };
+        if (custom_note) coreUpdates.admin_notes = custom_note;
+        const { data: coreData } = await supabase
+          .from("consultations")
+          .update(coreUpdates)
+          .eq("id", id)
+          .select()
+          .maybeSingle();
+        if (coreData) {
+          updatedRecord = { ...coreData, email_status: updates.email_status };
+        }
       }
     } catch (err) {
       console.warn("Could not persist consultation updates to database:", err);

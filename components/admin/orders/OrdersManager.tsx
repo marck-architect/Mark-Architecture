@@ -454,16 +454,32 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
                       {/* Payment Proof */}
                       <td className="py-3.5 px-4 font-mono text-[11px]">
                         {order.attachment_urls && order.attachment_urls.length > 0 ? (
-                          <a
-                            href={order.attachment_urls[order.attachment_urls.length - 1]}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-[#7E5714] hover:text-[#684710] hover:underline"
-                          >
-                            <Paperclip className="w-3 h-3" />
-                            View screenshot
-                          </a>
+                          <div className="flex items-center gap-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={
+                                order.attachment_urls[
+                                  order.attachment_urls.length - 1
+                                ]
+                              }
+                              alt="Payment proof"
+                              className="w-8 h-8 rounded-lg object-cover border border-stone-200 bg-stone-50 shrink-0"
+                            />
+                            <a
+                              href={
+                                order.attachment_urls[
+                                  order.attachment_urls.length - 1
+                                ]
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-[#7E5714] hover:text-[#684710] hover:underline font-medium"
+                            >
+                              <Paperclip className="w-3 h-3" />
+                              View screenshot
+                            </a>
+                          </div>
                         ) : (
                           <span className="text-stone-400 italic">None</span>
                         )}
@@ -486,10 +502,18 @@ export const OrdersManager: React.FC<OrdersManagerProps> = ({
                             e.stopPropagation();
                             onInspect(order);
                           }}
-                          className="px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-100 text-stone-700 font-medium text-xs inline-flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                          className={`px-3 py-1.5 rounded-xl border font-medium text-xs inline-flex items-center gap-1 transition-colors cursor-pointer shadow-2xs ${
+                            order.payment_status === "pending"
+                              ? "border-amber-300 bg-amber-50 hover:bg-[#7E5714] hover:text-white hover:border-[#7E5714] text-amber-900 font-semibold"
+                              : "border-stone-200 bg-white hover:bg-stone-100 text-stone-700"
+                          }`}
                         >
-                          <span>Inspect</span>
-                          <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
+                          <span>
+                            {order.payment_status === "pending"
+                              ? "Verify Payment"
+                              : "Inspect"}
+                          </span>
+                          <ChevronRight className="w-3.5 h-3.5 opacity-70" />
                         </button>
                       </td>
                     </tr>

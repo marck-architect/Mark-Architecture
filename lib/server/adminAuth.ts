@@ -2,6 +2,11 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import {
+  GATEKEEPER_COOKIE_NAME,
+  isValidGatekeeperToken,
+} from "./adminGatekeeper";
+import { getSupabaseAdminClient } from "./supabaseAdmin";
 
 export interface AuthenticatedAdminResult {
   user: {
@@ -13,7 +18,9 @@ export interface AuthenticatedAdminResult {
 
 /**
  * Server-side authoritative verification of admin session.
- * Rejects requests from non-admins or unauthenticated sessions.
+ * Accepts either an authenticated admin Supabase user session or a valid
+ * Gatekeeper cookie token, and returns the service-role admin client when
+ * available so RLS never blocks admin operations.
  */
 export async function requireAdminAuth(): Promise<
   | { success: true; admin: AuthenticatedAdminResult }
@@ -24,13 +31,15 @@ export async function requireAdminAuth(): Promise<
 
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser();
+
+  const gatekeeperCookie = cookieStore.get(GATEKEEPER_COOKIE_NAME)?.value;
+  const isGatekeeper = isValidGatekeeperToken(gatekeeperCookie);
 
   const adminEmail =
     process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
-  if (error || !user) {
+  if (!user && !isGatekeeper) {
     return {
       success: false,
       response: NextResponse.json(
@@ -40,7 +49,7 @@ export async function requireAdminAuth(): Promise<
     };
   }
 
-  if (adminEmail && user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
+  if (user && adminEmail && user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
     return {
       success: false,
       response: NextResponse.json(
@@ -50,14 +59,23 @@ export async function requireAdminAuth(): Promise<
     };
   }
 
+  let dbClient: unknown = supabase;
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      dbClient = getSupabaseAdminClient();
+    } catch {
+      dbClient = supabase;
+    }
+  }
+
   return {
     success: true,
     admin: {
       user: {
-        id: user.id,
-        email: user.email || adminEmail || "admin@markarchitects.com",
+        id: user?.id || "gatekeeper_admin",
+        email: user?.email || adminEmail || "admin@markarchitects.com",
       },
-      supabase: supabase as any,
+      supabase: dbClient as any,
     },
   };
 }
