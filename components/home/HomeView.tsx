@@ -8,7 +8,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TextReveal } from "@/components/ui/TextReveal";
 import { HeroCinematic } from "@/components/home/HeroCinematic";
 import { CredentialsRow } from "@/components/home/CredentialsRow";
-import { PhoneCall, ArrowLeft, ArrowRight, MapPin } from "lucide-react";
+import { PhoneCall, ArrowRight, MapPin } from "lucide-react";
 import { trackPageView, trackEvent } from "@/lib/analytics/gtag";
 
 import {
