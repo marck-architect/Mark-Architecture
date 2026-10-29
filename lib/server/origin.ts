@@ -50,7 +50,7 @@ export function getAppOrigin(request?: Request): string {
 
   // 4. Fallback: if in production, default to live domain; else localhost:3000
   if (process.env.NODE_ENV === "production") {
-    return (envUrl || "https://markarchitects.com").replace(/\/$/, "");
+    return (envUrl || "https://www.mark-architects.com").replace(/\/$/, "");
   }
 
   return (envUrl || "http://localhost:3000").replace(/\/$/, "");

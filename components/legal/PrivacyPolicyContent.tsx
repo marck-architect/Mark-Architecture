@@ -63,7 +63,7 @@ export const PrivacyPolicyContent: React.FC = () => {
             survey documents, and financial transaction identifiers gathered
             through our web platform (
             <span className="font-mono text-xs text-stone-900 dark:text-white">
-              https://markarchitects.com
+              https://www.mark-architects.com
             </span>
             ), digital checkout systems, virtual consultation funnels, and
             atelier communications.

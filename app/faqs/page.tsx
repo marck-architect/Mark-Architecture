@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: "Architectural FAQs & Answer Guide | MARK Architects",
     description:
       "Direct answers on architectural fees, municipal PDA & CDA building permits, turnkey drafting deliverables, and secure payment terms in Pakistan.",
-    url: "https://markarchitects.com/faqs",
+    url: "https://www.mark-architects.com/faqs",
     siteName: "MARK Architects",
     locale: "en_US",
     type: "website",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
       "Direct answers on architectural fees, municipal PDA & CDA building permits, turnkey drafting deliverables, and secure payment terms in Pakistan.",
   },
   alternates: {
-    canonical: "https://markarchitects.com/faqs",
+    canonical: "https://www.mark-architects.com/faqs",
   },
 };
 

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: "MARK Architects | Modern Architecture & Luxury Living",
     description:
       "PCATP-licensed architectural design practice. Bespoke residential estates, passive solar design, and turnkey engineering blueprints.",
-    url: "https://markarchitects.com",
+    url: "https://www.mark-architects.com",
     siteName: "MARK Architects",
     images: [
       {

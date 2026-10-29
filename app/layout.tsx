@@ -6,7 +6,9 @@ import { playfair, inter, montserrat } from "@/lib/fonts";
 import { GA_MEASUREMENT_ID } from "@/lib/analytics/gtag";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://markarchitects.com"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.mark-architects.com",
+  ),
   title: "MARK Architects | Digital Atelier & Curated Store",
   description:
     "Precision in every pixel. Defining the future of architectural luxury and spatial legacy across the globe.",
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
     title: "MARK Architects | Digital Atelier",
     description:
       "Ultra-premium architectural excellence and innovative design thinking tailored for the global elite.",
-    url: "https://markarchitects.com",
+    url: "https://www.mark-architects.com",
     siteName: "MARK Architects",
     locale: "en_US",
     type: "website",
@@ -31,6 +33,9 @@ export const metadata: Metadata = {
       { url: "/icon.png", type: "image/png" },
     ],
     apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
 };
 

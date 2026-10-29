@@ -60,7 +60,7 @@ export const TermsOfServiceContent: React.FC = () => {
             &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;the Atelier&rdquo;).
             By accessing our digital atelier portal (
             <span className="font-mono text-xs text-stone-900 dark:text-white">
-              https://markarchitects.com
+              https://www.mark-architects.com
             </span>
             ), booking a strategic video consultation, reserving ready-to-build
             collection packages, or commissioning custom architectural

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     title: "Pricing & Architectural Packages Menu | MARK Architects",
     description:
       "Complete package menu, fixed deliverables, upfront pricing, studio payment policy, and instant online booking via bank transfer or JazzCash.",
-    url: "https://markarchitects.com/pricing",
+    url: "https://www.mark-architects.com/pricing",
     images: [
       {
         url: "/images/Full House Design Package.png",

@@ -3,8 +3,8 @@ export const siteConfig = {
   legalName: "MARK Architects & Design Atelier",
   description:
     "Premier architectural design atelier specializing in bespoke residential estates, commercial elevations, luxury interiors, and structural consultations across Pakistan and worldwide.",
-  url: "https://markarchitects.com",
-  ogImage: "https://markarchitects.com/og-image.jpg",
+  url: "https://www.mark-architects.com",
+  ogImage: "https://www.mark-architects.com/og-image.jpg",
   telephone: "+92 300 0000000",
   address: {
     streetAddress: "DHA Phase 6",

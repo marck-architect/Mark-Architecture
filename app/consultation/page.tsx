@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: "Book Architectural Consultation & Strategy Call | MARK Architects",
     description:
       "Schedule a 1-on-1 strategy call with a licensed principal architect. Video consultation, live layout diagnosis, and turnkey design calculators.",
-    url: "https://markarchitects.com/consultation",
+    url: "https://www.mark-architects.com/consultation",
     images: [
       {
         url: "/images/For Call.png",

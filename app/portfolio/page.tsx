@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: "Selected Works & Realized Projects | MARK Architects",
     description:
       "Curating luxury estates and modern commercial projects where form meets structural precision.",
-    url: "https://markarchitects.com/portfolio",
+    url: "https://www.mark-architects.com/portfolio",
     images: [
       {
         url: "/images/Front Elevation 3D (Exterior Render).png",

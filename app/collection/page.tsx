@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: "Standardized Architectural Design Packages | MARK Architects",
     description:
       "Standardized fixed-price architectural blueprints and design packages with direct checkout.",
-    url: "https://markarchitects.com/collection",
+    url: "https://www.mark-architects.com/collection",
     images: [
       {
         url: "/images/Full House Design Package.png",

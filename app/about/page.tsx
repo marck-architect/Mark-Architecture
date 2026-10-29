@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     title: "About Our Practice | MARK Architects Atelier",
     description:
       "Spearheaded by Muhammad Arsalan. 15+ years of practice delivering mathematical precision, passive solar design, and turnkey residential masterplanning.",
-    url: "https://markarchitects.com/about",
+    url: "https://www.mark-architects.com/about",
     images: [
       {
         url: "/images/profile.jpeg",
