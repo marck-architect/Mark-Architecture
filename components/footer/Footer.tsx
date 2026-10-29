@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Globe, Mail, MapPin, Video } from "lucide-react";
+import { Mail, MapPin, Video } from "lucide-react";
 import { footerNavigationLinks, footerResourceLinks } from "@/data/navigation";
 
 export const Footer: React.FC = () => {
@@ -29,31 +29,6 @@ export const Footer: React.FC = () => {
             Precision in every pixel. Defining the future of architectural
             luxury and spatial legacy across the globe.
           </p>
-          <div className="flex gap-4">
-            <a
-              className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-tertiary hover:border-tertiary transition-colors"
-              href="#"
-              aria-label="Website"
-            >
-              <Globe className="w-4 h-4 text-white" />
-            </a>
-            <a
-              className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-tertiary hover:border-tertiary transition-colors"
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=markarchitects.web@gmail.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Email"
-            >
-              <Mail className="w-4 h-4 text-white" />
-            </a>
-            <a
-              className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-tertiary hover:border-tertiary transition-colors"
-              href="#"
-              aria-label="Video Call"
-            >
-              <Video className="w-4 h-4 text-white" />
-            </a>
-          </div>
         </div>
 
         {/* Navigation Quick Links */}
@@ -105,7 +80,7 @@ export const Footer: React.FC = () => {
             <li className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-tertiary shrink-0" />
               <a
-                href="https://mail.google.com/mail/?view=cm&fs=1&to=markarchitects.web@gmail.com"
+                href="mailto:markarchitects.web@gmail.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="min-w-0 break-all hover:text-tertiary-fixed transition-colors sm:break-normal"
