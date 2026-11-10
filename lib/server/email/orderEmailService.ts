@@ -46,31 +46,6 @@ export async function sendOrderConfirmation(
     });
 
     if (error) {
-      const rawErrMsg = error.message || "Failed to dispatch email via Resend";
-      const sandboxMatch = rawErrMsg.match(/\(([^)]+@[^)]+)\)/);
-      const fallbackRecipient =
-        sandboxMatch?.[1]?.trim() ||
-        EMAIL_CONFIG.replyTo ||
-        process.env.ADMIN_EMAIL;
-
-      if (
-        fallbackRecipient &&
-        fallbackRecipient.toLowerCase() !== data.clientEmail.toLowerCase() &&
-        /only send testing emails|verify a domain/i.test(rawErrMsg)
-      ) {
-        const retryRes = await resend.emails.send({
-          from: EMAIL_CONFIG.formattedFrom,
-          to: [fallbackRecipient],
-          replyTo: EMAIL_CONFIG.replyTo,
-          subject: `${subject} [Client: ${data.clientEmail}]`,
-          html,
-          text,
-        });
-        if (!retryRes.error && retryRes.data?.id) {
-          return { success: true, status: "sent", messageId: retryRes.data.id };
-        }
-      }
-
       console.error(
         `[OrderEmailService] Resend dispatch failed for order ${data.orderNumber}:`,
         error.message,
@@ -115,31 +90,6 @@ export async function sendOrderPaymentVerified(
     });
 
     if (error) {
-      const rawErrMsg = error.message || "Failed to dispatch email via Resend";
-      const sandboxMatch = rawErrMsg.match(/\(([^)]+@[^)]+)\)/);
-      const fallbackRecipient =
-        sandboxMatch?.[1]?.trim() ||
-        EMAIL_CONFIG.replyTo ||
-        process.env.ADMIN_EMAIL;
-
-      if (
-        fallbackRecipient &&
-        fallbackRecipient.toLowerCase() !== data.clientEmail.toLowerCase() &&
-        /only send testing emails|verify a domain/i.test(rawErrMsg)
-      ) {
-        const retryRes = await resend.emails.send({
-          from: EMAIL_CONFIG.formattedFrom,
-          to: [fallbackRecipient],
-          replyTo: EMAIL_CONFIG.replyTo,
-          subject: `${subject} [Client: ${data.clientEmail}]`,
-          html,
-          text,
-        });
-        if (!retryRes.error && retryRes.data?.id) {
-          return { success: true, status: "sent", messageId: retryRes.data.id };
-        }
-      }
-
       console.error(
         `[OrderEmailService] Resend verified dispatch failed for order ${data.orderNumber}:`,
         error.message,

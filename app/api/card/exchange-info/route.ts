@@ -139,17 +139,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (error) {
-          console.error("[Card Exchange Info] Resend email error:", error);
-          // If Resend failed (e.g. sandbox restriction), try sending to admin email specifically
-          if (error.name === "validation_error" && adminEmail) {
-            await resend.emails.send({
-              from: EMAIL_CONFIG.formattedFrom,
-              to: adminEmail,
-              replyTo: trimmedEmail,
-              subject: `New Contact Shared: ${trimmedName} via Digital Card`,
-              html: htmlContent,
-            });
-          }
+          console.error("[Card Exchange Info] Resend email error:", error.message);
         } else {
           console.log("[Card Exchange Info] Email sent successfully:", data?.id);
         }
