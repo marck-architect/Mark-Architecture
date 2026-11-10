@@ -246,6 +246,8 @@ export const AboutView: React.FC<AboutViewProps> = ({
                   <div className="pt-2 flex flex-wrap gap-3">
                     <Link
                       href="/card"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#c9a86e] text-zinc-950 font-inter font-semibold text-sm hover:bg-[#e8c889] transition-all shadow-md hover:-translate-y-0.5 active:translate-y-0"
                     >
                       <Smartphone className="w-4 h-4 text-zinc-950" />
@@ -280,6 +282,8 @@ export const AboutView: React.FC<AboutViewProps> = ({
                 <div className="flex flex-col items-center">
                   <Link
                     href="/card"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="group relative block bg-white p-4 rounded-2xl border-2 border-[#c9a86e]/30 shadow-md hover:border-[#c9a86e] hover:shadow-xl transition-all duration-300"
                     aria-label="Open Digital Business Card"
                   >
@@ -319,6 +323,8 @@ export const AboutView: React.FC<AboutViewProps> = ({
                   <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-3">
                     <Link
                       href="/card"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#292722] hover:bg-black dark:bg-[#c9a86e] dark:hover:bg-[#e8c889] text-white dark:text-zinc-950 font-inter font-semibold text-sm sm:text-base transition-all duration-200 shadow-md hover:-translate-y-0.5 active:translate-y-0"
                     >
                       <span>Open Digital Card</span>
