@@ -32,18 +32,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
-  async rewrites() {
-    return [
-      {
-        source: "/card",
-        destination: "https://markarchitectscard.vercel.app/",
-      },
-      {
-        source: "/card/:path*",
-        destination: "https://markarchitectscard.vercel.app/:path*",
-      },
-    ];
-  },
   async redirects() {
     return [
       {

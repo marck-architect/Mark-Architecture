@@ -2,10 +2,18 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { AboutHero } from "@/components/about/AboutHero";
-import { MapPin, ShieldCheck } from "lucide-react";
+import {
+  MapPin,
+  ShieldCheck,
+  ArrowUpRight,
+  ExternalLink,
+  QrCode,
+  Smartphone,
+} from "lucide-react";
 
 import {
   leaders as fallbackLeaders,
@@ -234,11 +242,94 @@ export const AboutView: React.FC<AboutViewProps> = ({
                       PCATP Licensed Architect
                     </div>
                   </div>
+
+                  <div className="pt-2 flex flex-wrap gap-3">
+                    <Link
+                      href="/card"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#c9a86e] text-zinc-950 font-inter font-semibold text-sm hover:bg-[#e8c889] transition-all shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <Smartphone className="w-4 h-4 text-zinc-950" />
+                      <span>Digital Business Card</span>
+                      <ArrowUpRight className="w-4 h-4" />
+                    </Link>
+                    <a
+                      href="#digital-card"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 text-white font-inter text-sm hover:bg-white/10 transition-colors"
+                    >
+                      <QrCode className="w-4 h-4 text-[#e8c889]" />
+                      <span>View QR Code</span>
+                    </a>
+                  </div>
                 </div>
               </motion.div>
             </div>
           ))
         )}
+      </section>
+
+      {/* Digital Business Card & QR Connect */}
+      <section
+        id="digital-card"
+        className="relative py-20 px-4 md:px-margin-desktop bg-surface-container-low/60 dark:bg-zinc-900/40 border-b border-outline-variant/20 scroll-mt-20"
+      >
+        <div className="max-w-4xl mx-auto">
+          <ScrollReveal>
+            <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 border border-outline-variant/30 p-8 sm:p-12 shadow-xl">
+              <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-8 sm:gap-12 items-center">
+                {/* QR Code Container */}
+                <div className="flex flex-col items-center">
+                  <Link
+                    href="/card"
+                    className="group relative block bg-white p-4 rounded-2xl border-2 border-[#c9a86e]/30 shadow-md hover:border-[#c9a86e] hover:shadow-xl transition-all duration-300"
+                    aria-label="Open Digital Business Card"
+                  >
+                    <Image
+                      src="/images/mark-card-qr.jpg"
+                      alt="MARK Architects Digital Business Card QR Code"
+                      width={220}
+                      height={220}
+                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain rounded-lg"
+                      priority
+                    />
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex flex-col items-center justify-center text-white text-xs font-inter font-semibold gap-1">
+                      <ExternalLink className="w-5 h-5 text-[#e8c889]" />
+                      <span>Open Card</span>
+                    </div>
+                  </Link>
+                  <span className="font-inter text-xs text-on-surface-variant dark:text-zinc-400 mt-3 flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5 text-tertiary" />
+                    Scan with smartphone camera
+                  </span>
+                </div>
+
+                {/* Content & Action Button */}
+                <div className="space-y-4 text-center md:text-left">
+                  <span className="font-inter text-xs font-bold text-tertiary uppercase tracking-widest block">
+                    Direct Connect
+                  </span>
+                  <h3 className="font-playfair text-2xl sm:text-4xl text-on-surface dark:text-zinc-100 font-normal">
+                    Digital Business Card
+                  </h3>
+                  <p className="font-inter text-sm sm:text-base text-on-surface-variant dark:text-zinc-400 font-light leading-relaxed">
+                    Scan the QR code with your mobile camera or tap the button
+                    below to open our digital business card, save direct contact
+                    details, and connect with Principal Architect Muhammad
+                    Arsalan.
+                  </p>
+                  <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-3">
+                    <Link
+                      href="/card"
+                      className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#292722] hover:bg-black dark:bg-[#c9a86e] dark:hover:bg-[#e8c889] text-white dark:text-zinc-950 font-inter font-semibold text-sm sm:text-base transition-all duration-200 shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <span>Open Digital Card</span>
+                      <ArrowUpRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
       </section>
 
       {/* Global & Regional Studios */}

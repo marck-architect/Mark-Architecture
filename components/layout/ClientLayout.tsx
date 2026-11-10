@@ -23,6 +23,9 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   const isAdminRoute = Boolean(
     pathname?.startsWith("/markarchit/admin") || pathname?.startsWith("/admin"),
   );
+  const isCardRoute = Boolean(
+    pathname === "/card" || pathname?.startsWith("/card/"),
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -53,8 +56,8 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   }, [pathname]);
 
   useEffect(() => {
-    // If admin route, skip Lenis smooth scroll for standard administrative behavior
-    if (isAdminRoute) return;
+    // If admin or standalone card route, skip Lenis smooth scroll
+    if (isAdminRoute || isCardRoute) return;
 
     // Instantiate Lenis smooth scrolling globally
     const lenis = new Lenis({
@@ -86,12 +89,23 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     // Reset scroll to top immediately on route transitions without friction
-    if (!isAdminRoute && typeof window !== "undefined") {
+    if (!isAdminRoute && !isCardRoute && typeof window !== "undefined") {
       (window as unknown as { lenis?: Lenis }).lenis?.scrollTo(0, {
         immediate: true,
       });
     }
-  }, [pathname, isAdminRoute]);
+  }, [pathname, isAdminRoute, isCardRoute]);
+
+  if (isCardRoute) {
+    return (
+      <>
+        <Suspense fallback={null}>
+          <RouteProgressBar />
+        </Suspense>
+        <main className="min-h-screen w-full bg-white text-ink">{children}</main>
+      </>
+    );
+  }
 
   if (isAdminRoute) {
     return (

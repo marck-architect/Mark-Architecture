@@ -22,6 +22,12 @@ html.lenis body {
   will-change: transform;
 }
 
+.bg-glass {
+  background: rgb(21 25 30 / 0.45);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
 @theme {
   /* Pricing page reference design tokens — namespaced (not font-sans/font-serif)
      so they don't override the site-wide default fonts used elsewhere (e.g. admin). */
@@ -29,8 +35,15 @@ html.lenis body {
   --color-ink: #15191e;
   --color-ink-soft: #2a2f35;
   --color-gold: #9a7640;
-  --color-gold-deep: #8a6835;
+  --color-gold-light: #e8c889;
+  --color-gold-deep: #7e5714;
+  --color-gold-darker: #684710;
   --color-gold-line: #b89865;
+  --color-page: #ffffff;
+  --color-brand-facebook: #0866ff;
+  --color-brand-whatsapp: #25d366;
+  --color-brand-instagram: #e4405f;
+  --shadow-card: 0 1px 2px rgb(21 25 30 / 0.05), 0 4px 12px rgb(21 25 30 / 0.05);
   --font-newsreader: "Newsreader", Georgia, serif;
   --font-instrument: "Instrument Sans", system-ui, sans-serif;
 
