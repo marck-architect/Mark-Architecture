@@ -16,6 +16,8 @@ import {
   Calendar,
   RefreshCw,
   Mail,
+  ClipboardPaste,
+  Sparkles,
 } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import type { ConsultationRecord, BookingDetailModalProps } from "@/types";
@@ -423,6 +425,69 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
     }
   };
 
+  // Dedicated: Save Meeting URL to database immediately
+  const handleSaveMeetingUrl = async () => {
+    if (!validateMeetingUrl(meetingUrl)) {
+      setSaveError(
+        "Please enter a valid secure HTTPS meeting URL (e.g. https://meet.google.com/xyz).",
+      );
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const res = await fetch(`/api/admin/consultations/${booking.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          meeting_url: meetingUrl,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to save meeting URL.");
+      }
+
+      const updatedRecord: ConsultationRecord = {
+        ...booking,
+        meeting_url: meetingUrl,
+      };
+
+      onUpdate(updatedRecord);
+      setSaveSuccess(
+        "Meeting URL saved successfully! Both admin and client can now join this room.",
+      );
+      setTimeout(() => setSaveSuccess(null), 4000);
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to save meeting URL.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePasteClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim().startsWith("http")) {
+        setMeetingUrl(text.trim());
+        setSaveSuccess("Pasted meeting URL from clipboard!");
+        setTimeout(() => setSaveSuccess(null), 2500);
+      } else {
+        setSaveError("Clipboard does not contain a valid URL (must begin with http).");
+        setTimeout(() => setSaveError(null), 3000);
+      }
+    } catch {
+      setSaveError("Clipboard access blocked. Please press Ctrl+V / Cmd+V to paste.");
+      setTimeout(() => setSaveError(null), 3000);
+    }
+  };
+
   const handleCopyInvitationText = () => {
     const text = `Dear ${booking.client_name},\n\nYour architectural consultation session (${booking.tier_name}) with MARK Architects is confirmed for ${bookingDate} at ${bookingTime} PKT.\n\nVideo Meeting Link: ${meetingUrl || "[Pending Meeting URL]"}\n\nPlease have your site surveys and architectural questions ready.\n\nMARK Architects Studio\nHotline: +92 300 1234567`;
     navigator.clipboard.writeText(text);
@@ -793,48 +858,78 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
               <div className="flex items-center gap-2">
                 <Video className="w-4 h-4 text-[#7E5714]" />
                 <h3 className="font-playfair text-sm font-bold text-stone-900">
-                  Google Meet &amp; Calendar Conference
+                  Google Meet Conference
                 </h3>
               </div>
-              {meetingUrl && (
-                <span className="text-[10px] text-emerald-800 font-mono font-semibold bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                  Meet Ready ✓
+              {meetingUrl ? (
+                <span className="text-[10px] text-emerald-800 font-mono font-semibold bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-700" />
+                  Meet Ready
+                </span>
+              ) : (
+                <span className="text-[10px] text-amber-800 font-mono font-semibold bg-amber-100 px-2.5 py-0.5 rounded-full">
+                  Link Required
                 </span>
               )}
             </div>
 
-            {/* Quick Link Buttons if Meeting Exists */}
-            {meetingUrl && (
-              <div className="flex flex-wrap gap-2 pt-1">
+            {/* Quick Helper Workflow Box */}
+            <div className="bg-amber-100/60 border border-amber-200/80 rounded-xl p-3 text-[11px] text-stone-700 space-y-1">
+              <div className="font-semibold text-stone-900 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#7E5714]" />
+                <span>Google Meet Workflow:</span>
+              </div>
+              <ol className="list-decimal list-inside space-y-0.5 text-stone-600 pl-0.5">
+                <li>Click <strong>&quot;Create on Google Meet&quot;</strong> to start a real meeting room.</li>
+                <li>Copy the meeting link from Google Meet (e.g. <span className="font-mono text-stone-800 font-medium">https://meet.google.com/xxx-yyyy-zzz</span>).</li>
+                <li>Paste it below and click <strong>&quot;Save Link&quot;</strong> or <strong>&quot;Save &amp; Email to Client&quot;</strong>.</li>
+              </ol>
+            </div>
+
+            {/* Direct Google Meet Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <a
+                href="https://meet.google.com/new"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-[#7E5714] hover:bg-[#684710] text-white text-xs font-semibold shadow-xs transition-colors"
+              >
+                <Video className="w-3.5 h-3.5" />
+                <span>Create on Google Meet</span>
+                <ExternalLink className="w-3 h-3 ml-0.5 opacity-80" />
+              </a>
+
+              {meetingUrl && (
                 <a
                   href={meetingUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
                 >
                   <Video className="w-3.5 h-3.5" />
-                  <span>Join Google Meet</span>
-                  <ExternalLink className="w-3 h-3 ml-0.5" />
+                  <span>Join Google Meet (Admin)</span>
+                  <ExternalLink className="w-3 h-3 ml-0.5 opacity-80" />
                 </a>
+              )}
 
-                {booking.calendar_event_id && (
-                  <a
-                    href="https://calendar.google.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-semibold shadow-2xs transition-colors"
-                  >
-                    <Calendar className="w-3.5 h-3.5 text-[#7E5714]" />
-                    <span>Open Calendar Event</span>
-                    <ExternalLink className="w-3 h-3 text-stone-400" />
-                  </a>
-                )}
-              </div>
-            )}
+              {booking.calendar_event_id && (
+                <a
+                  href="https://calendar.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-semibold shadow-2xs transition-colors"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-[#7E5714]" />
+                  <span>Calendar</span>
+                  <ExternalLink className="w-3 h-3 text-stone-400" />
+                </a>
+              )}
+            </div>
 
+            {/* URL Input & Direct Paste/Test controls */}
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-stone-700">
-                Secure Video Conference URL (HTTPS)
+                Google Meet Video URL (HTTPS)
               </label>
               <div className="flex gap-2">
                 <input
@@ -844,6 +939,15 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
                   placeholder="https://meet.google.com/abc-defg-hij"
                   className="flex-1 px-3 py-2 rounded-xl bg-white border border-stone-300 text-xs font-mono text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#7E5714] shadow-2xs"
                 />
+                <button
+                  type="button"
+                  onClick={handlePasteClipboard}
+                  title="Paste link from clipboard"
+                  className="px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 shadow-2xs flex items-center gap-1 text-xs font-semibold shrink-0 cursor-pointer"
+                >
+                  <ClipboardPaste className="w-3.5 h-3.5 text-[#7E5714]" />
+                  <span>Paste</span>
+                </button>
                 {validateMeetingUrl(meetingUrl) && (
                   <a
                     href={meetingUrl}
@@ -858,58 +962,26 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Smart Recovery / Action Buttons */}
+            {/* Save & Dispatch Actions */}
             <div className="flex flex-wrap gap-2 pt-2 border-t border-[#7E5714]/15">
-              {/* If meeting missing or failed: Retry Meeting Creation */}
-              {(!meetingUrl || meetingStatus === "failed") && (
-                <button
-                  onClick={handleRetryMeeting}
-                  disabled={isRetryingMeeting}
-                  className="px-3.5 py-2 rounded-xl bg-[#7E5714] hover:bg-[#684710] text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
-                >
-                  {isRetryingMeeting ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-3.5 h-3.5" />
-                  )}
-                  <span>Create / Retry Google Meeting</span>
-                </button>
-              )}
-
-              {/* If email failed: Retry Email */}
-              {emailStatus === "failed" && meetingUrl && (
-                <button
-                  onClick={handleRetryEmail}
-                  disabled={isRetryingEmail}
-                  className="px-3.5 py-2 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
-                >
-                  {isRetryingEmail ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Mail className="w-3.5 h-3.5" />
-                  )}
-                  <span>Retry Confirmation Email</span>
-                </button>
-              )}
-
-              {/* If email already sent: Resend Confirmation */}
-              {emailStatus === "sent" && meetingUrl && (
-                <button
-                  onClick={handleResendEmail}
-                  disabled={isResendingEmail}
-                  className="px-3 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
-                >
-                  {isResendingEmail ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Mail className="w-3.5 h-3.5 text-[#7E5714]" />
-                  )}
-                  <span>Resend Confirmation</span>
-                </button>
-              )}
-
-              {/* Manual Confirmation Dispatch */}
+              {/* Quick Save URL only */}
               <button
+                type="button"
+                onClick={handleSaveMeetingUrl}
+                disabled={isSaving || !meetingUrl}
+                className="px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5 text-[#7E5714]" />
+                )}
+                <span>Save Link</span>
+              </button>
+
+              {/* Save & Send Email to Client */}
+              <button
+                type="button"
                 onClick={handleConfirmAndSendLink}
                 disabled={isSendingLink || !meetingUrl}
                 className="px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-black text-white font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
@@ -919,10 +991,45 @@ export const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
                 ) : (
                   <Send className="w-3.5 h-3.5" />
                 )}
-                <span>Send Manual Invitation</span>
+                <span>Save &amp; Email to Client</span>
               </button>
 
+              {/* Resend Confirmation if already sent */}
+              {emailStatus === "sent" && meetingUrl && (
+                <button
+                  type="button"
+                  onClick={handleResendEmail}
+                  disabled={isResendingEmail}
+                  className="px-3 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+                >
+                  {isResendingEmail ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Mail className="w-3.5 h-3.5 text-[#7E5714]" />
+                  )}
+                  <span>Resend Email</span>
+                </button>
+              )}
+
+              {/* If email previously failed: Retry Email */}
+              {emailStatus === "failed" && meetingUrl && (
+                <button
+                  type="button"
+                  onClick={handleRetryEmail}
+                  disabled={isRetryingEmail}
+                  className="px-3.5 py-2 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {isRetryingEmail ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Mail className="w-3.5 h-3.5" />
+                  )}
+                  <span>Retry Email</span>
+                </button>
+              )}
+
               <button
+                type="button"
                 onClick={handleCopyInvitationText}
                 className="px-3 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer ml-auto"
               >
