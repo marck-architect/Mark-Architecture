@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resend, EMAIL_CONFIG } from "@/lib/server/email/resend";
+import { saveCardContact } from "@/lib/server/cardContacts";
 
 export const runtime = "nodejs";
 
@@ -127,6 +128,7 @@ export async function POST(req: NextRequest) {
 
     const adminEmail = process.env.ADMIN_EMAIL || "markarchitects.web@gmail.com";
     const recipients = [adminEmail];
+    let emailSentSuccessfully = false;
 
     if (resend) {
       try {
@@ -141,6 +143,7 @@ export async function POST(req: NextRequest) {
         if (error) {
           console.error("[Card Exchange Info] Resend email error:", error.message);
         } else {
+          emailSentSuccessfully = true;
           console.log("[Card Exchange Info] Email sent successfully:", data?.id);
         }
       } catch (sendErr) {
@@ -153,11 +156,21 @@ export async function POST(req: NextRequest) {
         name: trimmedName,
         phone: trimmedPhone,
       });
+      emailSentSuccessfully = true;
     }
+
+    // Persist contact lead for the Admin Dashboard
+    const savedContact = await saveCardContact({
+      name: trimmedName,
+      email: trimmedEmail,
+      phone: trimmedPhone,
+      email_sent: emailSentSuccessfully,
+    });
 
     return NextResponse.json({
       success: true,
       message: "Information received successfully",
+      contact: savedContact,
     });
   } catch (err) {
     console.error("[Card Exchange Info API] Unexpected error:", err);

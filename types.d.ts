@@ -530,6 +530,7 @@ export type AdminTabType =
   | "dashboard"
   | "consultations"
   | "orders"
+  | "card-contacts"
   | "calendar"
   | "services"
   | "pricing"
@@ -546,6 +547,18 @@ export type AdminTabType =
   | "analytics"
   | "settings"
   | "audit";
+
+export interface CardContactRecord {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  notes?: string | null;
+  status: "new" | "contacted" | "archived";
+  email_sent?: boolean;
+  created_at: string;
+  updated_at?: string;
+}
 
 export interface PricingTierData {
   id: string;

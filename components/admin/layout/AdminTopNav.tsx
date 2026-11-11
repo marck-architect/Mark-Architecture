@@ -49,6 +49,8 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
         return "Studio Command Center";
       case "consultations":
         return "Consultation Appointments & Review";
+      case "card-contacts":
+        return "Digital Card Contacts & Leads";
       case "calendar":
         return "Calendar & Availability Settings";
       case "services":

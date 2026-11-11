@@ -25,6 +25,7 @@ import { AuditLogsView } from "./audit/AuditLogsView";
 import { BookingDetailModal } from "./BookingDetailModal";
 import { OrdersManager } from "./orders/OrdersManager";
 import { OrderDetailModal } from "./orders/OrderDetailModal";
+import { CardContactsManager } from "./card-contacts/CardContactsManager";
 import type {
   ConsultationRecord,
   OrderRecord,
@@ -42,6 +43,7 @@ const VALID_TABS: AdminTabType[] = [
   "dashboard",
   "consultations",
   "orders",
+  "card-contacts",
   "calendar",
   "services",
   "pricing",
@@ -100,9 +102,22 @@ function AdminDashboardInner({
   const [selectedBooking, setSelectedBooking] =
     useState<ConsultationRecord | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
+  const [newCardContactsCount, setNewCardContactsCount] = useState(0);
 
   // Fetch initial dynamic data from APIs (with graceful fallback to seeds)
   useEffect(() => {
+    // Card contacts count
+    fetch("/api/admin/card-contacts")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data?.contacts)) {
+          const uncontacted = data.contacts.filter(
+            (c: { status: string }) => c.status === "new",
+          ).length;
+          setNewCardContactsCount(uncontacted);
+        }
+      })
+      .catch(() => {});
     // Services
     fetch("/api/admin/services")
       .then((res) => (res.ok ? res.json() : null))
@@ -411,6 +426,7 @@ function AdminDashboardInner({
         onMobileClose={() => setMobileSidebarOpen(false)}
         pendingCount={pendingCount}
         pendingOrdersCount={pendingOrdersCount}
+        cardContactsCount={newCardContactsCount}
         unreadNotifsCount={unreadNotifsCount}
       />
 
@@ -456,6 +472,8 @@ function AdminDashboardInner({
               onRefresh={fetchOrders}
             />
           )}
+
+          {activeTab === "card-contacts" && <CardContactsManager />}
 
           {activeTab === "calendar" && (
             <CalendarManager
